@@ -53,7 +53,7 @@ function applyOperationsToTasks(tasks: Task[], operations: TaskAIOperation[]): T
           status: operation.status ?? 'pending',
           importance: operation.importance ?? 'medium',
           date: operation.date ?? new Date().toISOString().slice(0, 10),
-          projectId: operation.projectId ?? '',
+          projectId: operation.projectId,
           assignees: operation.assignees ?? [],
           createdAt: Date.now(),
           updatedAt: Date.now(),

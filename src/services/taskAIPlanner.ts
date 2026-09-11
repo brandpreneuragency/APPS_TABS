@@ -37,12 +37,10 @@ function normalizeOperation(op: any): TaskAIOperation | null {
       id,
       type: 'create_task',
       title: op.title.trim().slice(0, TASK_TITLE_MAX_LENGTH),
-      parentId: typeof op.parentId === 'string' ? op.parentId : undefined,
       status,
       importance,
       date: typeof op.date === 'string' ? op.date : undefined,
-      projectId:
-        op.projectId === null || typeof op.projectId === 'string' ? op.projectId : undefined,
+      projectId: typeof op.projectId === 'string' ? op.projectId : '',
       content: typeof op.content === 'string' ? op.content : undefined,
       assignees: Array.isArray(op.assignees)
         ? op.assignees.filter((value: unknown): value is string => typeof value === 'string')
@@ -88,13 +86,9 @@ function validateOperations(
   operations: TaskAIOperation[],
   validProjectIds: Set<string>
 ) {
-  const knownTaskIds = new Set([context.task.id, ...context.subtasks.map((subtask) => subtask.id)]);
-  const existingSubtaskTitles = new Set(
-    context.subtasks.map((subtask) => subtask.title.trim().toLowerCase())
-  );
+  const knownTaskIds = new Set([context.task.id]);
   const errors: string[] = [];
   const warnings: string[] = [];
-  const duplicateSubtasks: string[] = [];
 
   for (const operation of operations) {
     if (operation.type === 'create_task') {
@@ -104,18 +98,10 @@ function validateOperations(
       if (operation.date && !ISO_DATE_RE.test(operation.date)) {
         errors.push(`Create task operation "${operation.title}" has invalid date format.`);
       }
-      if (
-        typeof operation.projectId === 'string' &&
-        operation.projectId.trim() &&
-        !validProjectIds.has(operation.projectId)
-      ) {
+      if (!operation.projectId.trim()) {
+        errors.push(`Create task operation "${operation.title}" must include projectId.`);
+      } else if (!validProjectIds.has(operation.projectId)) {
         errors.push(`Create task operation "${operation.title}" uses an unknown project.`);
-      }
-      if (operation.parentId === context.task.id) {
-        const normalized = operation.title.trim().toLowerCase();
-        if (existingSubtaskTitles.has(normalized)) {
-          duplicateSubtasks.push(operation.title.trim());
-        }
       }
       continue;
     }
@@ -155,14 +141,10 @@ function validateOperations(
     }
   }
 
-  if (duplicateSubtasks.length > 0) {
-    warnings.push('Potential duplicate subtasks were detected in the draft.');
-  }
-
   return {
     errors,
     warnings,
-    duplicateSubtasks,
+    duplicateSubtasks: [] as string[],
     staleTaskIds: [] as string[],
   };
 }
@@ -215,7 +197,7 @@ export async function planTaskAIDraft({
   "assistantMessage": "string",
   "summary": "short summary",
   "operations": [
-    { "type": "create_task", "title": "string", "parentId": "optional task id", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string|null", "content": "optional notes", "assignees": ["name"] },
+    { "type": "create_task", "title": "string", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string", "content": "optional notes", "assignees": ["name"] },
     { "type": "update_task", "taskId": "string", "updates": { "title": "string", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string|null", "content": "string", "assignees": ["name"] } },
     { "type": "soft_delete_task", "taskId": "string", "reason": "optional" },
     { "type": "add_comment", "taskId": "string", "text": "string" }
@@ -271,6 +253,12 @@ ${searchResultsText ? `\n\nWeb search context:\n${searchResultsText}` : ''}`,
       ? parsed.operations
           .map((operation: unknown) => normalizeOperation(operation))
           .filter((operation: TaskAIOperation | null): operation is TaskAIOperation => Boolean(operation))
+          .map((operation: TaskAIOperation) => {
+            if (operation.type === 'create_task' && !operation.projectId.trim()) {
+              return { ...operation, projectId: context.task.projectId };
+            }
+            return operation;
+          })
       : [];
 
     const validation = validateOperations(context, operations, validProjectIds);

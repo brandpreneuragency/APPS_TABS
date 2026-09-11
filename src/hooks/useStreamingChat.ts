@@ -3,6 +3,8 @@ import { useChatStore } from '../stores/chatStore';
 import { useAIStore } from '../stores/aiStore';
 import { useTaskStore } from '../stores/taskStore';
 import { useTaskCommentStore } from '../stores/taskCommentStore';
+import { useProjectStore } from '../stores/projectStore';
+import { useClientStore } from '../stores/clientStore';
 import { streamChat } from '../services/ai/router';
 import type { ChatMessage as AiChatMessage, ContentPart } from '../services/ai/types';
 import { getWriterInstructions, getTaskInstructions } from '../services/instructionFiles';
@@ -289,9 +291,16 @@ export function useStreamingChat(
 
           await useTaskCommentStore.getState().loadComments(contextTaskId);
           const comments = useTaskCommentStore.getState().getComments(contextTaskId);
-          void buildTaskAIContext(activeTask, [], comments);
+          const project = useProjectStore.getState().getProjectById(activeTask.projectId);
+          const client = project
+            ? useClientStore.getState().getClientById(project.clientId)
+            : undefined;
+          const taskContext = buildTaskAIContext(activeTask, comments, {
+            clientName: client?.name,
+            projectName: project?.name,
+          });
 
-          const basePrompt = parts.join('\n\n');
+          const basePrompt = [...parts, taskContext.text].join('\n\n');
           const attachmentContext = await buildAttachmentContext(attachments);
           const userTextWithContext = attachmentContext
             ? `${attachmentContext}\n\n[User message]:\n${userText}`

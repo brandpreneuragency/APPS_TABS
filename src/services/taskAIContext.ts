@@ -2,7 +2,6 @@ import type { Task, TaskComment } from '../types';
 
 export interface TaskAIContextPayload {
   task: Task;
-  subtasks: Task[];
   comments: TaskComment[];
   baselineUpdatedAt: Record<string, number>;
   text: string;
@@ -16,13 +15,14 @@ function formatComment(comment: TaskComment): string {
   return `- [${timestamp}] ${comment.text || '(no text)'}${attachmentMeta}`;
 }
 
-export function buildTaskAIContext(task: Task, subtasks: Task[], comments: TaskComment[]): TaskAIContextPayload {
+export function buildTaskAIContext(
+  task: Task,
+  comments: TaskComment[],
+  meta?: { clientName?: string; projectName?: string },
+): TaskAIContextPayload {
   const baselineUpdatedAt: Record<string, number> = {
     [task.id]: task.updatedAt,
   };
-  for (const subtask of subtasks) {
-    baselineUpdatedAt[subtask.id] = subtask.updatedAt;
-  }
 
   const lines: string[] = [
     'ACTIVE TASK',
@@ -32,26 +32,17 @@ export function buildTaskAIContext(task: Task, subtasks: Task[], comments: TaskC
     `importance: ${task.importance}`,
     `date: ${task.date}`,
     `projectId: ${task.projectId ?? 'null'}`,
+    `client: ${meta?.clientName ?? '(none)'}`,
+    `project: ${meta?.projectName ?? '(none)'}`,
     `assignees: ${task.assignees.join(', ') || '(none)'}`,
     `updatedAt: ${task.updatedAt}`,
     '',
     'NOTES',
     task.content?.trim() ? task.content : '(empty)',
     '',
-    'SUBTASKS',
+    'COMMENTS',
   ];
 
-  if (subtasks.length === 0) {
-    lines.push('- (none)');
-  } else {
-    for (const subtask of subtasks) {
-      lines.push(
-        `- ${subtask.id} | ${subtask.title} | status=${subtask.status} | date=${subtask.date} | updatedAt=${subtask.updatedAt}`
-      );
-    }
-  }
-
-  lines.push('', 'COMMENTS');
   if (comments.length === 0) {
     lines.push('- (none)');
   } else {
@@ -62,7 +53,6 @@ export function buildTaskAIContext(task: Task, subtasks: Task[], comments: TaskC
 
   return {
     task,
-    subtasks,
     comments,
     baselineUpdatedAt,
     text: lines.join('\n'),

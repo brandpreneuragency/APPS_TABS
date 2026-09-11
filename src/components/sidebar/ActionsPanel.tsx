@@ -44,7 +44,7 @@ const TASK_BUILT_INS: PromptItem[] = [
   {
     id: 'builtin_task_split',
     title: 'Split Into Tasks',
-    prompt: 'Split this work into smaller tasks and subtasks with clear ownership.',
+    prompt: 'Create tasks on this project with clear titles. Do not create subtasks.',
     scope: 'task',
     createdAt: 0,
     builtin: true,

@@ -31,8 +31,7 @@ function describeOperation(
   taskById: Record<string, { [key: string]: unknown }>
 ) {
   if (operation.type === 'create_task') {
-    const target = operation.parentId ? `subtask for ${taskTitleById[operation.parentId] ?? operation.parentId}` : 'task';
-    return `Create ${target}: ${operation.title}`;
+    return `Create task: ${operation.title}`;
   }
   if (operation.type === 'update_task') {
     const before = taskById[operation.taskId] ?? {};

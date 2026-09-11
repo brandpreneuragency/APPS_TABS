@@ -377,11 +377,10 @@ export type TaskAIOperation =
       id: string;
       type: 'create_task';
       title: string;
-      parentId?: string;
       status?: TaskStatus;
       importance?: TaskImportance;
       date?: string;
-      projectId?: string | null;
+      projectId: string;
       content?: string;
       assignees?: string[];
     }
