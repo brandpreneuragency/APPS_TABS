@@ -9,9 +9,10 @@ import {
   ComposerSendButton,
 } from '../ui/Composer';
 import { useTaskStore } from '../../stores/taskStore';
+import { useUIStore } from '../../stores/uiStore';
 import { usePlaceholder } from '../../utils/placeholders';
 import { useProjectStore } from '../../stores/projectStore';
-import { resolveQuickCreateProjectId } from '../../stores/taskSelection';
+import { projectsForClient, resolveQuickCreateProjectId } from '../../stores/taskSelection';
 import { parseTaskInput } from '../../services/nlpParser';
 import { getTodayIso, getTomorrowIso } from '../../services/taskFormat';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
@@ -27,9 +28,6 @@ function ProjectDropdown({ show, projects, onPick }: { show: boolean; projects: 
       onMouseDown={(event) => event.stopPropagation()}
       style={{ left: 0, bottom: '100%', minWidth: 120, marginBottom: 2 }}
     >
-      <button type="button" className="drop-item" onClick={() => onPick('')} style={{ fontSize: 'var(--fs-base)' }}>
-        No project
-      </button>
       {projects.map((p) => (
         <button key={p.id} type="button" className="drop-item" onClick={() => onPick(p.name)} style={{ fontSize: 'var(--fs-base)' }}>
           {p.name}
@@ -137,9 +135,11 @@ export function QuickCreateInput({
   const { createTask } = useTaskStore();
   const selectedClientId = useTaskStore((s) => s.selectedClientId);
   const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
+  const showToast = useUIStore((s) => s.showToast);
   const { projects } = useProjectStore();
   const { t } = useTranslation();
-  const resolvedProjectId = resolveQuickCreateProjectId(
+  const clientProjects = projectsForClient(projects, selectedClientId);
+  const fallbackProjectId = resolveQuickCreateProjectId(
     selectedClientId,
     selectedProjectId,
     projects,
@@ -187,6 +187,10 @@ export function QuickCreateInput({
 
   const effectiveDate = assignedDate ?? null;
   const effectiveProject = assignedProject ?? null;
+  const pickedProjectId = clientProjects.find(
+    (p) => p.name.toLowerCase() === effectiveProject?.toLowerCase(),
+  )?.id ?? null;
+  const resolvedProjectId = pickedProjectId ?? fallbackProjectId;
   const hasProjectValue = !!effectiveProject?.trim();
   const hasDateValue = !!effectiveDate?.trim();
   const projectButtonLabel = effectiveProject?.trim() || 'Project';
@@ -202,14 +206,15 @@ export function QuickCreateInput({
   const handleSend = async () => {
     const title = parsed?.title?.trim();
     if (!title && !effectiveDate && !effectiveProject) return;
-    if (!title || !resolvedProjectId) return;
-    const project = projects.find(
-      (p) => p.name.toLowerCase() === effectiveProject?.toLowerCase()
-    );
+    if (!title) return;
+    if (!resolvedProjectId) {
+      showToast(t('tasks.pickAProject'), 'info');
+      return;
+    }
     await createTask(title, {
       date: effectiveDate ?? new Date().toISOString().slice(0, 10),
       importance: parsed?.importance ?? 'medium',
-      projectId: project?.id ?? resolvedProjectId,
+      projectId: resolvedProjectId,
     });
     setValue('');
     handleSetDate(null);
@@ -307,7 +312,7 @@ export function QuickCreateInput({
                   <Folder size={12} className="task-quick-create-dropup-icon" />
                   <span className="trunc med task-quick-create-dropup-label">{projectButtonLabel}</span>
                 </button>
-                <ProjectDropdown show={showProjectPicker} projects={projects} onPick={handleProjectPick} />
+                <ProjectDropdown show={showProjectPicker} projects={clientProjects} onPick={handleProjectPick} />
               </div>
               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={datePickerRef}>
                 <button

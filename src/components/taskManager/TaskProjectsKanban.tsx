@@ -13,11 +13,13 @@ import {
 import '../crm/crm.css';
 import './taskProjectsKanban.css';
 import './taskDetail.css';
+import { useTranslation } from 'react-i18next';
 import { dateOptions } from './taskMetadataUtils';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useUIStore } from '../../stores/uiStore';
-import { KPICard, CRMEmptyState } from '../crm/components';
+import { kanbanColumnsForClient } from '../../stores/taskSelection';
+import { KPICard } from '../crm/components';
 import type { Task } from '../../types';
 
 const PROJECT_DOT_COLORS: Record<string, string> = {
@@ -30,8 +32,6 @@ const PROJECT_DOT_COLORS: Record<string, string> = {
   'text-orange-500': '#f97316',
   'text-pink-500': '#ec4899',
 };
-
-const UNCATEGORIZED_ID = '__none__';
 
 function projectDotColor(color?: string): string {
   return (color && PROJECT_DOT_COLORS[color]) || 'var(--c-text-3)';
@@ -47,7 +47,7 @@ function isOverdue(t: Task): boolean {
 }
 
 interface Column {
-  id: string; // project id or UNCATEGORIZED_ID
+  id: string; // project id
   name: string;
   color?: string;
   tasks: Task[];
@@ -181,7 +181,9 @@ function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
 }
 
 export function TaskProjectsKanban() {
+  const { t } = useTranslation();
   const tasks = useTaskStore((s) => s.tasks);
+  const selectedClientId = useTaskStore((s) => s.selectedClientId);
   const activeTaskId = useTaskStore((s) => s.activeTaskId);
   const updateTask = useTaskStore((s) => s.updateTask);
   const createTask = useTaskStore((s) => s.createTask);
@@ -197,34 +199,32 @@ export function TaskProjectsKanban() {
     if (addingProject) newProjectInputRef.current?.focus();
   }, [addingProject]);
 
-  const rootTasks = tasks;
-
-  const metrics = useMemo(() => {
-    const total = rootTasks.length;
-    const completed = rootTasks.filter((t) => t.status === 'completed').length;
-    const overdue = rootTasks.filter(isOverdue).length;
-    return { total, completed, overdue };
-  }, [rootTasks]);
+  const livingTasks = useMemo(() => tasks.filter((t) => !t.deletedAt), [tasks]);
 
   const columns: Column[] = useMemo(() => {
-    const projectCols: Column[] = projects.map((p) => ({
-      id: p.id,
-      name: p.name,
-      color: p.color,
-      tasks: rootTasks.filter((t) => t.projectId === p.id),
+    const byId = new Map(livingTasks.map((task) => [task.id, task]));
+    return kanbanColumnsForClient(projects, livingTasks, selectedClientId).map((col) => ({
+      id: col.id,
+      name: col.name,
+      color: col.color,
+      tasks: col.taskIds
+        .map((id) => byId.get(id))
+        .filter((task): task is Task => task !== undefined),
     }));
-    const uncategorized: Column = {
-      id: UNCATEGORIZED_ID,
-      name: 'Uncategorized',
-      tasks: rootTasks.filter((t) => !t.projectId),
-    };
-    return [...projectCols, uncategorized];
-  }, [projects, rootTasks]);
+  }, [projects, livingTasks, selectedClientId]);
 
-  const handleAddTask = async (projectId: string | null) => {
+  const metrics = useMemo(() => {
+    const columnTasks = columns.flatMap((col) => col.tasks);
+    const total = columnTasks.length;
+    const completed = columnTasks.filter((t) => t.status === 'completed').length;
+    const overdue = columnTasks.filter(isOverdue).length;
+    return { total, completed, overdue };
+  }, [columns]);
+
+  const handleAddTask = async (projectId: string) => {
     const title = window.prompt('New task title');
     if (!title || !title.trim()) return;
-    const created = await createTask(title.trim(), projectId ? { projectId } : {});
+    const created = await createTask(title.trim(), { projectId });
     if (created) openTaskInActiveTab(created.id);
   };
 
@@ -240,16 +240,14 @@ export function TaskProjectsKanban() {
 
   const submitNewProject = async () => {
     const name = newProjectName.trim();
-    if (!name) return;
-    const clientId = projects[0]?.clientId ?? '';
-    if (!clientId) return;
-    await createProject(name, clientId);
+    if (!name || !selectedClientId) return;
+    await createProject(name, selectedClientId);
     cancelAddProject();
   };
 
   const handleMove = async (taskId: string, columnId: string) => {
-    if (columnId === UNCATEGORIZED_ID) return;
-    const task = rootTasks.find((t) => t.id === taskId);
+    if (!columns.some((col) => col.id === columnId)) return;
+    const task = livingTasks.find((t) => t.id === taskId);
     if (!task || task.projectId === columnId) return;
     await updateTask(taskId, { projectId: columnId });
   };
@@ -295,21 +293,13 @@ export function TaskProjectsKanban() {
     </button>
   );
 
-  if (rootTasks.length === 0 && projects.length === 0) {
+  if (!selectedClientId) {
     return (
       <div className="crm-page">
         <div className="crm-page-body" style={{ paddingTop: 14 }}>
-          {addingProject ? (
-            <div className="task-kanban-add-column-empty-wrap">{newProjectForm}</div>
-          ) : (
-            <CRMEmptyState
-              icon={ListTodo}
-              title="No tasks or projects yet"
-              subtitle="Create a project, then add tasks. Drag cards between columns to reassign them to a project."
-              actionLabel="Add project"
-              onAction={startAddProject}
-            />
-          )}
+          <div className="task-kanban-empty" role="status">
+            {t('tasks.kanbanPickClient')}
+          </div>
         </div>
       </div>
     );
@@ -323,7 +313,7 @@ export function TaskProjectsKanban() {
             label="Total Tasks"
             value={metrics.total}
             icon={ListTodo}
-            delta={`${projects.length} project${projects.length === 1 ? '' : 's'}`}
+            delta={`${columns.length} project${columns.length === 1 ? '' : 's'}`}
             deltaPositive
           />
           <KPICard
@@ -402,7 +392,7 @@ export function TaskProjectsKanban() {
                 <button
                   type="button"
                   className="task-kanban-add-btn"
-                  onClick={() => handleAddTask(col.id === UNCATEGORIZED_ID ? null : col.id)}
+                  onClick={() => handleAddTask(col.id)}
                 >
                   <Plus size={12} /> Add task
                 </button>

@@ -77,3 +77,13 @@
 .task-kanban-add-column-empty-wrap .task-kanban-add-column {
   width: min(100%, 280px);
 }
+
+.task-kanban-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+}
