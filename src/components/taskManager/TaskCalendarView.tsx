@@ -39,7 +39,6 @@ export function TaskCalendarView({ tasks, onSetDate }: TaskCalendarViewProps) {
   const tasksByDate = useMemo(() => {
     const map: Record<string, Task[]> = {};
     for (const t of tasks) {
-      if (t.parentId) continue;
       if (filterProjectId && t.projectId !== filterProjectId) continue;
       if (!t.date) continue;
       const d = new Date(t.date);

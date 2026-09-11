@@ -28,7 +28,7 @@ interface ProjectStore {
   isLoaded: boolean;
 
   loadProjects: () => Promise<void>;
-  createProject: (name: string) => Promise<Project | null>;
+  createProject: (name: string, clientId?: string) => Promise<Project | null>;
   updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'color'>>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getProjectById: (id: string | null) => Project | undefined;
@@ -47,7 +47,9 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           id: nanoid(8),
           name: 'General',
           color: PROJECT_COLORS[0],
+          clientId: '',
           createdAt: Date.now(),
+          order: 0,
         };
         await db.projects.add(generalProject);
         set({ projects: [generalProject], isLoaded: true });
@@ -60,13 +62,20 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     }
   },
 
-  createProject: async (name) => {
+  createProject: async (name, clientId) => {
     const trimmed = name.trim();
     if (!trimmed) return null;
     const id = nanoid(8);
     const color = PROJECT_COLORS[get().projects.length % PROJECT_COLORS.length];
     const now = Date.now();
-    const project: Project = { id, name: trimmed, color, createdAt: now };
+    const project: Project = {
+      id,
+      name: trimmed,
+      color,
+      clientId: clientId ?? get().projects[0]?.clientId ?? '',
+      createdAt: now,
+      order: get().projects.length,
+    };
     try {
       await db.projects.add(project);
       set((s) => ({ projects: [...s.projects, project] }));

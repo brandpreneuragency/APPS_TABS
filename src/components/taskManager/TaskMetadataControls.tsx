@@ -92,14 +92,6 @@ export function TaskMetadataControls() {
         </button>
         {showProjectPicker && activeTask && (
           <div className="drop" style={{ position: 'absolute', top: '100%', left: 0, minWidth: 160, marginTop: 2, zIndex: 1000 }}>
-            <button
-              type="button"
-              className="drop-item"
-              onClick={() => { updateTask(activeTask.id, { projectId: null }); setShowProjectPicker(false); }}
-              style={{ fontSize: 'var(--fs-base)' }}
-            >
-              No project
-            </button>
             {projects.map((p) => (
               <button
                 key={p.id}

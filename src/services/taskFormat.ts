@@ -55,7 +55,7 @@ export function parseTask(text: string): Partial<Task> & { content?: string } {
     status: (result.status as Task['status']) || undefined,
     importance: (result.importance as Task['importance']) || undefined,
     date: result.date || undefined,
-    projectId: result.projectId || null,
+    projectId: result.projectId || undefined,
     assignees,
     createdAt: result.createdAt ? Number(result.createdAt) : undefined,
     updatedAt: result.updatedAt ? Number(result.updatedAt) : undefined,

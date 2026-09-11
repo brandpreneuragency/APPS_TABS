@@ -197,7 +197,7 @@ export function TaskProjectsKanban() {
     if (addingProject) newProjectInputRef.current?.focus();
   }, [addingProject]);
 
-  const rootTasks = useMemo(() => tasks.filter((t) => !t.parentId), [tasks]);
+  const rootTasks = tasks;
 
   const metrics = useMemo(() => {
     const total = rootTasks.length;
@@ -246,10 +246,10 @@ export function TaskProjectsKanban() {
   };
 
   const handleMove = async (taskId: string, columnId: string) => {
-    const target = columnId === UNCATEGORIZED_ID ? null : columnId;
+    if (columnId === UNCATEGORIZED_ID) return;
     const task = rootTasks.find((t) => t.id === taskId);
-    if (!task || task.projectId === target) return;
-    await updateTask(taskId, { projectId: target });
+    if (!task || task.projectId === columnId) return;
+    await updateTask(taskId, { projectId: columnId });
   };
 
   const newProjectForm = addingProject ? (

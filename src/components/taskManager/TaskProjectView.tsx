@@ -18,7 +18,6 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
 
   const filtered = useMemo(() => {
     return tasks.filter((t) => {
-      if (t.parentId) return false;
       if (maxDate && t.date > maxDate) return false;
       return true;
     });

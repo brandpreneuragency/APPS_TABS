@@ -87,7 +87,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
     onClose();
   };
 
-  const assignProject = (projectId: string | null) => {
+  const assignProject = (projectId: string) => {
     updateTask(task.id, { projectId });
     setPanel('main');
   };
@@ -144,9 +144,6 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
       {panel === 'project' && (
         <>
-          <button type="button" className="drop-item" onClick={() => assignProject(null)} style={itemStyle}>
-            <X size={12} /> No project
-          </button>
           {projects.map((p) => (
             <button
               key={p.id}

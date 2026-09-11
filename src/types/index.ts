@@ -148,11 +148,21 @@ export interface ChatMessage {
   usage?: MessageUsage;
 }
 
-export interface Project {
+export interface Client {
   id: string;
   name: string;
   color: string;
   createdAt: number;
+  order: number;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  color: string;
+  clientId: string;
+  createdAt: number;
+  order: number;
 }
 
 export type TaskStatus = 'pending' | 'in_progress' | 'completed';
@@ -168,13 +178,12 @@ export interface Task {
   status: TaskStatus;
   importance: TaskImportance;
   date: string; // ISO date, e.g. "2026-04-28"
-  projectId: string | null;
+  projectId: string;
   assignees: string[];
   createdAt: number;
   updatedAt: number;
   sourcePath?: string;
   order: number;
-  parentId?: string;              // references parent task id
   sourceChatMessageId?: string;   // optional audit trail
   deletedAt?: number;             // soft-delete timestamp
 }

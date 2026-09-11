@@ -199,7 +199,7 @@ export function QuickCreateInput({
     await createTask(title, {
       date: effectiveDate ?? new Date().toISOString().slice(0, 10),
       importance: parsed?.importance ?? 'medium',
-      projectId: project?.id ?? null,
+      projectId: project?.id ?? '',
     });
     setValue('');
     handleSetDate(null);

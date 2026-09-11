@@ -33,7 +33,7 @@ interface TaskStore {
   createTask: (title: string, opts?: Partial<Task>) => Promise<Task | null>;
   updateTask: (id: string, updates: Partial<Pick<Task, 
     'title' | 'content' | 'status' | 'importance' | 'date' | 
-    'projectId' | 'assignees' | 'sourcePath' | 'parentId' | 
+    'projectId' | 'assignees' | 'sourcePath' | 
     'sourceChatMessageId'>>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   restoreTask: (id: string) => Promise<void>;
@@ -174,13 +174,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       status: opts.status ?? 'pending',
       importance: opts.importance ?? 'medium',
       date: opts.date ?? todayIso(),
-      projectId: opts.projectId ?? null,
+      projectId: opts.projectId ?? '',
       assignees: opts.assignees ?? [],
       createdAt: now,
       updatedAt: now,
       sourcePath: opts.sourcePath ?? undefined,
       order: get().tasks.length,
-      parentId: opts.parentId ?? undefined,
       sourceChatMessageId: opts.sourceChatMessageId ?? undefined,
     };
     try {
@@ -484,7 +483,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     return get().tasks.filter((t) => t.status === status && !t.deletedAt);
   },
 
-  getSubtasks: (parentId) => get().tasks.filter((t) => t.parentId === parentId && !t.deletedAt),
+  getSubtasks: (_parentId) => [],
 
   reorderSubtasks: async (_parentId, orderedIds) => {
     const now = Date.now();
@@ -543,7 +542,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       createdAt: now,
       updatedAt: now,
       order: 0,
-      parentId,
       sourceChatMessageId: sourceChatMessageId ?? undefined,
     };
     try {

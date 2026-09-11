@@ -35,7 +35,7 @@ export function TaskMetadataBar({ task, onUpdate }: TaskMetadataBarProps) {
       />
       <HeaderDropdown
         value={projectValue}
-        onChange={(next) => onUpdate({ projectId: next || null })}
+        onChange={(next) => { if (next) onUpdate({ projectId: next }); }}
         wrapperClassName="flex-1 min-w-0"
         options={[
           { value: '', label: 'No project' },

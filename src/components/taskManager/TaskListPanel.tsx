@@ -54,9 +54,7 @@ export function TaskListPanel() {
     + ' · '
     + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  const filteredTasks = useMemo(() => {
-    return tasks.filter((t) => !t.parentId);
-  }, [tasks]);
+  const filteredTasks = tasks;
 
   const groupedTasks = useMemo(() => {
     const groups: Record<DateCategory, typeof filteredTasks> = {

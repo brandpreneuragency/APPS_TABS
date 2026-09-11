@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
-import type { Document, Workspace, ChatMessage, Agent, AIProviderConfig, AppSettings, QuickPrompt, ActionGroup, Task, Project, TaskComment, TaskAIChangeBatch, ChatThreadMeta } from '../types';
+import type { Document, Workspace, ChatMessage, Agent, AIProviderConfig, AppSettings, QuickPrompt, ActionGroup, Task, Project, Client, TaskComment, TaskAIChangeBatch, ChatThreadMeta } from '../types';
+import { migrateProjectsToClients } from '../stores/migrateProjectsToClients';
 
 /** @deprecated Removed in v12 — folders now live inside Workspace objects. */
 export interface FileHandleRecord {
@@ -21,6 +22,7 @@ class TabsDB extends Dexie {
   /** @deprecated Removed in v12 — folders live inside Workspace objects. */
   fileHandles!: Table<FileHandleRecord>;
   tasks!: Table<Task>;
+  clients!: Table<Client>;
   projects!: Table<Project>;
   taskComments!: Table<TaskComment>;
   taskAIChangeBatches!: Table<TaskAIChangeBatch>;
@@ -208,6 +210,42 @@ class TabsDB extends Dexie {
       // Start fresh: clear old chat data (user chose this migration strategy)
       await tx.table('chatThreads').clear();
       await tx.table('chatMessages').clear();
+    });
+    // v13: Client layer — each old project becomes a client with a General
+    // project; tasks lose parentId and always have a projectId.
+    this.version(13).stores({
+      documents: null, // drop table
+      fileHandles: null, // drop table
+      workspaces: 'id, name, updatedAt, order',
+      chatMessages: 'id, threadId, mode, agentId, timestamp, settingsTab, workspaceId',
+      chatThreads: 'id, mode, updatedAt, workspaceId, taskId, settingsTab',
+      agents: 'id, name, isDefault, scope',
+      providerConfigs: 'id, provider, isActive',
+      settings: 'key',
+      quickPrompts: 'id, createdAt, scope, groupId, order',
+      actionGroups: 'id, scope, order',
+      tasks: 'id, title, updatedAt, order, projectId, status',
+      projects: 'id, name, clientId',
+      taskComments: 'id, taskId, createdAt',
+      taskAIChangeBatches: 'id, taskId, createdAt, expiresAt',
+      clients: 'id, name, order',
+    }).upgrade(async (tx) => {
+      const oldProjects = await tx.table('projects').toArray();
+      const oldTasks = await tx.table('tasks').toArray();
+      let n = 0;
+      const { clients, projects, tasks } = migrateProjectsToClients(oldProjects, oldTasks, {
+        id: () => `m13${(n++).toString(36).padStart(6, '0')}`,
+        now: Date.now(),
+      });
+      if (clients.length === 0 && oldProjects.some((p: { clientId?: string }) => p.clientId)) {
+        // already migrated
+        return;
+      }
+      await tx.table('projects').clear();
+      await tx.table('tasks').clear();
+      await tx.table('clients').bulkAdd(clients);
+      await tx.table('projects').bulkAdd(projects);
+      await tx.table('tasks').bulkAdd(tasks);
     });
   }
 }
