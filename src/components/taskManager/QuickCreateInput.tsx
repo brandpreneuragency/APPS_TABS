@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, Folder } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import {
   ComposerCard,
   ComposerTextarea,
@@ -10,6 +11,7 @@ import {
 import { useTaskStore } from '../../stores/taskStore';
 import { usePlaceholder } from '../../utils/placeholders';
 import { useProjectStore } from '../../stores/projectStore';
+import { resolveQuickCreateProjectId } from '../../stores/taskSelection';
 import { parseTaskInput } from '../../services/nlpParser';
 import { getTodayIso, getTomorrowIso } from '../../services/taskFormat';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
@@ -133,7 +135,15 @@ export function QuickCreateInput({
     onSetProject?.(project);
   };
   const { createTask } = useTaskStore();
+  const selectedClientId = useTaskStore((s) => s.selectedClientId);
+  const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
   const { projects } = useProjectStore();
+  const { t } = useTranslation();
+  const resolvedProjectId = resolveQuickCreateProjectId(
+    selectedClientId,
+    selectedProjectId,
+    projects,
+  );
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
   const projectRef = useRef<HTMLDivElement>(null);
@@ -192,14 +202,14 @@ export function QuickCreateInput({
   const handleSend = async () => {
     const title = parsed?.title?.trim();
     if (!title && !effectiveDate && !effectiveProject) return;
-    if (!title) return;
+    if (!title || !resolvedProjectId) return;
     const project = projects.find(
       (p) => p.name.toLowerCase() === effectiveProject?.toLowerCase()
     );
     await createTask(title, {
       date: effectiveDate ?? new Date().toISOString().slice(0, 10),
       importance: parsed?.importance ?? 'medium',
-      projectId: project?.id ?? '',
+      projectId: project?.id ?? resolvedProjectId,
     });
     setValue('');
     handleSetDate(null);
@@ -324,7 +334,11 @@ export function QuickCreateInput({
               </div>
             </div>
             <div className="task-quick-create-send">
-              <ComposerSendButton onClick={handleSend} disabled={!parsed?.title} title="Add task" />
+              <ComposerSendButton
+                onClick={handleSend}
+                disabled={!parsed?.title || !resolvedProjectId}
+                title={resolvedProjectId ? 'Add task' : t('tasks.pickAProject')}
+              />
             </div>
           </ComposerRow>
         </ComposerCard>

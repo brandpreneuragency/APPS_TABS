@@ -3,6 +3,7 @@ import {
   filterTasksForSelection,
   kanbanColumnsForClient,
   projectsForClient,
+  resolveQuickCreateProjectId,
 } from './taskSelection';
 
 const projects = [
@@ -52,6 +53,33 @@ describe('projectsForClient', () => {
 
   it('returns an empty array when clientId is null', () => {
     expect(projectsForClient(projects, null)).toEqual([]);
+  });
+});
+
+describe('resolveQuickCreateProjectId', () => {
+  it('returns selectedProjectId when a project is selected', () => {
+    expect(resolveQuickCreateProjectId('c1', 'p-web', projects)).toBe('p-web');
+  });
+
+  it('uses selectedProjectId even if it disagrees with selectedClientId', () => {
+    expect(resolveQuickCreateProjectId('c1', 'p-other', projects)).toBe('p-other');
+  });
+
+  it('returns the General project of the selected client when no project is selected', () => {
+    expect(resolveQuickCreateProjectId('c1', null, projects)).toBe('p-gen');
+  });
+
+  it('matches General via nameKey (case-insensitive)', () => {
+    const mixed = [{ id: 'p-g', clientId: 'c9', name: 'GENERAL' }];
+    expect(resolveQuickCreateProjectId('c9', null, mixed)).toBe('p-g');
+  });
+
+  it('returns null when the selected client has no General project', () => {
+    expect(resolveQuickCreateProjectId('c2', null, projects)).toBe(null);
+  });
+
+  it('returns null when nothing is selected', () => {
+    expect(resolveQuickCreateProjectId(null, null, projects)).toBe(null);
   });
 });
 

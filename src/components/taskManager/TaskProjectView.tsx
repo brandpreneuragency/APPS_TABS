@@ -3,6 +3,7 @@ import { Plus, Pencil, Folder } from 'lucide-react';
 import type { Task } from '../../types';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
+import { filterTasksForSelection, projectsForClient } from '../../stores/taskSelection';
 
 interface TaskProjectViewProps {
   tasks: Task[];
@@ -13,15 +14,28 @@ interface TaskProjectViewProps {
 
 export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
   const activeTaskId = useTaskStore((s) => s.activeTaskId);
+  const selectedClientId = useTaskStore((s) => s.selectedClientId);
+  const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
   const { projects } = useProjectStore();
   const [maxDate, setMaxDate] = useState<string>('');
 
+  const selectedTasks = useMemo(
+    () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
+    [tasks, projects, selectedClientId, selectedProjectId],
+  );
+
+  const visibleProjects = useMemo(() => {
+    if (selectedProjectId) return projects.filter((p) => p.id === selectedProjectId);
+    if (selectedClientId) return projectsForClient(projects, selectedClientId);
+    return projects;
+  }, [projects, selectedClientId, selectedProjectId]);
+
   const filtered = useMemo(() => {
-    return tasks.filter((t) => {
+    return selectedTasks.filter((t) => {
       if (maxDate && t.date > maxDate) return false;
       return true;
     });
-  }, [tasks, maxDate]);
+  }, [selectedTasks, maxDate]);
 
   const grouped = useMemo(() => {
     const map: Record<string, { project: typeof projects[0] | null; tasks: Task[] }> = {};
@@ -35,8 +49,7 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
       }
       map[key].tasks.push(t);
     }
-    // Add empty projects
-    for (const p of projects) {
+    for (const p of visibleProjects) {
       if (!map[p.id]) {
         map[p.id] = { project: p, tasks: [] };
       }
@@ -46,7 +59,7 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
       const bName = b.project?.name ?? 'Uncategorized';
       return aName.localeCompare(bName);
     });
-  }, [filtered, projects]);
+  }, [filtered, projects, visibleProjects]);
 
   const importanceDot = (imp: string) => {
     const cls = imp === 'high' ? 'task-dot-high' : imp === 'medium' ? 'task-dot-medium' : 'task-dot-low';

@@ -1,3 +1,5 @@
+import { nameKey } from './taskTreeNames';
+
 export function filterTasksForSelection<T extends { projectId: string; deletedAt?: number }>(
   tasks: readonly T[],
   projects: readonly { id: string; clientId: string }[],
@@ -26,6 +28,19 @@ export function projectsForClient<T extends { clientId: string }>(
 ): T[] {
   if (!clientId) return [];
   return projects.filter((p) => p.clientId === clientId);
+}
+
+export function resolveQuickCreateProjectId(
+  selectedClientId: string | null,
+  selectedProjectId: string | null,
+  projects: readonly { id: string; clientId: string; name: string }[],
+): string | null {
+  if (selectedProjectId) return selectedProjectId;
+  if (!selectedClientId) return null;
+  const general = projects.find(
+    (p) => p.clientId === selectedClientId && nameKey(p.name) === nameKey('General'),
+  );
+  return general?.id ?? null;
 }
 
 export function kanbanColumnsForClient(

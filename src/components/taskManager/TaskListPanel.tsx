@@ -2,6 +2,9 @@ import React, { useState, useMemo, useEffect } from 'react';
 import './taskList.css';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUIStore } from '../../stores/uiStore';
+import { useProjectStore } from '../../stores/projectStore';
+import { filterTasksForSelection } from '../../stores/taskSelection';
+import { ClientProjectTree } from './ClientProjectTree';
 import { TaskListItem } from './TaskListItem';
 import { QuickCreateInput } from './QuickCreateInput';
 import { TaskCalendarView } from './TaskCalendarView';
@@ -36,7 +39,8 @@ function getCategoryLabel(category: DateCategory): string {
 }
 
 export function TaskListPanel() {
-  const { tasks, activeTaskId } = useTaskStore();
+  const { tasks, activeTaskId, selectedClientId, selectedProjectId } = useTaskStore();
+  const projects = useProjectStore((s) => s.projects);
   const activeTab = useUIStore((s) => s.activeTaskPage);
   const [prefillText, setPrefillText] = useState<string | null>(null);
   const [assignedDate, setAssignedDate] = useState<string | null>(null);
@@ -54,7 +58,10 @@ export function TaskListPanel() {
     + ' · '
     + now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-  const filteredTasks = tasks;
+  const filteredTasks = useMemo(
+    () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
+    [tasks, projects, selectedClientId, selectedProjectId],
+  );
 
   const groupedTasks = useMemo(() => {
     const groups: Record<DateCategory, typeof filteredTasks> = {
@@ -92,6 +99,9 @@ export function TaskListPanel() {
   return (
     <div id="task-list-panel" className="panel flex-col h-full overflow-hidden" style={{ marginLeft: '0px', marginRight: '0px' }}>
       <div id="task-list-main-wrapper" className="panel-body" style={{ flex: '1 1 0', minHeight: 0, display: 'flex', flexDirection: 'column', borderRadius: '0px', backgroundColor: 'var(--c-background-2)', border: 'none' }}>
+        <div className="client-tree-panel">
+          <ClientProjectTree />
+        </div>
         {activeTab === 'list' && (
           <>
             <div className="task-list-sticky-header">
@@ -141,7 +151,11 @@ export function TaskListPanel() {
         )}
 
         {activeTab === 'calendar' && (
-          <div id="task-list-content" className="ai-scroll flex-1 overflow-y-a h-full">
+          <div
+            id="task-list-content"
+            className="ai-scroll flex-1 overflow-y-a"
+            style={{ flex: '1 1 0', minHeight: 0 }}
+          >
             <TaskCalendarView
               tasks={tasks}
               onPrefillText={setPrefillText}
@@ -152,7 +166,11 @@ export function TaskListPanel() {
         )}
 
         {activeTab === 'projects' && (
-          <div id="task-list-content" className="ai-scroll flex-1 overflow-y-a h-full">
+          <div
+            id="task-list-content"
+            className="ai-scroll flex-1 overflow-y-a"
+            style={{ flex: '1 1 0', minHeight: 0 }}
+          >
             <TaskProjectView
               tasks={tasks}
               onPrefillText={setPrefillText}

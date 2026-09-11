@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import type { Task } from '../../types';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
+import { filterTasksForSelection } from '../../stores/taskSelection';
 
 interface TaskCalendarViewProps {
   tasks: Task[];
@@ -26,9 +27,11 @@ function getDaysInMonth(year: number, month: number): { day: number; weekday: st
 
 export function TaskCalendarView({ tasks, onSetDate }: TaskCalendarViewProps) {
   const activeTaskId = useTaskStore((s) => s.activeTaskId);
+  const selectedClientId = useTaskStore((s) => s.selectedClientId);
+  const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
+  const { projects } = useProjectStore();
   const now = new Date();
   const [currentMonth, setCurrentMonth] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
-  const [filterProjectId] = useState<string | null>(null);
 
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
@@ -36,10 +39,14 @@ export function TaskCalendarView({ tasks, onSetDate }: TaskCalendarViewProps) {
 
   const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
 
+  const visibleTasks = useMemo(
+    () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
+    [tasks, projects, selectedClientId, selectedProjectId],
+  );
+
   const tasksByDate = useMemo(() => {
     const map: Record<string, Task[]> = {};
-    for (const t of tasks) {
-      if (filterProjectId && t.projectId !== filterProjectId) continue;
+    for (const t of visibleTasks) {
       if (!t.date) continue;
       const d = new Date(t.date);
       if (d.getMonth() !== month || d.getFullYear() !== year) continue;
@@ -47,9 +54,7 @@ export function TaskCalendarView({ tasks, onSetDate }: TaskCalendarViewProps) {
       map[t.date].push(t);
     }
     return map;
-  }, [tasks, filterProjectId, month, year]);
-
-  const { projects } = useProjectStore();
+  }, [visibleTasks, month, year]);
 
   const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
   const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
