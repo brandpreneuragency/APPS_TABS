@@ -52,6 +52,11 @@ export function taskMirrorDir(clientName: string, projectName: string, taskId: s
   return `${projectMirrorDir(clientName, projectName)}/${taskId}`;
 }
 
+export function formatProjectIndex(projectName: string, tasks: readonly { id: string; title: string }[]): string {
+  const list = tasks.map((t) => `- [${t.id}] ${t.title}`).join('\n');
+  return `# ${projectName} Tasks\n\n${list}`;
+}
+
 /** Half-applied v13: no clients yet, and every project row still lacks clientId. */
 export function shouldRepairClientsLayer(
   clients: { length: number },

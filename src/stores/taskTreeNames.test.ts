@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   isNameTaken, uniqueClientName, sanitizeFsName, taskMirrorDir, projectMirrorDir, normalizeTreeName,
+  formatProjectIndex,
 } from './taskTreeNames';
 
 describe('taskTreeNames', () => {
@@ -23,5 +24,15 @@ describe('taskTreeNames', () => {
     expect(sanitizeFsName('Hermes / AI')).toBe('Hermes _ AI');
     expect(projectMirrorDir('Brandpreneur', 'General')).toBe('TASKS/Brandpreneur/General');
     expect(taskMirrorDir('Brandpreneur', 'General', 'abc')).toBe('TASKS/Brandpreneur/General/abc');
+  });
+
+  it('formats INDEX.md content', () => {
+    expect(formatProjectIndex('General', [{ id: 'abc', title: 'Hello' }])).toBe(
+      '# General Tasks\n\n- [abc] Hello',
+    );
+    expect(formatProjectIndex('Launch', [
+      { id: 'a', title: 'One' },
+      { id: 'b', title: 'Two' },
+    ])).toBe('# Launch Tasks\n\n- [a] One\n- [b] Two');
   });
 });

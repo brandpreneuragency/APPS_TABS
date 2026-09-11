@@ -10,6 +10,7 @@ import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
 import { useUIStore } from './uiStore';
 import { useProjectStore } from './projectStore';
+import { formatProjectIndex, projectMirrorDir, taskMirrorDir } from './taskTreeNames';
 
 function showError(err: unknown, fallback: string): void {
   const msg = err instanceof Error ? err.message : fallback;
@@ -92,16 +93,26 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+async function resolveMirrorNames(
+  projectId: string | undefined,
+): Promise<{ clientName: string; projectName: string } | null> {
+  if (!projectId) return null;
+  const project = await db.projects.get(projectId);
+  if (!project) return null;
+  const client = await db.clients.get(project.clientId);
+  if (!client) return null;
+  return { clientName: client.name, projectName: project.name };
+}
+
 // Helper to sync task to markdown file
 async function syncTaskToFile(task: Task): Promise<void> {
   if (!isTauriRuntime() || !task.projectId) return;
-  
-  const project = await db.projects.get(task.projectId);
-  if (!project) return;
-  
-  const projectName = project.name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_'); // eslint-disable-line no-control-regex -- Sanitize for filesystem
-  const taskDir = `TASKS/${projectName}/${task.id}`;
-  
+
+  const names = await resolveMirrorNames(task.projectId);
+  if (!names) return;
+
+  const taskDir = taskMirrorDir(names.clientName, names.projectName, task.id);
+
   try {
     await fsAdapter.mkdir(taskDir, true);
     const taskContent = `# ${task.title}\n\n${task.content}`;
@@ -114,13 +125,12 @@ async function syncTaskToFile(task: Task): Promise<void> {
 // Helper to delete task markdown file
 async function deleteTaskFile(task: Task): Promise<void> {
   if (!isTauriRuntime() || !task.projectId) return;
-  
-  const project = await db.projects.get(task.projectId);
-  if (!project) return;
-  
-  const projectName = project.name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_'); // eslint-disable-line no-control-regex -- Sanitize for filesystem
-  const taskDir = `TASKS/${projectName}/${task.id}`;
-  
+
+  const names = await resolveMirrorNames(task.projectId);
+  if (!names) return;
+
+  const taskDir = taskMirrorDir(names.clientName, names.projectName, task.id);
+
   try {
     await fsAdapter.remove(taskDir, true);
   } catch (err) {
@@ -131,20 +141,27 @@ async function deleteTaskFile(task: Task): Promise<void> {
 // Helper to regenerate INDEX.md for a project
 async function regenerateProjectIndex(projectId: string): Promise<void> {
   if (!isTauriRuntime()) return;
-  const project = await db.projects.get(projectId);
-  if (!project) return;
-  
-  const projectName = project.name.replace(/[<>:"/\\|?*\x00-\x1F]/g, '_'); // eslint-disable-line no-control-regex -- Sanitize for filesystem
-  const projectDir = `TASKS/${projectName}`;
-  
+
+  const names = await resolveMirrorNames(projectId);
+  if (!names) return;
+
+  const projectDir = projectMirrorDir(names.clientName, names.projectName);
+
   try {
     await fsAdapter.mkdir(projectDir, true);
     const tasks = await db.tasks.where('projectId').equals(projectId).filter(t => !t.deletedAt).toArray();
-    const taskList = tasks.map(t => `- [${t.id}] ${t.title}`).join('\n');
-    const indexContent = `# ${project.name} Tasks\n\n${taskList}`;
+    const indexContent = formatProjectIndex(names.projectName, tasks);
     await fsAdapter.writeTextFile(`${projectDir}/INDEX.md`, indexContent);
   } catch (err) {
     console.warn('[taskStore] Failed to regenerate project index:', err);
+  }
+}
+
+/** Copy living tasks to TASKS/<client>/<project>/<id>/; leave old TASKS/<project>/ trees in place. */
+async function migrateTaskFiles(tasks: Task[]): Promise<void> {
+  for (const task of tasks) {
+    if (task.deletedAt) continue;
+    await syncTaskToFile(task);
   }
 }
 
@@ -198,6 +215,9 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         isLoaded: true,
         ...selection,
       });
+      if (isTauriRuntime()) {
+        void migrateTaskFiles(get().tasks);
+      }
     } catch (err) {
       set({ isLoaded: true });
       showError(err, 'Failed to load tasks.');
