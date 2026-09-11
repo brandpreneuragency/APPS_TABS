@@ -45,3 +45,7 @@ src-tauri/TASKS/
 secrets/
 secrets/*.conf
 
+
+# Isolated git worktrees
+.worktrees/
+
