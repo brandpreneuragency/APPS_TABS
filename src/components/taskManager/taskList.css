@@ -1030,6 +1030,217 @@ button.task-item--on:hover {
 
 
 
+.task-list-add-project {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.task-list-add-project-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--c-text-1);
+  cursor: pointer;
+}
+
+.task-list-add-project-btn:hover {
+  background-color: color-mix(in srgb, var(--c-background-3) 80%, var(--c-text-1) 10%);
+}
+
+.task-list-add-project-btn:focus-visible {
+  outline: 2px solid var(--c-accent-1);
+  outline-offset: 2px;
+}
+
+.task-list-add-project-btn[aria-expanded='true'] {
+  color: var(--c-accent-1);
+}
+
+.task-list-add-project-popover {
+  top: calc(100% + 6px);
+  left: auto;
+  right: 0;
+  bottom: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 196px;
+  padding: 10px;
+  overflow: visible;
+}
+
+.task-list-add-project-input {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height-sm, 28px);
+  padding: 0 8px;
+  border: 1px solid var(--c-border-1);
+  border-radius: 8px;
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+  font-size: var(--fs-sm);
+  outline: none;
+}
+
+.task-list-add-project-input:focus {
+  border-color: var(--c-accent-1);
+}
+
+.task-list-add-project-submit {
+  align-self: flex-end;
+  height: 24px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: var(--c-background-3);
+  color: var(--c-text-1);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.task-list-add-project-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.client-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.client-tree-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px 6px;
+}
+
+.client-tree-header-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--c-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.client-tree-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  outline: none;
+}
+
+.client-tree-list:focus-visible {
+  outline: 1px solid var(--c-accent-center-panel);
+  outline-offset: 1px;
+  border-radius: 8px;
+}
+
+.client-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  padding: 0 4px;
+  border-radius: 8px;
+  color: var(--c-text-1);
+}
+
+.client-tree-row:hover {
+  background: var(--c-background-3);
+}
+
+.client-tree-row--project {
+  padding-left: 20px;
+}
+
+.client-tree-row--on,
+.client-tree-row--on:hover {
+  background: var(--c-background-4);
+}
+
+.client-tree-row--focus:not(.client-tree-row--on) {
+  outline: 1px solid var(--c-border-1);
+  outline-offset: -1px;
+}
+
+.client-tree-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-text-2);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.client-tree-chevron:hover {
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+}
+
+.client-tree-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.client-tree-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  cursor: pointer;
+  padding: 4px 2px;
+  border-radius: 4px;
+}
+
+.client-tree-row .task-list-add-project {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.client-tree-row:hover .task-list-add-project,
+.client-tree-row:focus-within .task-list-add-project,
+.client-tree-row .task-list-add-project:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.client-tree-row .task-list-add-project-btn {
+  width: 22px;
+  height: 22px;
+}
+
+.client-tree-header .task-list-add-project {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ---- :root overrides (preserved layering) ---- */
 
 /*LEFT PANEL - TASK LIST*/
