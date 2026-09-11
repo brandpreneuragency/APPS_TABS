@@ -14,6 +14,8 @@ import {
   isNameTaken,
   nameKey,
   normalizeTreeName,
+  shouldRepairClientsLayer,
+  shouldSeedEmptyClientsLayer,
 } from './taskTreeNames';
 
 function showError(err: unknown, fallback: string): void {
@@ -21,14 +23,10 @@ function showError(err: unknown, fallback: string): void {
   useUIStore.getState().showToast(msg, 'error');
 }
 
-/** Half-applied v13: empty clients table and projects still missing clientId. */
 export async function repairClientsLayerIfNeeded(): Promise<void> {
   const clients = await db.clients.toArray();
   const projects = await db.projects.toArray();
-  if (clients.length > 0) return;
-  if (projects.length > 0 && projects.every((p) => typeof p.clientId === 'string' && p.clientId.length > 0)) {
-    return;
-  }
+  if (!shouldRepairClientsLayer(clients, projects)) return;
   const tasks = await db.tasks.toArray();
   const out = migrateProjectsToClients(projects, tasks as unknown as LegacyTask[], {
     id: () => nanoid(8),
@@ -45,7 +43,7 @@ export async function repairClientsLayerIfNeeded(): Promise<void> {
   });
 }
 
-async function seedGeneralClientAndProject(): Promise<{ client: Client; project: Project }> {
+export async function seedGeneralClientAndProject(): Promise<{ client: Client; project: Project }> {
   const now = Date.now();
   const client: Client = {
     id: nanoid(8),
@@ -83,27 +81,11 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     try {
       await repairClientsLayerIfNeeded();
       let projects = await db.projects.toArray();
-      if (projects.length === 0) {
-        const clients = await db.clients.toArray();
-        if (clients.length === 0) {
-          const seeded = await seedGeneralClientAndProject();
-          projects = [seeded.project];
-        } else {
-          const now = Date.now();
-          const created: Project[] = [];
-          for (const client of clients) {
-            const { project, created: wasCreated } = ensureGeneralProjectRecord(client.id, [], {
-              id: () => nanoid(8),
-              now,
-              color: client.color,
-            });
-            if (wasCreated) {
-              await db.projects.add(project);
-              created.push(project);
-            }
-          }
-          projects = created;
-        }
+      const clients = await db.clients.toArray();
+      const tasks = await db.tasks.toArray();
+      if (shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
+        const seeded = await seedGeneralClientAndProject();
+        projects = [seeded.project];
       }
       set({ projects, isLoaded: true });
     } catch (err) {
@@ -141,10 +123,17 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   updateProject: async (id, updates) => {
     const previous = get().projects.find((p) => p.id === id);
+    if (!previous) return;
     const next = updates.name !== undefined
       ? { ...updates, name: normalizeTreeName(updates.name) }
       : updates;
     if (next.name !== undefined && !next.name) return;
+    if (next.name !== undefined) {
+      const others = get().projects
+        .filter((p) => p.clientId === previous.clientId && p.id !== id)
+        .map((p) => p.name);
+      if (isNameTaken(next.name, others)) return;
+    }
     set((s) => ({
       projects: s.projects.map((p) => (p.id === id ? { ...p, ...next } : p)),
     }));

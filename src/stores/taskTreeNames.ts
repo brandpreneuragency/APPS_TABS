@@ -52,6 +52,34 @@ export function taskMirrorDir(clientName: string, projectName: string, taskId: s
   return `${projectMirrorDir(clientName, projectName)}/${taskId}`;
 }
 
+/** Half-applied v13: no clients yet, and every project row still lacks clientId. */
+export function shouldRepairClientsLayer(
+  clients: { length: number },
+  projects: readonly { clientId?: string }[],
+): boolean {
+  if (clients.length > 0 || projects.length === 0) return false;
+  return projects.every((p) => typeof p.clientId !== 'string' || p.clientId.length === 0);
+}
+
+/** Seed General client+project only when clients, projects, and tasks are all gone. */
+export function shouldSeedEmptyClientsLayer(
+  clients: { length: number },
+  projects: { length: number },
+  tasks: { length: number },
+): boolean {
+  return clients.length === 0 && projects.length === 0 && tasks.length === 0;
+}
+
+export function findProjectByNameInClient<T extends { name: string; clientId: string }>(
+  name: string,
+  clientId: string,
+  projects: readonly T[],
+): T | undefined {
+  if (!clientId) return undefined;
+  const key = nameKey(name);
+  return projects.find((p) => p.clientId === clientId && nameKey(p.name) === key);
+}
+
 /** Existing General for `clientId` (name key `general`), or a new record. */
 export function ensureGeneralProjectRecord(
   clientId: string,

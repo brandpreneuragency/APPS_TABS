@@ -6,13 +6,13 @@ import { nanoid } from 'nanoid';
 import type { Client } from '../types';
 import { db } from '../services/db';
 import { useUIStore } from './uiStore';
-import { useProjectStore, repairClientsLayerIfNeeded } from './projectStore';
+import { useProjectStore, repairClientsLayerIfNeeded, seedGeneralClientAndProject } from './projectStore';
 import { useTaskStore } from './taskStore';
 import {
   TREE_COLORS,
-  ensureGeneralProjectRecord,
   isNameTaken,
   normalizeTreeName,
+  shouldSeedEmptyClientsLayer,
 } from './taskTreeNames';
 
 function showError(err: unknown, fallback: string): void {
@@ -39,23 +39,11 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     try {
       await repairClientsLayerIfNeeded();
       let clients = await db.clients.toArray();
-      if (clients.length === 0 && (await db.projects.count()) === 0) {
-        const now = Date.now();
-        const client: Client = {
-          id: nanoid(8),
-          name: 'General',
-          color: TREE_COLORS[0],
-          createdAt: now,
-          order: 0,
-        };
-        const { project } = ensureGeneralProjectRecord(client.id, [], {
-          id: () => nanoid(8),
-          now,
-          color: client.color,
-        });
-        await db.clients.add(client);
-        await db.projects.add(project);
-        clients = [client];
+      const projects = await db.projects.toArray();
+      const tasks = await db.tasks.toArray();
+      if (shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
+        const seeded = await seedGeneralClientAndProject();
+        clients = [seeded.client];
       }
       set({ clients, isLoaded: true });
     } catch (err) {
@@ -80,10 +68,15 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     };
     try {
       await db.clients.add(client);
+      const general = await useProjectStore.getState().createProject('General', client.id);
+      if (!general) {
+        await db.clients.delete(id);
+        return null;
+      }
       set((s) => ({ clients: [...s.clients, client] }));
-      await useProjectStore.getState().createProject('General', client.id);
       return client;
     } catch (err) {
+      await db.clients.delete(id);
       showError(err, 'Failed to create client.');
       return null;
     }
@@ -129,11 +122,13 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       }
       await db.clients.delete(id);
       set((s) => ({ clients: s.clients.filter((c) => c.id !== id) }));
-      await useProjectStore.getState().loadProjects();
+      useProjectStore.setState((s) => ({
+        projects: s.projects.filter((p) => p.clientId !== id),
+      }));
       await useTaskStore.getState().loadTasks();
-      set({ clients: await db.clients.toArray() });
     } catch (err) {
       set({ clients: await db.clients.toArray() });
+      useProjectStore.setState({ projects: await db.projects.toArray() });
       showError(err, 'Failed to delete client.');
     }
   },

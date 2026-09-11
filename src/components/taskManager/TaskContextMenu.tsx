@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { Trash2, Folder, Calendar, X } from 'lucide-react';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
+import { findProjectByNameInClient } from '../../stores/taskTreeNames';
 
 interface TaskContextMenuProps {
   taskId: string;
@@ -95,16 +96,16 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
   const addNewProject = async () => {
     const name = newProjectName.trim();
     if (!name) return;
-    const existing = projects.find((p) => p.name.toLowerCase() === name.toLowerCase());
-    if (existing) {
-      assignProject(existing.id);
-      return;
-    }
     const clientId =
       projects.find((p) => p.id === task.projectId)?.clientId
       ?? projects[0]?.clientId
       ?? '';
     if (!clientId) return;
+    const existing = findProjectByNameInClient(name, clientId, projects);
+    if (existing) {
+      assignProject(existing.id);
+      return;
+    }
     const created = await createProject(name, clientId);
     if (created) assignProject(created.id);
     setNewProjectName('');
