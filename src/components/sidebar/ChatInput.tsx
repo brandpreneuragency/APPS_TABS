@@ -99,14 +99,6 @@ const TASK_BUILT_INS: PromptOption[] = [
     builtin: true,
   },
   {
-    id: 'builtin_task_subtasks',
-    title: 'Create Subtasks',
-    prompt: 'Create actionable subtasks from this task context.',
-    scope: 'task',
-    createdAt: 0,
-    builtin: true,
-  },
-  {
     id: 'builtin_task_next_steps',
     title: 'Next Steps',
     prompt: 'List the next concrete steps in priority order.',

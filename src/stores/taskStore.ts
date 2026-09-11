@@ -79,10 +79,8 @@ interface TaskStore {
   getTabColorIndexByTaskId: (taskId: string) => number;
   getTasksByProject: (projectId: string) => Task[];
   getTasksByStatus: (status: TaskStatus) => Task[];
-  getSubtasks: (parentId: string) => Task[];
   getDeletedTasks: () => Task[];
   fetchDeletedTasks: () => Promise<Task[]>;
-  createSubtask: (parentId: string, title: string, sourceChatMessageId?: string, date?: string) => Promise<Task | null>;
   /**
    * Regenerate INDEX.md on disk for the Tauri desktop bundle.
    * Kept for compatibility; actual implementation in fs-adapter.
@@ -549,8 +547,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     return get().tasks.filter((t) => t.status === status && !t.deletedAt);
   },
 
-  getSubtasks: (_parentId) => [],
-
   getDeletedTasks: () => {
     return [] as Task[]; // Sync placeholder — use fetchDeletedTasks() instead
   },
@@ -563,19 +559,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       showError(err, 'Failed to load deleted tasks.');
       return [];
     }
-  },
-
-  createSubtask: async (parentId, title, sourceChatMessageId, date) => {
-    const parent = get().tasks.find((t) => t.id === parentId);
-    if (!parent) {
-      showError(new Error('Parent task not found'), 'Parent task not found');
-      return null;
-    }
-    return get().createTask(title, {
-      projectId: parent.projectId,
-      sourceChatMessageId,
-      date: date ?? parent.date,
-    });
   },
 
   regenerateIndex: async () => {

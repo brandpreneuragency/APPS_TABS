@@ -288,9 +288,8 @@ export function useStreamingChat(
           }
 
           await useTaskCommentStore.getState().loadComments(contextTaskId);
-          const subtasks = taskStore.getSubtasks(contextTaskId);
           const comments = useTaskCommentStore.getState().getComments(contextTaskId);
-          void buildTaskAIContext(activeTask, subtasks, comments);
+          void buildTaskAIContext(activeTask, [], comments);
 
           const basePrompt = parts.join('\n\n');
           const attachmentContext = await buildAttachmentContext(attachments);

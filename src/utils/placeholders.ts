@@ -9,8 +9,6 @@ const PLACEHOLDERS = {
   addTask: 'Add a task...',
   transmitMessage: 'Write a comment...',
   queryAI: 'Ask AI...',
-  addSubtask: 'Add another subtask...',
-  addSubtaskFooter: 'Add a subtask...',
   find: 'Find',
   replace: 'Replace',
   searchFiles: 'Search files...',

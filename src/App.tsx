@@ -3,7 +3,7 @@ import type { Editor } from '@tiptap/react';
 import { AppLayout } from './components/layout/AppLayout';
 import { AppTitlebar } from './components/header/AppTitlebar';
 import { Header } from './components/header/Header';
-import { SubtasksToggleBar } from './components/header/SubtasksToggleBar';
+import { TaskTitleBar } from './components/header/TaskTitleBar';
 import { EditorWorkspace } from './components/editor/EditorWorkspace';
 import { TaskDetailPanel } from './components/taskManager/TaskDetailPanel';
 import { TaskProjectsKanban } from './components/taskManager/TaskProjectsKanban';
@@ -267,7 +267,7 @@ export default function App() {
         </AppTitlebar>
         <div className="app-shell-main">
           <AppLayout
-            subtasksBar={<SubtasksToggleBar />}
+            subtasksBar={<TaskTitleBar />}
             editor={activeWorkspace}
             sidebar={sidebar}
             leftPanel={leftPanel}

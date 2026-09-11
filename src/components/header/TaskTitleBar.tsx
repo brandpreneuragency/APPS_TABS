@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
-import { CheckCircle2, Circle, ArrowUpDown } from 'lucide-react';
+import { CheckCircle2, Circle } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { TaskMetadataControls } from '../taskManager/TaskMetadataControls';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
 
-export function SubtasksToggleBar() {
-  const { taskMode, activeTaskPage, activeTaskId, subtasksOpen, setSubtasksOpen } = useUIStore();
+export function TaskTitleBar() {
+  const { taskMode, activeTaskPage, activeTaskId } = useUIStore();
   const storeActiveId = useTaskStore((s) => s.activeTaskId);
   const tasks = useTaskStore((s) => s.tasks);
   const updateTask = useTaskStore((s) => s.updateTask);
@@ -34,7 +34,7 @@ export function SubtasksToggleBar() {
 
   if (!taskMode) return null;
   // The "Projects" tab shows a full-width kanban board in the center panel;
-  // the task-detail subtasks bar does not apply there.
+  // the task title bar does not apply there.
   if (activeTaskPage === 'projects') return null;
   // No selected task: keep the context-panel toggle reachable above the empty state.
   if (!activeTask) {
@@ -117,15 +117,6 @@ export function SubtasksToggleBar() {
           )}
 
           <TaskMetadataControls />
-          <button
-            type="button"
-            className="tdp-meta-swap-btn"
-            onClick={() => setSubtasksOpen(!subtasksOpen)}
-            title={subtasksOpen ? 'Hide subtasks' : 'Show subtasks'}
-            aria-label={subtasksOpen ? 'Hide subtasks' : 'Show subtasks'}
-          >
-            <ArrowUpDown size={12} />
-          </button>
         </div>
       </div>
     </div>
