@@ -45,7 +45,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
 
   // Keep draft in sync when file changes
   useEffect(() => {
-    setTitleDraft(fileName ?? '');
+    setTitleDraft(fileName ?? ''); // eslint-disable-line react-hooks/set-state-in-effect -- sync draft title when document changes
     setIsEditingTitle(false);
   }, [fileName]);
 

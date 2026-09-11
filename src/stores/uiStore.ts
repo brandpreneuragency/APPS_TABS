@@ -104,7 +104,6 @@ interface UIStore {
 
   taskMode: boolean;
   activeTaskId: string | null;
-  subtasksOpen: boolean;
 
   /** CRM module active — mutually exclusive with task mode. Hosts the merged Forms sub-module via `activeCRMPage === 'forms'`. */
   crmMode: boolean;
@@ -178,7 +177,6 @@ interface UIStore {
   /** Switch to the Settings document tab, optionally targeting a sub-tab. */
   openSettings: (subTab?: SettingsSubTab | LegacySettingsSubTab) => void;
   setActiveTaskId: (id: string | null) => void;
-  setSubtasksOpen: (v: boolean) => void;
   openFileViewer: (file: FileViewerItem) => void;
   closeFileViewer: () => void;
   setFileViewerFile: (file: FileViewerItem | null) => void;
@@ -309,7 +307,6 @@ export const useUIStore = create<UIStore>((set, get) => ({
   language: 'en',
   taskMode: false,
   activeTaskId: null,
-  subtasksOpen: true,
   crmMode: false,
   activeCRMPage: 'leads',
   activeFormsPage: 'list',
@@ -531,8 +528,6 @@ export const useUIStore = create<UIStore>((set, get) => ({
     set({ activeTaskId: id });
     if (id) void db.settings.put({ key: 'lastActiveTaskId', value: id });
   },
-
-  setSubtasksOpen: (v) => set({ subtasksOpen: v }),
 
   openFileViewer: (file) => {
     // File Viewer is assistant-wrapper content (PRD 6.10).

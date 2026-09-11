@@ -566,9 +566,8 @@ html[data-resizing='context'] .primary-workspace-content[data-two-panel='true'] 
   container-name: comment-composer;
 }
 
-/* Subtasks bar in the task detail: it is shown in place of the
- * comment thread when `subtasksOpen` is true. Fill the panel and
- * scroll when the list of subtasks exceeds the available space. */
+/* Legacy task-detail subtasks list (UI removed). Keep the selector
+ * so leftover markup does not overflow the panel. */
 #task-detail-panel > .tdp-subtasks-bar {
   flex: 1 1 auto;
   min-height: 0;
