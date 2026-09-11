@@ -1,3 +1,5 @@
+import { nameKey, uniqueClientName } from './taskTreeNames';
+
 export type LegacyProject = {
   id: string;
   name: string;
@@ -34,28 +36,12 @@ export type MigratedProject = {
 
 const DEFAULT_COLOR = 'text-blue-500';
 
-/** Case key: tr-TR lower, then fold dotless ı→i so ASCII I/i collide (WAGNER vs Wagner). */
-function nameKey(name: string): string {
-  return name.toLocaleLowerCase('tr-TR').replace(/\u0131/g, 'i');
-}
-
 function stripParentId(tasks: readonly LegacyTask[]): LegacyTask[] {
   return tasks.map((t) => {
     const { parentId, ...rest } = t;
     void parentId;
     return rest;
   });
-}
-
-function uniqueClientName(desired: string, usedLower: Set<string>): string {
-  let candidate = desired;
-  let n = 2;
-  while (usedLower.has(nameKey(candidate))) {
-    candidate = `${desired} ${n}`;
-    n += 1;
-  }
-  usedLower.add(nameKey(candidate));
-  return candidate;
 }
 
 function seedGeneral(opts: { id: () => string; now: number }): {
@@ -110,13 +96,14 @@ export function migrateProjectsToClients(
 
   const clients: MigratedClient[] = [];
   const projects: MigratedProject[] = [];
-  const usedLower = new Set<string>();
+  const usedNames: string[] = [];
   const rewrite = new Map<string, string>();
 
   oldProjects.forEach((p, index) => {
     const clientId = opts.id();
     const generalProjectId = opts.id();
-    const name = uniqueClientName(p.name, usedLower);
+    const name = uniqueClientName(p.name, usedNames);
+    usedNames.push(name);
     clients.push({
       id: clientId,
       name,
@@ -152,7 +139,7 @@ export function migrateProjectsToClients(
         order: clients.length,
       };
       clients.push(generalClient);
-      usedLower.add('general');
+      usedNames.push(generalClient.name);
     }
 
     let generalProject = projects.find(
