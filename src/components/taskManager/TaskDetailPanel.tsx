@@ -16,7 +16,6 @@ export function TaskDetailPanel() {
     updateTask,
     deleteTask,
     getSubtasks,
-    reorderSubtasks,
   } = useTaskStore();
   const { loadComments, getComments } = useTaskCommentStore();
   const { subtasksOpen } = useUIStore();
@@ -87,22 +86,11 @@ export function TaskDetailPanel() {
     setDragOverPos(pos);
   };
 
-  const handleSubtaskDrop = (e: React.DragEvent, id: string) => {
+  const handleSubtaskDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const fromId = dragId ?? e.dataTransfer.getData('text/plain');
-    const pos = dragOverPos;
     setDragId(null);
     setDragOverId(null);
     setDragOverPos('above');
-    if (!fromId || fromId === id || !task) return;
-    const ordered = subtasks.map((s) => s.id);
-    const fromIndex = ordered.indexOf(fromId);
-    const toIndex = ordered.indexOf(id);
-    if (fromIndex === -1 || toIndex === -1) return;
-    const [moved] = ordered.splice(fromIndex, 1);
-    const insertAt = pos === 'below' ? toIndex + 1 : toIndex;
-    ordered.splice(insertAt, 0, moved);
-    void reorderSubtasks(task.id, ordered);
   };
 
   const handleSubtaskDragEnd = () => {
@@ -139,7 +127,7 @@ export function TaskDetailPanel() {
                 draggable
                 onDragStart={(e) => handleSubtaskDragStart(e, sub.id)}
                 onDragOver={(e) => handleSubtaskDragOver(e, sub.id)}
-                onDrop={(e) => handleSubtaskDrop(e, sub.id)}
+                onDrop={handleSubtaskDrop}
                 onDragEnd={handleSubtaskDragEnd}
               >
                 <span

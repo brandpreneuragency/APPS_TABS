@@ -5,14 +5,42 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { Task, TaskStatus } from '../types';
 import { TASK_TITLE_MAX_LENGTH } from '../types';
-import { db } from '../services/db';
+import { db, getSetting, setSetting } from '../services/db';
 import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
 import { useUIStore } from './uiStore';
+import { useProjectStore } from './projectStore';
 
 function showError(err: unknown, fallback: string): void {
   const msg = err instanceof Error ? err.message : fallback;
   useUIStore.getState().showToast(msg, 'error');
+}
+
+function settingId(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+function persistSelection(clientId: string | null, projectId: string | null): void {
+  void setSetting('selectedClientId', clientId ?? '');
+  void setSetting('selectedProjectId', projectId ?? '');
+}
+
+function restoreSelection(
+  storedClientId: string,
+  storedProjectId: string,
+  clients: readonly { id: string }[],
+  projects: readonly { id: string; clientId: string }[],
+): { selectedClientId: string | null; selectedProjectId: string | null } {
+  const project = storedProjectId
+    ? projects.find((p) => p.id === storedProjectId)
+    : undefined;
+  if (project && clients.some((c) => c.id === project.clientId)) {
+    return { selectedClientId: project.clientId, selectedProjectId: project.id };
+  }
+  if (storedClientId && clients.some((c) => c.id === storedClientId)) {
+    return { selectedClientId: storedClientId, selectedProjectId: null };
+  }
+  return { selectedClientId: clients[0]?.id ?? null, selectedProjectId: null };
 }
 
 interface TaskTab {
@@ -28,12 +56,15 @@ interface TaskStore {
   openTabs: TaskTab[];
   activeTabId: string | null;
   isLoaded: boolean;
+  selectedClientId: string | null;
+  selectedProjectId: string | null;
 
   loadTasks: () => Promise<void>;
+  setSelection: (clientId: string | null, projectId: string | null) => void;
   createTask: (title: string, opts?: Partial<Task>) => Promise<Task | null>;
-  updateTask: (id: string, updates: Partial<Pick<Task, 
-    'title' | 'content' | 'status' | 'importance' | 'date' | 
-    'projectId' | 'assignees' | 'sourcePath' | 
+  updateTask: (id: string, updates: Partial<Pick<Task,
+    'title' | 'content' | 'status' | 'importance' | 'date' |
+    'projectId' | 'assignees' | 'sourcePath' |
     'sourceChatMessageId'>>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   restoreTask: (id: string) => Promise<void>;
@@ -46,13 +77,11 @@ interface TaskStore {
   getActiveTask: () => Task | null;
   getActiveTabColorIndex: () => number;
   getTabColorIndexByTaskId: (taskId: string) => number;
-  getTasksByProject: (projectId: string | null) => Task[];
+  getTasksByProject: (projectId: string) => Task[];
   getTasksByStatus: (status: TaskStatus) => Task[];
   getSubtasks: (parentId: string) => Task[];
-  reorderSubtasks: (parentId: string, orderedIds: string[]) => Promise<void>;
   getDeletedTasks: () => Task[];
   fetchDeletedTasks: () => Promise<Task[]>;
-  getLastSubtaskDate: (parentId: string) => number | null;
   createSubtask: (parentId: string, title: string, sourceChatMessageId?: string, date?: string) => Promise<Task | null>;
   /**
    * Regenerate INDEX.md on disk for the Tauri desktop bundle.
@@ -128,12 +157,26 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   openTabs: [],
   activeTabId: null,
   isLoaded: false,
+  selectedClientId: null,
+  selectedProjectId: null,
 
   loadTasks: async () => {
     try {
       // Load non-deleted tasks by default
-      const tasks = await db.tasks.filter(t => !t.deletedAt).toArray();
-      
+      const [tasks, storedClientId, storedProjectId, clients, projects] = await Promise.all([
+        db.tasks.filter(t => !t.deletedAt).toArray(),
+        getSetting<string>('selectedClientId', ''),
+        getSetting<string>('selectedProjectId', ''),
+        db.clients.toArray(),
+        db.projects.toArray(),
+      ]);
+      const selection = restoreSelection(
+        settingId(storedClientId),
+        settingId(storedProjectId),
+        clients,
+        projects,
+      );
+
       // Initialize with a single empty tab if none exist
       let tabs = get().openTabs.length > 0 ? get().openTabs : [{ tabId: nanoid(8), taskId: null, colorIndex: 0 }];
       const activeTabId = get().activeTabId ?? tabs[0].tabId;
@@ -155,6 +198,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         activeTaskId: derivedActiveTaskId,
         openTaskIds: derivedOpenTaskIds,
         isLoaded: true,
+        ...selection,
       });
     } catch (err) {
       set({ isLoaded: true });
@@ -162,9 +206,31 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
+  setSelection: (clientId, projectId) => {
+    let nextClientId = clientId;
+    let nextProjectId = projectId;
+    if (nextProjectId) {
+      const project = useProjectStore.getState().getProjectById(nextProjectId);
+      if (project) {
+        nextClientId = project.clientId;
+      } else {
+        nextProjectId = null;
+      }
+    } else {
+      nextProjectId = null;
+    }
+    set({ selectedClientId: nextClientId, selectedProjectId: nextProjectId });
+    persistSelection(nextClientId, nextProjectId);
+  },
+
   createTask: async (title, opts = {}) => {
     const trimmed = title.trim().slice(0, TASK_TITLE_MAX_LENGTH);
     if (!trimmed) return null;
+    const projectId = opts.projectId?.trim() ?? '';
+    if (!projectId) {
+      showError('Missing project', 'Failed to create task.');
+      return null;
+    }
     const id = nanoid(8);
     const now = Date.now();
     const task: Task = {
@@ -174,7 +240,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       status: opts.status ?? 'pending',
       importance: opts.importance ?? 'medium',
       date: opts.date ?? todayIso(),
-      projectId: opts.projectId ?? '',
+      projectId,
       assignees: opts.assignees ?? [],
       createdAt: now,
       updatedAt: now,
@@ -485,23 +551,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   getSubtasks: (_parentId) => [],
 
-  reorderSubtasks: async (_parentId, orderedIds) => {
-    const now = Date.now();
-    const updates = orderedIds.map((id, index) => ({ id, order: index, updatedAt: now }));
-    // Optimistic local update.
-    set((s) => ({
-      tasks: s.tasks.map((t) => {
-        const u = updates.find((x) => x.id === t.id);
-        return u ? { ...t, order: u.order, updatedAt: u.updatedAt } : t;
-      }),
-    }));
-    try {
-      await Promise.all(updates.map((u) => db.tasks.update(u.id, { order: u.order })));
-    } catch (err) {
-      showError(err, 'Failed to reorder subtasks.');
-    }
-  },
-
   getDeletedTasks: () => {
     return [] as Task[]; // Sync placeholder — use fetchDeletedTasks() instead
   },
@@ -516,45 +565,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  getLastSubtaskDate: (parentId) => {
-    const subs = get().getSubtasks(parentId);
-    if (subs.length === 0) return null;
-    return Math.max(...subs.map((s) => s.createdAt));
-  },
-
   createSubtask: async (parentId, title, sourceChatMessageId, date) => {
     const parent = get().tasks.find((t) => t.id === parentId);
     if (!parent) {
       showError(new Error('Parent task not found'), 'Parent task not found');
       return null;
     }
-    const id = nanoid(8);
-    const now = Date.now();
-    const task: Task = {
-      id,
-      title: title.trim().slice(0, TASK_TITLE_MAX_LENGTH),
-      content: '',
-      status: 'in_progress',
-      importance: 'medium',
-      date: date ?? parent.date,
+    return get().createTask(title, {
       projectId: parent.projectId,
-      assignees: [],
-      createdAt: now,
-      updatedAt: now,
-      order: 0,
-      sourceChatMessageId: sourceChatMessageId ?? undefined,
-    };
-    try {
-      await db.tasks.add(task);
-      // Sync to markdown file
-      await syncTaskToFile(task);
-      
-      set((s) => ({ tasks: [...s.tasks, task] }));
-      return task;
-    } catch (err) {
-      showError(err, 'Failed to add subtask.');
-      return null;
-    }
+      sourceChatMessageId,
+      date: date ?? parent.date,
+    });
   },
 
   regenerateIndex: async () => {
