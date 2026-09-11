@@ -114,7 +114,13 @@ export function ClientProjectTree() {
   const maxFocusIndex = Math.max(0, visibleRows.length - 1);
   const activeFocus = Math.min(focusedIndex, maxFocusIndex);
 
+  const focusRow = (row: VisibleRow) => {
+    const index = visibleRows.findIndex((r) => r.kind === row.kind && r.id === row.id);
+    if (index >= 0) setFocusedIndex(index);
+  };
+
   const selectRow = (row: VisibleRow) => {
+    focusRow(row);
     if (row.kind === 'client') {
       setSelection(row.id, null);
       expandClient(row.id);
@@ -184,6 +190,7 @@ export function ClientProjectTree() {
           role="treeitem"
           aria-expanded={expanded}
           aria-selected={selected}
+          onClick={() => selectRow(row)}
         >
           <button
             type="button"
@@ -222,7 +229,9 @@ export function ClientProjectTree() {
         className={`client-tree-row client-tree-row--project${selected ? ' client-tree-row--on' : ''}${focused ? ' client-tree-row--focus' : ''}`}
         role="treeitem"
         aria-selected={selected}
+        onClick={() => selectRow(row)}
       >
+        <span className="client-tree-chevron-spacer" aria-hidden="true" />
         <span className="client-tree-dot" style={{ background: projectDotColor(project.color) }} />
         <button
           type="button"

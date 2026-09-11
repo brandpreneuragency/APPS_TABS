@@ -1148,11 +1148,13 @@ button.task-item--on:hover {
 }
 
 .client-tree-row {
+  --client-tree-row-pad: 4px;
+  --client-tree-chevron-size: 20px;
   display: flex;
   align-items: center;
   gap: 4px;
   min-height: 28px;
-  padding: 0 4px;
+  padding: 0 var(--client-tree-row-pad);
   border-radius: 8px;
   color: var(--c-text-1);
 }
@@ -1162,7 +1164,8 @@ button.task-item--on:hover {
 }
 
 .client-tree-row--project {
-  padding-left: 20px;
+  /* 16px nest + matching chevron spacer so the name sits under (not left of) the client name */
+  padding-left: calc(var(--client-tree-row-pad) + 16px);
 }
 
 .client-tree-row--on,
@@ -1175,19 +1178,23 @@ button.task-item--on:hover {
   outline-offset: -1px;
 }
 
-.client-tree-chevron {
+.client-tree-chevron,
+.client-tree-chevron-spacer {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: var(--client-tree-chevron-size);
+  height: var(--client-tree-chevron-size);
+  flex-shrink: 0;
+}
+
+.client-tree-chevron {
   padding: 0;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--c-text-2);
   cursor: pointer;
-  flex-shrink: 0;
 }
 
 .client-tree-chevron:hover {

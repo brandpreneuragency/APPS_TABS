@@ -105,4 +105,30 @@ describe('ClientProjectTree', () => {
     await user.keyboard('{ArrowDown}{Enter}');
     expect(setSelection).toHaveBeenCalledWith('c1', 'p-gen');
   });
+
+  it('nests project rows under the client name', () => {
+    render(<ClientProjectTree />);
+    const projectRow = document.getElementById('client-tree-project-p-gen');
+    expect(projectRow).toHaveClass('client-tree-row--project');
+    expect(projectRow?.querySelector('.client-tree-chevron-spacer')).toBeInTheDocument();
+  });
+
+  it('continues keyboard from the last clicked row', async () => {
+    const user = userEvent.setup();
+    render(<ClientProjectTree />);
+    await user.click(screen.getByRole('button', { name: 'General' }));
+    expect(screen.getByRole('tree')).toHaveAttribute(
+      'aria-activedescendant',
+      'client-tree-project-p-gen',
+    );
+
+    setSelection.mockClear();
+    screen.getByRole('tree').focus();
+    await user.keyboard('{Enter}');
+    expect(setSelection).toHaveBeenCalledWith('c1', 'p-gen');
+
+    setSelection.mockClear();
+    await user.keyboard('{ArrowDown}{Enter}');
+    expect(setSelection).toHaveBeenCalledWith('c1', 'p-web');
+  });
 });
