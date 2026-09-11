@@ -100,7 +100,12 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
       assignProject(existing.id);
       return;
     }
-    const created = await createProject(name);
+    const clientId =
+      projects.find((p) => p.id === task.projectId)?.clientId
+      ?? projects[0]?.clientId
+      ?? '';
+    if (!clientId) return;
+    const created = await createProject(name, clientId);
     if (created) assignProject(created.id);
     setNewProjectName('');
   };

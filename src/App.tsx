@@ -25,6 +25,7 @@ import type { CRMPage, FormsPage } from './stores/uiStore';
 import { useAIStore } from './stores/aiStore';
 import { useTaskStore } from './stores/taskStore';
 import { useProjectStore } from './stores/projectStore';
+import { useClientStore } from './stores/clientStore';
 import { useCrmStore } from './stores/crmStore';
 import { useFormsStore } from './stores/formsStore';
 import { useThemeStore } from './stores/themeStore';
@@ -51,6 +52,7 @@ export default function App() {
   const { loadThemeTokens } = useThemeStore();
   const { loadTasks, isLoaded: tasksLoaded, activeTaskId: storeActiveTaskId, setActiveTask, tasks } = useTaskStore();
   const { loadProjects, isLoaded: projectsLoaded } = useProjectStore();
+  const { loadClients, isLoaded: clientsLoaded } = useClientStore();
 
   // CRM/Forms active selections drive the Panel 3 CRM AI sidebar context.
   const activeLeadId = useCrmStore((s) => s.activeLeadId);
@@ -59,15 +61,16 @@ export default function App() {
   const activeSubmissionId = useFormsStore((s) => s.activeSubmissionId);
   const activeFormStatus = useFormsStore((s) => s.forms.find((f) => f.id === s.activeFormId)?.status ?? null);
 
-  const isLoaded = docsLoaded && tasksLoaded && projectsLoaded;
+  const isLoaded = docsLoaded && tasksLoaded && projectsLoaded && clientsLoaded;
 
   useEffect(() => {
     void Promise.all([
       loadWorkspaces(),
       loadUISettings(),
       loadAISettings(),
-      loadTasks(),
-      loadProjects(),
+      useClientStore.getState().loadClients()
+        .then(() => loadProjects())
+        .then(() => loadTasks()),
       useCrmStore.getState().loadCrm(),
       useFormsStore.getState().loadForms(),
       loadThemeTokens(),
@@ -80,6 +83,7 @@ export default function App() {
     loadWorkspaces,
     loadUISettings,
     loadAISettings,
+    loadClients,
     loadTasks,
     loadProjects,
     loadThemeTokens,

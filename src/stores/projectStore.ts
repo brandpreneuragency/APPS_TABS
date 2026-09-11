@@ -3,24 +3,65 @@
 
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
-import type { Project } from '../types';
+import type { Client, Project, Task } from '../types';
 import { db } from '../services/db';
 import { useUIStore } from './uiStore';
-
-const PROJECT_COLORS = [
-  'text-blue-500',
-  'text-emerald-500',
-  'text-amber-500',
-  'text-rose-500',
-  'text-violet-500',
-  'text-cyan-500',
-  'text-orange-500',
-  'text-pink-500',
-];
+import { useTaskStore } from './taskStore';
+import { migrateProjectsToClients, type LegacyTask } from './migrateProjectsToClients';
+import {
+  TREE_COLORS,
+  ensureGeneralProjectRecord,
+  isNameTaken,
+  nameKey,
+  normalizeTreeName,
+} from './taskTreeNames';
 
 function showError(err: unknown, fallback: string): void {
   const msg = err instanceof Error ? err.message : fallback;
   useUIStore.getState().showToast(msg, 'error');
+}
+
+/** Half-applied v13: empty clients table and projects still missing clientId. */
+export async function repairClientsLayerIfNeeded(): Promise<void> {
+  const clients = await db.clients.toArray();
+  const projects = await db.projects.toArray();
+  if (clients.length > 0) return;
+  if (projects.length > 0 && projects.every((p) => typeof p.clientId === 'string' && p.clientId.length > 0)) {
+    return;
+  }
+  const tasks = await db.tasks.toArray();
+  const out = migrateProjectsToClients(projects, tasks as unknown as LegacyTask[], {
+    id: () => nanoid(8),
+    now: Date.now(),
+  });
+  if (out.clients.length === 0) return;
+  await db.transaction('rw', db.clients, db.projects, db.tasks, async () => {
+    await db.clients.clear();
+    await db.projects.clear();
+    await db.tasks.clear();
+    await db.clients.bulkAdd(out.clients);
+    await db.projects.bulkAdd(out.projects);
+    await db.tasks.bulkAdd(out.tasks as unknown as Task[]);
+  });
+}
+
+async function seedGeneralClientAndProject(): Promise<{ client: Client; project: Project }> {
+  const now = Date.now();
+  const client: Client = {
+    id: nanoid(8),
+    name: 'General',
+    color: TREE_COLORS[0],
+    createdAt: now,
+    order: 0,
+  };
+  const { project } = ensureGeneralProjectRecord(client.id, [], {
+    id: () => nanoid(8),
+    now,
+    color: client.color,
+  });
+  await db.clients.add(client);
+  await db.projects.add(project);
+  return { client, project };
 }
 
 interface ProjectStore {
@@ -28,7 +69,7 @@ interface ProjectStore {
   isLoaded: boolean;
 
   loadProjects: () => Promise<void>;
-  createProject: (name: string, clientId?: string) => Promise<Project | null>;
+  createProject: (name: string, clientId: string) => Promise<Project | null>;
   updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'color'>>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getProjectById: (id: string | null) => Project | undefined;
@@ -40,20 +81,29 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   loadProjects: async () => {
     try {
-      const projects = await db.projects.toArray();
-      // Auto-seed "General" project if user has none (original behavior)
+      await repairClientsLayerIfNeeded();
+      let projects = await db.projects.toArray();
       if (projects.length === 0) {
-        const generalProject: Project = {
-          id: nanoid(8),
-          name: 'General',
-          color: PROJECT_COLORS[0],
-          clientId: '',
-          createdAt: Date.now(),
-          order: 0,
-        };
-        await db.projects.add(generalProject);
-        set({ projects: [generalProject], isLoaded: true });
-        return;
+        const clients = await db.clients.toArray();
+        if (clients.length === 0) {
+          const seeded = await seedGeneralClientAndProject();
+          projects = [seeded.project];
+        } else {
+          const now = Date.now();
+          const created: Project[] = [];
+          for (const client of clients) {
+            const { project, created: wasCreated } = ensureGeneralProjectRecord(client.id, [], {
+              id: () => nanoid(8),
+              now,
+              color: client.color,
+            });
+            if (wasCreated) {
+              await db.projects.add(project);
+              created.push(project);
+            }
+          }
+          projects = created;
+        }
       }
       set({ projects, isLoaded: true });
     } catch (err) {
@@ -63,18 +113,21 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   createProject: async (name, clientId) => {
-    const trimmed = name.trim();
+    if (!clientId) return null;
+    const trimmed = normalizeTreeName(name);
     if (!trimmed) return null;
+    const siblings = get().projects.filter((p) => p.clientId === clientId);
+    if (isNameTaken(trimmed, siblings.map((p) => p.name))) return null;
     const id = nanoid(8);
-    const color = PROJECT_COLORS[get().projects.length % PROJECT_COLORS.length];
+    const color = TREE_COLORS[get().projects.length % TREE_COLORS.length];
     const now = Date.now();
     const project: Project = {
       id,
       name: trimmed,
       color,
-      clientId: clientId ?? get().projects[0]?.clientId ?? '',
+      clientId,
       createdAt: now,
-      order: get().projects.length,
+      order: siblings.length,
     };
     try {
       await db.projects.add(project);
@@ -88,11 +141,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
 
   updateProject: async (id, updates) => {
     const previous = get().projects.find((p) => p.id === id);
+    const next = updates.name !== undefined
+      ? { ...updates, name: normalizeTreeName(updates.name) }
+      : updates;
+    if (next.name !== undefined && !next.name) return;
     set((s) => ({
-      projects: s.projects.map((p) => (p.id === id ? { ...p, ...updates } : p)),
+      projects: s.projects.map((p) => (p.id === id ? { ...p, ...next } : p)),
     }));
     try {
-      await db.projects.update(id, updates);
+      await db.projects.update(id, next);
     } catch (err) {
       if (previous) {
         set((s) => ({
@@ -104,13 +161,33 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   deleteProject: async (id) => {
-    const previous = get().projects;
-    set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }));
+    const project = get().projects.find((p) => p.id === id);
+    if (!project) return;
     try {
+      const isGeneral = nameKey(project.name) === 'general';
+      if (isGeneral) {
+        const now = Date.now();
+        await db.tasks.where('projectId').equals(id).modify((t) => {
+          if (!t.deletedAt) t.deletedAt = now;
+        });
+      } else {
+        const { project: general, created } = ensureGeneralProjectRecord(
+          project.clientId,
+          get().projects,
+          { id: () => nanoid(8), now: Date.now(), color: project.color },
+        );
+        if (created) {
+          await db.projects.add(general);
+          set((s) => ({ projects: [...s.projects, general] }));
+        }
+        await db.tasks.where('projectId').equals(id).modify({ projectId: general.id });
+      }
       await db.projects.delete(id);
-      // Tasks referencing this project will have projectId set to null by the task store
+      set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }));
+      await useTaskStore.getState().loadTasks();
     } catch (err) {
-      set({ projects: previous });
+      const projects = await db.projects.toArray();
+      set({ projects });
       showError(err, 'Failed to delete project.');
     }
   },

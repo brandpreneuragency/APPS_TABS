@@ -1,4 +1,17 @@
+import type { Project } from '../types';
+
 export const NAME_MAX = 80;
+
+export const TREE_COLORS = [
+  'text-blue-500',
+  'text-emerald-500',
+  'text-amber-500',
+  'text-rose-500',
+  'text-violet-500',
+  'text-cyan-500',
+  'text-orange-500',
+  'text-pink-500',
+];
 
 const FS_UNSAFE = /[<>:"/\\|?*\x00-\x1F]/g; // eslint-disable-line no-control-regex -- Sanitize for filesystem
 
@@ -37,4 +50,27 @@ export function projectMirrorDir(clientName: string, projectName: string): strin
 
 export function taskMirrorDir(clientName: string, projectName: string, taskId: string): string {
   return `${projectMirrorDir(clientName, projectName)}/${taskId}`;
+}
+
+/** Existing General for `clientId` (name key `general`), or a new record. */
+export function ensureGeneralProjectRecord(
+  clientId: string,
+  existing: readonly Project[],
+  opts: { id: () => string; now: number; color: string },
+): { project: Project; created: boolean } {
+  const found = existing.find(
+    (p) => p.clientId === clientId && nameKey(p.name) === 'general',
+  );
+  if (found) return { project: found, created: false };
+  return {
+    project: {
+      id: opts.id(),
+      name: 'General',
+      color: opts.color,
+      clientId,
+      createdAt: opts.now,
+      order: 0,
+    },
+    created: true,
+  };
 }

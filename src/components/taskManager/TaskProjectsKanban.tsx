@@ -241,7 +241,9 @@ export function TaskProjectsKanban() {
   const submitNewProject = async () => {
     const name = newProjectName.trim();
     if (!name) return;
-    await createProject(name);
+    const clientId = projects[0]?.clientId ?? '';
+    if (!clientId) return;
+    await createProject(name, clientId);
     cancelAddProject();
   };
 
