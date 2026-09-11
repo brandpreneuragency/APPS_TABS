@@ -1,3 +1,6 @@
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { TaskListPanel } from './TaskListPanel';
@@ -147,5 +150,21 @@ describe('TaskListPanel', () => {
     expect(screen.getByTestId('client-project-tree')).toBeInTheDocument();
     expect(screen.getByTestId('task-calendar-view')).toBeInTheDocument();
     expect(screen.getByTestId('quick-create')).toBeInTheDocument();
+  });
+
+  it('keeps a bounded tree panel above the compact list', () => {
+    const { container } = render(<TaskListPanel />);
+    const tree = container.querySelector('.client-tree-panel');
+    const list = container.querySelector('#task-list-content');
+    expect(tree).toBeTruthy();
+    expect(list).toBeTruthy();
+    expect(tree && list && tree.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('caps .client-tree-panel so a tall tree cannot collapse the list', () => {
+    const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'taskList.css'), 'utf8');
+    const block = css.match(/\.client-tree-panel\s*\{[^}]+\}/)?.[0];
+    expect(block).toMatch(/max-height:\s*50%/);
+    expect(block).toMatch(/overflow-y:\s*auto/);
   });
 });
