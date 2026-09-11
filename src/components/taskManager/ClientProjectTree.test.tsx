@@ -6,6 +6,8 @@ import { ClientProjectTree } from './ClientProjectTree';
 const setSelection = vi.fn();
 const createClient = vi.fn();
 const createProject = vi.fn();
+const deleteClient = vi.fn();
+const deleteProject = vi.fn();
 const showToast = vi.fn();
 
 const clients = [
@@ -31,13 +33,21 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('../../stores/clientStore', () => ({
-  useClientStore: (selector: (s: { clients: typeof clients; createClient: typeof createClient }) => unknown) =>
-    selector({ clients, createClient }),
+  useClientStore: (selector: (s: {
+    clients: typeof clients;
+    createClient: typeof createClient;
+    deleteClient: typeof deleteClient;
+  }) => unknown) =>
+    selector({ clients, createClient, deleteClient }),
 }));
 
 vi.mock('../../stores/projectStore', () => ({
-  useProjectStore: (selector: (s: { projects: typeof projects; createProject: typeof createProject }) => unknown) =>
-    selector({ projects, createProject }),
+  useProjectStore: (selector: (s: {
+    projects: typeof projects;
+    createProject: typeof createProject;
+    deleteProject: typeof deleteProject;
+  }) => unknown) =>
+    selector({ projects, createProject, deleteProject }),
 }));
 
 vi.mock('../../stores/taskStore', () => ({
@@ -63,6 +73,8 @@ describe('ClientProjectTree', () => {
     setSelection.mockReset();
     createClient.mockReset();
     createProject.mockReset();
+    deleteClient.mockReset();
+    deleteProject.mockReset();
     showToast.mockReset();
     selectedClientId = 'c1';
     selectedProjectId = null;
@@ -130,5 +142,37 @@ describe('ClientProjectTree', () => {
     setSelection.mockClear();
     await user.keyboard('{ArrowDown}{Enter}');
     expect(setSelection).toHaveBeenCalledWith('c1', 'p-web');
+  });
+
+  it('confirms and deletes a client', async () => {
+    const user = userEvent.setup();
+    render(<ClientProjectTree />);
+    await user.click(screen.getByRole('button', { name: 'explorer.delete Brandpreneur' }));
+    expect(screen.getByText('tasks.deleteClientConfirm:Brandpreneur')).toBeInTheDocument();
+    expect(deleteClient).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole('button', { name: 'explorer.delete' }));
+    expect(deleteClient).toHaveBeenCalledWith('c1');
+    expect(deleteProject).not.toHaveBeenCalled();
+  });
+
+  it('confirms and deletes a project', async () => {
+    const user = userEvent.setup();
+    render(<ClientProjectTree />);
+    await user.click(screen.getByRole('button', { name: 'explorer.delete Brandpreneur Yeni web sitesi' }));
+    expect(screen.getByText('tasks.deleteProjectConfirm:Yeni web sitesi')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'explorer.delete' }));
+    expect(deleteProject).toHaveBeenCalledWith('p-web');
+    expect(deleteClient).not.toHaveBeenCalled();
+  });
+
+  it('cancels client delete without calling the store', async () => {
+    const user = userEvent.setup();
+    render(<ClientProjectTree />);
+    await user.click(screen.getByRole('button', { name: 'explorer.delete Brandpreneur' }));
+    await user.click(screen.getByRole('button', { name: 'confirm.cancel' }));
+    expect(deleteClient).not.toHaveBeenCalled();
+    expect(screen.queryByText('tasks.deleteClientConfirm:Brandpreneur')).not.toBeInTheDocument();
   });
 });

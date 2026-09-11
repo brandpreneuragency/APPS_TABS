@@ -3,6 +3,7 @@ import { Calendar, Folder } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
+import { projectsForClient } from '../../stores/taskSelection';
 import { dateOptions } from './taskMetadataUtils';
 import './taskDetail.css';
 
@@ -16,6 +17,7 @@ export function TaskMetadataControls() {
   const effectiveId = activeTaskId ?? storeActiveId;
   const activeTask = tasks.find((t) => t.id === effectiveId) ?? null;
   const activeProject = activeTask ? projects.find((p) => p.id === activeTask.projectId) ?? null : null;
+  const clientProjects = projectsForClient(projects, activeProject?.clientId ?? null);
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showProjectPicker, setShowProjectPicker] = useState(false);
@@ -92,7 +94,7 @@ export function TaskMetadataControls() {
         </button>
         {showProjectPicker && activeTask && (
           <div className="drop" style={{ position: 'absolute', top: '100%', left: 0, minWidth: 160, marginTop: 2, zIndex: 1000 }}>
-            {projects.map((p) => (
+            {clientProjects.map((p) => (
               <button
                 key={p.id}
                 type="button"

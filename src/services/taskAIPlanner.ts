@@ -114,12 +114,13 @@ function validateOperations(
       if (typeof operation.updates.date === 'string' && !ISO_DATE_RE.test(operation.updates.date)) {
         errors.push(`Update operation for "${operation.taskId}" has invalid date format.`);
       }
-      if (
-        typeof operation.updates.projectId === 'string' &&
-        operation.updates.projectId.trim() &&
-        !validProjectIds.has(operation.updates.projectId)
-      ) {
-        errors.push(`Update operation for "${operation.taskId}" uses an unknown project.`);
+      if (Object.prototype.hasOwnProperty.call(operation.updates, 'projectId')) {
+        const projectId = operation.updates.projectId;
+        if (typeof projectId !== 'string' || !projectId.trim()) {
+          errors.push(`Update operation for "${operation.taskId}" must include a projectId.`);
+        } else if (!validProjectIds.has(projectId)) {
+          errors.push(`Update operation for "${operation.taskId}" uses an unknown project.`);
+        }
       }
       continue;
     }
@@ -198,7 +199,7 @@ export async function planTaskAIDraft({
   "summary": "short summary",
   "operations": [
     { "type": "create_task", "title": "string", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string", "content": "optional notes", "assignees": ["name"] },
-    { "type": "update_task", "taskId": "string", "updates": { "title": "string", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string|null", "content": "string", "assignees": ["name"] } },
+    { "type": "update_task", "taskId": "string", "updates": { "title": "string", "status": "pending|in_progress|completed", "importance": "low|medium|high", "date": "YYYY-MM-DD", "projectId": "string", "content": "string", "assignees": ["name"] } },
     { "type": "soft_delete_task", "taskId": "string", "reason": "optional" },
     { "type": "add_comment", "taskId": "string", "text": "string" }
   ]

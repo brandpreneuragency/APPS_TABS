@@ -1234,6 +1234,34 @@ button.task-item--on:hover {
   border-radius: 4px;
 }
 
+.client-tree-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--c-text-2);
+  cursor: pointer;
+  flex: 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.client-tree-row:hover .client-tree-delete-btn,
+.client-tree-row:focus-within .client-tree-delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.client-tree-delete-btn:hover {
+  background: var(--c-background-2);
+  color: #EF4444;
+}
+
 .client-tree-row .task-list-add-project {
   opacity: 0;
   pointer-events: none;

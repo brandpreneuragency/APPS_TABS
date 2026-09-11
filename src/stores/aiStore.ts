@@ -36,7 +36,7 @@ const DEFAULT_TASK_AGENT: Agent = {
   name: 'Task Manager',
   avatarUrl: '',
   systemPrompt:
-    'You are a task management assistant. Produce practical, actionable outputs for task planning, summaries, subtasks, dependencies, and execution tracking.',
+    'You are a task management assistant. Produce practical, actionable outputs for task planning, summaries, dependencies, and execution tracking. Create tasks on the project with clear titles. Do not create subtasks.',
   isDefault: true,
   scope: 'task',
 };

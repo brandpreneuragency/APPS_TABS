@@ -109,18 +109,20 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   deleteClient: async (id) => {
     if (!get().clients.some((c) => c.id === id)) return;
     try {
-      const projects = await db.projects.where('clientId').equals(id).toArray();
-      const now = Date.now();
-      for (const project of projects) {
-        await db.tasks.where('projectId').equals(project.id).modify((t) => {
-          if (!t.deletedAt) t.deletedAt = now;
-        });
-      }
-      const projectIds = projects.map((p) => p.id);
-      if (projectIds.length > 0) {
-        await db.projects.bulkDelete(projectIds);
-      }
-      await db.clients.delete(id);
+      await db.transaction('rw', db.clients, db.projects, db.tasks, async () => {
+        const projects = await db.projects.where('clientId').equals(id).toArray();
+        const now = Date.now();
+        for (const project of projects) {
+          await db.tasks.where('projectId').equals(project.id).modify((t) => {
+            if (!t.deletedAt) t.deletedAt = now;
+          });
+        }
+        const projectIds = projects.map((p) => p.id);
+        if (projectIds.length > 0) {
+          await db.projects.bulkDelete(projectIds);
+        }
+        await db.clients.delete(id);
+      });
       set((s) => ({ clients: s.clients.filter((c) => c.id !== id) }));
       useProjectStore.setState((s) => ({
         projects: s.projects.filter((p) => p.clientId !== id),
@@ -129,6 +131,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
     } catch (err) {
       set({ clients: await db.clients.toArray() });
       useProjectStore.setState({ projects: await db.projects.toArray() });
+      await useTaskStore.getState().loadTasks();
       showError(err, 'Failed to delete client.');
     }
   },

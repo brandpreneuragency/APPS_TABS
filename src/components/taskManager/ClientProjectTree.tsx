@@ -1,10 +1,11 @@
-import { useMemo, useState, type KeyboardEvent } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useMemo, useState, type KeyboardEvent, type MouseEvent } from 'react';
+import { ChevronDown, ChevronRight, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useClientStore } from '../../stores/clientStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
 import type { Client, Project } from '../../types';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { AddNewClientButton } from './AddNewClientButton';
 import { AddNewProjectButton } from './AddNewProjectButton';
 import './taskList.css';
@@ -32,6 +33,10 @@ type VisibleRow =
   | { kind: 'client'; id: string }
   | { kind: 'project'; id: string; clientId: string };
 
+type PendingDelete =
+  | { kind: 'client'; id: string; name: string }
+  | { kind: 'project'; id: string; name: string };
+
 function rowDomId(row: VisibleRow): string {
   return row.kind === 'client' ? `client-tree-client-${row.id}` : `client-tree-project-${row.id}`;
 }
@@ -39,7 +44,9 @@ function rowDomId(row: VisibleRow): string {
 export function ClientProjectTree() {
   const { t } = useTranslation();
   const clients = useClientStore((s) => s.clients);
+  const deleteClient = useClientStore((s) => s.deleteClient);
   const projects = useProjectStore((s) => s.projects);
+  const deleteProject = useProjectStore((s) => s.deleteProject);
   const selectedClientId = useTaskStore((s) => s.selectedClientId);
   const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
   const setSelection = useTaskStore((s) => s.setSelection);
@@ -51,6 +58,7 @@ export function ClientProjectTree() {
   );
   const [focusedIndex, setFocusedIndex] = useState(0);
   const [seenSelectedClientId, setSeenSelectedClientId] = useState(selectedClientId);
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   if (selectedClientId !== seenSelectedClientId) {
     setSeenSelectedClientId(selectedClientId);
@@ -175,6 +183,19 @@ export function ClientProjectTree() {
   const focusedRow = visibleRows[activeFocus];
   const focusedId = focusedRow ? rowDomId(focusedRow) : undefined;
 
+  const requestDelete = (event: MouseEvent, pending: PendingDelete) => {
+    event.stopPropagation();
+    setPendingDelete(pending);
+  };
+
+  const confirmPendingDelete = () => {
+    if (!pendingDelete) return;
+    const pending = pendingDelete;
+    setPendingDelete(null);
+    if (pending.kind === 'client') void deleteClient(pending.id);
+    else void deleteProject(pending.id);
+  };
+
   const renderClientRow = (client: Client) => {
     const expanded = expandedClientIds.has(client.id);
     const selected = selectedClientId === client.id && !selectedProjectId;
@@ -211,14 +232,22 @@ export function ClientProjectTree() {
           >
             {client.name}
           </button>
+          <button
+            type="button"
+            className="client-tree-delete-btn"
+            aria-label={`${t('explorer.delete')} ${client.name}`}
+            onClick={(event) => requestDelete(event, { kind: 'client', id: client.id, name: client.name })}
+          >
+            <Trash2 size={12} />
+          </button>
           <AddNewProjectButton clientId={client.id} label={t('tasks.addProjectToClient')} />
         </div>
-        {expanded && childProjects.map((project) => renderProjectRow(project))}
+        {expanded && childProjects.map((project) => renderProjectRow(project, client.name))}
       </div>
     );
   };
 
-  const renderProjectRow = (project: Project) => {
+  const renderProjectRow = (project: Project, clientName: string) => {
     const selected = selectedProjectId === project.id;
     const row: VisibleRow = { kind: 'project', id: project.id, clientId: project.clientId };
     const focused = focusedRow ? rowDomId(focusedRow) === rowDomId(row) : false;
@@ -240,6 +269,14 @@ export function ClientProjectTree() {
         >
           {project.name}
         </button>
+        <button
+          type="button"
+          className="client-tree-delete-btn"
+          aria-label={`${t('explorer.delete')} ${clientName} ${project.name}`}
+          onClick={(event) => requestDelete(event, { kind: 'project', id: project.id, name: project.name })}
+        >
+          <Trash2 size={12} />
+        </button>
       </div>
     );
   };
@@ -260,6 +297,17 @@ export function ClientProjectTree() {
       >
         {sortedClients.map(renderClientRow)}
       </div>
+      {pendingDelete && (
+        <ConfirmDialog
+          message={t(
+            pendingDelete.kind === 'client' ? 'tasks.deleteClientConfirm' : 'tasks.deleteProjectConfirm',
+            { name: pendingDelete.name },
+          )}
+          confirmLabel={t('explorer.delete')}
+          onConfirm={confirmPendingDelete}
+          onCancel={() => setPendingDelete(null)}
+        />
+      )}
     </div>
   );
 }

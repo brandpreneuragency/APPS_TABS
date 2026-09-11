@@ -2,6 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react
 import { Trash2, Folder, Calendar, X } from 'lucide-react';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
+import { projectsForClient } from '../../stores/taskSelection';
 import { findProjectByNameInClient } from '../../stores/taskTreeNames';
 
 interface TaskContextMenuProps {
@@ -71,6 +72,9 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
   if (!task) return null;
 
+  const clientId = projects.find((p) => p.id === task.projectId)?.clientId ?? '';
+  const clientProjects = projectsForClient(projects, clientId || null);
+
   const dateOptions: { label: string; value: string }[] = [
     { label: 'No date', value: '' },
     { label: 'Today', value: new Date().toISOString().slice(0, 10) },
@@ -95,12 +99,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
   const addNewProject = async () => {
     const name = newProjectName.trim();
-    if (!name) return;
-    const clientId =
-      projects.find((p) => p.id === task.projectId)?.clientId
-      ?? projects[0]?.clientId
-      ?? '';
-    if (!clientId) return;
+    if (!name || !clientId) return;
     const existing = findProjectByNameInClient(name, clientId, projects);
     if (existing) {
       assignProject(existing.id);
@@ -150,7 +149,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
       {panel === 'project' && (
         <>
-          {projects.map((p) => (
+          {clientProjects.map((p) => (
             <button
               key={p.id}
               type="button"

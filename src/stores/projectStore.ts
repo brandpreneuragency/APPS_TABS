@@ -7,6 +7,7 @@ import type { Client, Project, Task } from '../types';
 import { db } from '../services/db';
 import { useUIStore } from './uiStore';
 import { useTaskStore } from './taskStore';
+import { useClientStore } from './clientStore';
 import { migrateProjectsToClients, type LegacyTask } from './migrateProjectsToClients';
 import {
   TREE_COLORS,
@@ -153,30 +154,39 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     const project = get().projects.find((p) => p.id === id);
     if (!project) return;
     try {
-      const isGeneral = nameKey(project.name) === 'general';
-      if (isGeneral) {
-        const now = Date.now();
-        await db.tasks.where('projectId').equals(id).modify((t) => {
-          if (!t.deletedAt) t.deletedAt = now;
-        });
-      } else {
-        const { project: general, created } = ensureGeneralProjectRecord(
-          project.clientId,
-          get().projects,
-          { id: () => nanoid(8), now: Date.now(), color: project.color },
-        );
-        if (created) {
-          await db.projects.add(general);
-          set((s) => ({ projects: [...s.projects, general] }));
+      let createdGeneral: Project | null = null;
+      await db.transaction('rw', db.projects, db.tasks, async () => {
+        const isGeneral = nameKey(project.name) === 'general';
+        if (isGeneral) {
+          const now = Date.now();
+          await db.tasks.where('projectId').equals(id).modify((t) => {
+            if (!t.deletedAt) t.deletedAt = now;
+          });
+        } else {
+          const { project: general, created } = ensureGeneralProjectRecord(
+            project.clientId,
+            get().projects,
+            { id: () => nanoid(8), now: Date.now(), color: project.color },
+          );
+          if (created) {
+            await db.projects.add(general);
+            createdGeneral = general;
+          }
+          await db.tasks.where('projectId').equals(id).modify({ projectId: general.id });
         }
-        await db.tasks.where('projectId').equals(id).modify({ projectId: general.id });
-      }
-      await db.projects.delete(id);
-      set((s) => ({ projects: s.projects.filter((p) => p.id !== id) }));
+        await db.projects.delete(id);
+      });
+      set((s) => ({
+        projects: [
+          ...s.projects.filter((p) => p.id !== id),
+          ...(createdGeneral ? [createdGeneral] : []),
+        ],
+      }));
       await useTaskStore.getState().loadTasks();
     } catch (err) {
-      const projects = await db.projects.toArray();
-      set({ projects });
+      useClientStore.setState({ clients: await db.clients.toArray() });
+      set({ projects: await db.projects.toArray() });
+      await useTaskStore.getState().loadTasks();
       showError(err, 'Failed to delete project.');
     }
   },

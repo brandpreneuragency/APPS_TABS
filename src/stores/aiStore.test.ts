@@ -214,6 +214,16 @@ beforeEach(() => {
 // connectNewProvider
 // ---------------------------------------------------------------------------
 
+describe('default task agent', () => {
+  it('asks to create tasks on the project, not subtasks', async () => {
+    await useAIStore.getState().loadAISettings();
+    const agent = useAIStore.getState().agents.find((a) => a.scope === 'task');
+    expect(agent?.systemPrompt).toContain('Create tasks on the project with clear titles');
+    expect(agent?.systemPrompt).toContain('Do not create subtasks');
+    expect(agent?.systemPrompt).not.toContain('summaries, subtasks');
+  });
+});
+
 describe('connectNewProvider', () => {
   it('persists a new provider with fetched models on success', async () => {
     const result = await useAIStore.getState().connectNewProvider({
