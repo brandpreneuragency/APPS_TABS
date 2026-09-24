@@ -13,7 +13,8 @@ use std::sync::Mutex;
 use tauri::{Emitter, Manager, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
-pub mod ai_tools;
+mod cli_providers;
+mod codex;
 mod commands;
 mod terminal;
 mod tray;
@@ -99,10 +100,12 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_dialog::init())
-        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(terminal::TerminalRegistry::new())
+        .manage(std::sync::Arc::new(
+            cli_providers::runs::RunRegistry::default(),
+        ))
         .manage(PendingOpenFile(Mutex::new(None)))
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
@@ -118,24 +121,68 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             test_notification,
             take_pending_open_file,
-            commands::secrets::secret_get,
-            commands::secrets::secret_set,
-            commands::secrets::secret_delete,
-            commands::search::search_web,
+            commands::secrets::legacy_ai_preference,
+            commands::secrets::legacy_ai_cleanup,
             commands::terminal::terminal_create,
             commands::terminal::terminal_write,
             commands::terminal::terminal_resize,
             commands::terminal::terminal_kill,
             commands::terminal::terminal_list,
             commands::terminal::home_dir,
-            commands::ai_tools::shell::ai_shell_exec,
-            commands::ai_tools::fs_ops::ai_file_read,
-            commands::ai_tools::fs_ops::ai_file_write,
-            commands::ai_tools::fs_ops::ai_file_edit,
-            commands::ai_tools::search::ai_glob,
-            commands::ai_tools::search::ai_grep
+            commands::codex::codex_discover,
+            commands::codex::codex_connect,
+            commands::codex::codex_begin_login,
+            commands::codex::codex_cancel_login,
+            commands::codex::codex_status,
+            commands::codex::codex_list_models,
+            commands::codex::codex_default_workspace,
+            commands::codex::codex_read_scoped_text_file,
+            commands::codex::codex_list_scoped_documents,
+            commands::codex::codex_scoped_document_hash,
+            commands::codex::codex_create_scoped_document,
+            commands::codex::codex_read_thread,
+            commands::codex::codex_start_thread,
+            commands::codex::codex_resume_thread,
+            commands::codex::codex_start_turn,
+            commands::codex::codex_interrupt_turn,
+            commands::codex::codex_reply_request,
+            commands::codex::codex_replay_events,
+            commands::codex::codex_ack_events,
+            commands::codex::codex_disconnect,
+            commands::cli_providers::cli_provider_probe,
+            commands::cli_providers::cli_provider_default_workspace,
+            commands::cli_runs::cli_provider_run,
+            commands::cli_runs::cli_provider_stop,
         ])
         .setup(|app| {
+            let event_window = app.get_webview_window("main").ok_or_else(|| {
+                std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "TABS main window is unavailable",
+                )
+            })?;
+            let mut protected_roots = vec![
+                app.path().app_data_dir()?,
+                app.path().app_local_data_dir()?,
+                app.path().app_config_dir()?,
+            ];
+            let codex_home = std::env::var_os("CODEX_HOME")
+                .map(std::path::PathBuf::from)
+                .or_else(|| {
+                    std::env::var_os("USERPROFILE")
+                        .map(|profile| std::path::PathBuf::from(profile).join(".codex"))
+                });
+            if let Some(path) = codex_home {
+                protected_roots.push(path);
+            }
+            let journal_dir = app.path().app_local_data_dir()?.join("codex-event-journal");
+            app.manage(std::sync::Arc::new(
+                codex::CodexHost::new(move |event| {
+                    let _ = event_window.emit("codex://event", event);
+                })
+                .with_protected_roots(protected_roots)
+                .with_journal(&journal_dir),
+            ));
             // Intercept the main window's close button: instead of quitting
             // the app, hide the window so the tray icon remains usable.
             // The user can quit from the tray's "Quit" menu item, or by

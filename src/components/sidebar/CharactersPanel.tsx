@@ -1,43 +1,19 @@
-﻿import { useCallback, useMemo, useRef, useState } from 'react';
+﻿import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Check, User, ChevronDown, ChevronRight } from 'lucide-react';
 import { useAIStore } from '../../stores/aiStore';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import type { Agent } from '../../types';
 
-type AgentScope = 'writer' | 'task';
-
 function shortId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-const EMPTY_AGENT: Omit<Agent, 'id' | 'isDefault' | 'scope'> = {
+const EMPTY_AGENT: Omit<Agent, 'id' | 'isDefault'> = {
   name: '',
   avatarUrl: '',
   systemPrompt: '',
 };
-
-interface CharactersPanelProps {
-  /** Single scope to display. Mutually exclusive with `scopes`. */
-  scope?: AgentScope;
-  /** Multiple scopes to merge into one list. Mutually exclusive with `scope`. */
-  scopes?: AgentScope[];
-  /** Title is no longer rendered as a section header (accordion list has none). */
-  title?: string;
-}
-
-const SCOPE_LABELS: Record<AgentScope, string> = {
-  writer: 'Writer',
-  task: 'Task',
-};
-
-function AgentScopeBadge({ scope, show }: { scope: AgentScope; show: boolean }) {
-  if (!show) return null;
-  return (
-    <span className={`agent-scope-badge agent-scope-badge--${scope}`}>
-      {SCOPE_LABELS[scope]}
-    </span>
-  );
-}
 
 function AgentForm({
   form,
@@ -50,6 +26,7 @@ function AgentForm({
   onCancel: () => void;
   onChange: (field: keyof typeof EMPTY_AGENT, value: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="col" style={{ gap: 8, padding: 12 }}>
       <div>
@@ -68,7 +45,7 @@ function AgentForm({
           autoFocus
           value={form.name}
           onChange={(e) => onChange('name', e.target.value)}
-          placeholder="e.g. Aaron the Script Writer"
+          placeholder={t('sidebar.agentNamePlaceholder')}
           className="ctrl w-full"
           style={{ fontSize: 'var(--fs-sm)' }}
         />
@@ -142,7 +119,6 @@ interface AgentAccordionItemProps {
   agent: Agent;
   active: boolean;
   expanded: boolean;
-  showScopeBadge: boolean;
   onToggleExpand: () => void;
   onSelect: () => void;
   onDelete: () => void;
@@ -152,7 +128,6 @@ function AgentAccordionItem({
   agent,
   active,
   expanded,
-  showScopeBadge,
   onToggleExpand,
   onSelect,
   onDelete,
@@ -240,7 +215,7 @@ function AgentAccordionItem({
             style={{
               width: 24,
               height: 24,
-              borderRadius: '50%',
+              borderRadius: 'var(--radius-full)',
               background: 'rgba(139, 92, 246, 0)',
               display: 'flex',
               alignItems: 'center',
@@ -270,9 +245,6 @@ function AgentAccordionItem({
               style={{ color: 'var(--c-accent-center-panel)' }}
             />
           )}
-        </div>
-        <div className="row gap-2 shrink-0">
-          <AgentScopeBadge scope={agent.scope} show={showScopeBadge} />
         </div>
       </button>
 
@@ -344,7 +316,7 @@ function AgentAccordionItem({
                 padding: '0px 8px',
                 width: 'fit-content',
                 height: 32,
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--c-border-1)',
                 background: 'transparent',
                 cursor: active ? 'default' : 'pointer',
@@ -390,11 +362,10 @@ function AgentAccordionItem({
   );
 }
 
-export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
+export function CharactersPanel() {
   const {
     agents,
     activeAgentId,
-    activeTaskAgentId,
     setActiveAgent,
     saveAgent,
     deleteAgent,
@@ -404,25 +375,6 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
   const [form, setForm] = useState({ ...EMPTY_AGENT });
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
-
-  const activeScopes = useMemo<AgentScope[]>(() => {
-    if (scopes && scopes.length > 0) return scopes;
-    if (scope) return [scope];
-    return ['writer', 'task'];
-  }, [scope, scopes]);
-
-  const showScopeBadge = activeScopes.length > 1;
-
-  const scopedAgents = useMemo(
-    () => agents.filter((agent) => activeScopes.includes(agent.scope)),
-    [agents, activeScopes]
-  );
-
-  const getActiveId = useCallback(
-    (agentScope: AgentScope) =>
-      agentScope === 'task' ? activeTaskAgentId : activeAgentId,
-    [activeAgentId, activeTaskAgentId]
-  );
 
   const startAdd = useCallback(() => {
     setForm({ ...EMPTY_AGENT });
@@ -434,17 +386,15 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
   const handleSave = useCallback(async () => {
     if (!form.name.trim()) return;
     if (adding) {
-      const newScope = activeScopes[0];
       await saveAgent({
         id: shortId(),
         name: form.name.trim(),
         avatarUrl: form.avatarUrl.trim(),
         systemPrompt: form.systemPrompt.trim(),
         isDefault: false,
-        scope: newScope,
       });
     } else if (editingId) {
-      const existing = scopedAgents.find((agent) => agent.id === editingId);
+      const existing = agents.find((agent) => agent.id === editingId);
       if (existing) {
         await saveAgent({
           ...existing,
@@ -456,7 +406,7 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
     }
     setAdding(false);
     setEditingId(null);
-  }, [adding, editingId, form, saveAgent, activeScopes, scopedAgents]);
+  }, [adding, editingId, form, saveAgent, agents]);
 
   const handleCancel = useCallback(() => {
     setAdding(false);
@@ -498,9 +448,9 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
         style={{ padding: '0px 0px 16px 0px', overflowY: 'auto' }}
       >
         {/* Accordion list */}
-        {scopedAgents.length > 0 && (
+        {agents.length > 0 && (
           <div className="agent-accordion-list">
-            {scopedAgents.map((agent) => {
+            {agents.map((agent) => {
               const isExpanded = expandedId === agent.id;
               const isEditing = editingId === agent.id && isExpanded;
 
@@ -519,11 +469,10 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
                   ) : (
                     <AgentAccordionItem
                       agent={agent}
-                      active={agent.id === getActiveId(agent.scope)}
+                      active={agent.id === activeAgentId}
                       expanded={isExpanded}
-                      showScopeBadge={showScopeBadge}
                       onToggleExpand={() => toggleExpand(agent.id)}
-                      onSelect={() => setActiveAgent(agent.id, agent.scope)}
+                      onSelect={() => setActiveAgent(agent.id)}
                       onDelete={() => setConfirmDeleteId(agent.id)}
                     />
                   )}
@@ -534,7 +483,7 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
         )}
 
         {/* Empty state */}
-        {scopedAgents.length === 0 && !adding && (
+        {agents.length === 0 && !adding && (
           <div
             className="col"
             style={{
@@ -543,7 +492,7 @@ export function CharactersPanel({ scope, scopes }: CharactersPanelProps) {
               padding: '48px 16px',
               textAlign: 'center',
               border: '1px solid var(--c-border-1)',
-              borderRadius: 14,
+              borderRadius: 'var(--radius-sm)',
               background: 'var(--c-background-1)',
             }}
           >

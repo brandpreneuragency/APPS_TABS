@@ -139,7 +139,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
                 <img
                   src={preview}
                   alt="preview"
-                  style={{ width: '100%', maxHeight: 128, objectFit: 'contain', borderRadius: 4, border: '1px solid var(--c-border-1)' }}
+                  style={{ width: '100%', maxHeight: 128, objectFit: 'contain', borderRadius: 'var(--radius-sm)', border: '1px solid var(--c-border-1)' }}
                 />
                 <div className="row">
                   <button
@@ -165,7 +165,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
                   alignItems: 'center',
                   padding: '20px 0',
                   border: '2px dashed var(--c-border-1)',
-                  borderRadius: 8,
+                  borderRadius: 'var(--radius-sm)',
                   cursor: 'pointer',
                   background: 'transparent',
                   transition: 'border-color 0.15s, background-color 0.15s',

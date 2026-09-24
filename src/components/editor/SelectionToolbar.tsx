@@ -16,6 +16,38 @@ interface SelectionToolbarProps {
 
 interface Pos { x: number; y: number }
 
+async function writeClipboardText(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    try {
+      textarea.select();
+      return document.execCommand('copy');
+    } finally {
+      textarea.remove();
+    }
+  } catch {
+    return false;
+  }
+}
+
+async function readClipboardText(): Promise<string | null> {
+  try {
+    if (!navigator.clipboard?.readText) return null;
+    return await navigator.clipboard.readText();
+  } catch {
+    return null;
+  }
+}
+
 const ALIGN_MODES = ['left', 'center', 'right', 'justify'] as const;
 const ALIGN_ICONS = [AlignLeft, AlignCenter, AlignRight, AlignJustify] as const;
 const ALIGN_LABELS = ['Align left', 'Align center', 'Align right', 'Align justify'] as const;
@@ -74,8 +106,6 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
   const visible = pos !== null;
 
   // Close toolbar when clicking outside the editor and the toolbar itself.
-  // Clicks inside the editor are handled on mouseup so a left click can
-  // open or reposition the toolbar instead of requiring a double-click.
   useEffect(() => {
     if (!visible) return;
 
@@ -100,8 +130,8 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
   }, [visible, editorScrollRef]);
   const activeTextPreset = (editor?.getAttributes('textStyle').textPreset ?? null) as InlineTextPresetName | null;
 
-  const handleMouseUp = useCallback((e: MouseEvent) => {
-    if (e.button !== 0) return;
+  const handleContextMenu = useCallback((e: MouseEvent) => {
+    if (e.button !== 2) return;
     if (!editor?.isEditable) return;
 
     const target = e.target as HTMLElement;
@@ -109,6 +139,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
     if (toolbarRef.current?.contains(target)) return;
     if (target.closest('textarea, input, button, a, [role="menu"], .block-insert-overlay')) return;
 
+    e.preventDefault();
     const { from, to } = editor.state.selection;
     setLinkOpen(false);
     setColorOpen(false);
@@ -117,22 +148,9 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
   }, [editorScrollRef, editor]);
 
   useEffect(() => {
-    document.addEventListener('mouseup', handleMouseUp);
-    return () => document.removeEventListener('mouseup', handleMouseUp);
-  }, [handleMouseUp]);
-
-  useEffect(() => {
-    const handleContextMenu = (e: MouseEvent) => {
-      if (editorScrollRef.current?.contains(e.target as Node)) {
-        setLinkOpen(false);
-        setColorOpen(false);
-        setPos(null);
-        setSavedRange(null);
-      }
-    };
     document.addEventListener('contextmenu', handleContextMenu);
     return () => document.removeEventListener('contextmenu', handleContextMenu);
-  }, [editorScrollRef]);
+  }, [handleContextMenu]);
 
   useEffect(() => {
     if (linkOpen) {
@@ -221,14 +239,52 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
       .run();
   };
 
-  const clearColor = () => {
+  const closeToolbar = () => {
+    setPos(null);
+    setSavedRange(null);
+    setLinkOpen(false);
+    setColorOpen(false);
+  };
+
+  let savedText: string | null = null;
+  if (savedRange && savedRange.from !== savedRange.to && editor) {
+    try {
+      savedText = editor.state.doc.textBetween(savedRange.from, savedRange.to, '\n');
+    } catch {
+      savedText = null;
+    }
+  }
+
+  const restoreSavedSelection = () => {
+    if (!editor || !savedRange) return false;
+    return editor.chain().focus().setTextSelection(savedRange).run();
+  };
+
+  const selectAll = () => {
+    if (!editor) return;
+    editor.chain().focus().selectAll().run();
+    const { from, to } = editor.state.selection;
+    setSavedRange({ from, to });
+  };
+
+  const copySelection = async () => {
+    if (savedText === null) return;
+    await writeClipboardText(savedText);
+  };
+
+  const cutSelection = async () => {
+    if (!editor || savedText === null || !restoreSavedSelection()) return;
+    if (!await writeClipboardText(savedText)) return;
+    editor.chain().focus().deleteSelection().run();
+    closeToolbar();
+  };
+
+  const pasteFromClipboard = async () => {
     if (!editor || !savedRange) return;
-    editor
-      .chain()
-      .focus()
-      .setTextSelection({ from: savedRange.from, to: savedRange.to })
-      .unsetColor()
-      .run();
+    const text = await readClipboardText();
+    if (text === null || !restoreSavedSelection()) return;
+    editor.chain().focus().insertContent(text).run();
+    closeToolbar();
   };
 
   if (!visible) return null;
@@ -244,13 +300,6 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
   const AlignIcon = ALIGN_ICONS[alignIndex];
   const alignLabel = ALIGN_LABELS[alignIndex];
   const currentColor = (editor?.getAttributes('textStyle').color ?? null) as string | null;
-
-  const closeToolbar = () => {
-    setPos(null);
-    setSavedRange(null);
-    setLinkOpen(false);
-    setColorOpen(false);
-  };
 
   return createPortal(
     <div
@@ -278,7 +327,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
         className="drop selection-toolbar"
         style={{
           padding: 8,
-          borderRadius: 8,
+          borderRadius: 'var(--radius-sm)',
         }}
       >
       {/* Row 1: Link, Bold, Italic, Underline, Strikethrough, Bullet list, Number list */}
@@ -382,7 +431,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
         >
           <span style={{ position: 'relative', display: 'inline-block', width: 13, height: 13, lineHeight: 1 }}>
             <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>A</span>
-            <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2.5, background: currentColor ?? 'var(--c-text-2)', borderRadius: 1 }} />
+            <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2.5, background: currentColor ?? 'var(--c-text-2)', borderRadius: 'var(--radius-sm)' }} />
           </span>
         </ToolBtn>
         <ToolBtn
@@ -445,7 +494,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
               style={{
                 width: 18,
                 height: 18,
-                borderRadius: 4,
+                borderRadius: 'var(--radius-sm)',
                 background: color,
                 border: currentColor === color ? '2px solid var(--c-brand-1)' : '1px solid var(--c-border-1)',
                 padding: 0,
@@ -454,18 +503,45 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
               }}
             />
           ))}
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={clearColor}
-            title="Default color"
-            className="btn-xs"
-            style={{ flexShrink: 0, border: '1px solid var(--c-border-1)', marginLeft: 'auto' }}
-          >
-            Auto
-          </button>
         </div>
       )}
+
+      <div className="selection-toolbar-actions">
+        <button
+          type="button"
+          className="selection-toolbar-action-btn"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={selectAll}
+        >
+          {t('editor.selectAll')}
+        </button>
+        <button
+          type="button"
+          className="selection-toolbar-action-btn"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void cutSelection()}
+          disabled={savedText === null}
+        >
+          {t('editor.cut')}
+        </button>
+        <button
+          type="button"
+          className="selection-toolbar-action-btn"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void copySelection()}
+          disabled={savedText === null}
+        >
+          {t('editor.copy')}
+        </button>
+        <button
+          type="button"
+          className="selection-toolbar-action-btn"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => void pasteFromClipboard()}
+        >
+          {t('editor.paste')}
+        </button>
+      </div>
       </div>
     </div>,
     document.body

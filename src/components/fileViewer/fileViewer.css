@@ -59,7 +59,7 @@
   width: fit-content;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   font-weight: 500;
   border: 1px solid var(--c-border-1);
@@ -88,7 +88,7 @@
   min-height: 32px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   background: transparent;
   color: var(--c-text-2);
@@ -132,7 +132,7 @@
   display: flex;
   justify-content: center;
   padding: 12px 16px 12px;
-  border-top: 1px solid var(--c-border-1);
+  border-top: 0;
   background: var(--c-background-2);
   flex-shrink: 0;
 }
@@ -143,7 +143,7 @@
   max-width: 100%;
   max-height: calc(100dvh - 120px);
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 
 /* Video viewer - thumbnail only, downloadable */
@@ -159,7 +159,7 @@
   position: relative;
   max-width: 100%;
   max-height: 300px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--c-background-2);
   display: flex;
@@ -232,7 +232,7 @@
   gap: 12px;
   padding: 32px;
   background: var(--c-background-3);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   max-width: 300px;
   text-align: center;
@@ -252,7 +252,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   font-weight: 500;
   background: var(--c-accent-center-panel);
@@ -345,7 +345,7 @@
   width: fit-content;
   gap: 5px;
   padding: 4px 10px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   font-weight: 500;
   border: 1px solid var(--c-border-1);
@@ -373,7 +373,7 @@
   min-height: 32px;
   padding: 0;
   box-sizing: border-box;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: none;
   background: transparent;
   color: var(--c-text-2);
@@ -415,7 +415,7 @@
   display: flex;
   justify-content: center;
   padding: 12px 16px 12px;
-  border-top: 1px solid var(--c-border-1);
+  border-top: 0;
   background: var(--c-background-2);
   flex-shrink: 0;
 }
@@ -423,12 +423,12 @@
   max-width: 100%;
   max-height: calc(100dvh - 120px);
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 :root .file-viewer-content-video video {
   max-width: 100%;
   max-height: calc(100dvh - 120px);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 :root .file-viewer-content-pdf {
   padding: 0;
@@ -465,7 +465,7 @@
   gap: 12px;
   padding: 32px;
   background: var(--c-background-3);
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   max-width: 300px;
   text-align: center;
@@ -485,7 +485,7 @@
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   font-weight: 500;
   background: var(--c-accent-center-panel);

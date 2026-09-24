@@ -46,7 +46,7 @@
   height: 30px;
   padding: 0 8px;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-1);
   font-size: var(--fs-base);
@@ -187,7 +187,7 @@
   height: 30px;
   padding: 0 8px;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-2);
   font-size: var(--fs-sm);
@@ -251,7 +251,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   overflow: hidden;
   transition: border-color 0.15s;
@@ -266,7 +266,7 @@
   gap: 10px;
   padding: 10px 12px;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
   cursor: pointer;
   transition: background-color 0.15s;
@@ -316,7 +316,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-text-3);
   flex-shrink: 0;
@@ -377,7 +377,7 @@
   outline: none;
   background: transparent;
   color: var(--c-text-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
@@ -399,7 +399,7 @@
   text-align: center;
   color: var(--c-text-2);
   border: 1px dashed var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
 }
 
@@ -442,7 +442,7 @@
   padding: 6px 8px;
   border-left: 2px solid var(--c-warning);
   background: rgba(245, 158, 11, 0.08);
-  border-radius: 0 6px 6px 0;
+  border-radius: var(--radius-sm);
 }
 
 /* ---------- Style tab ---------- */
@@ -472,12 +472,12 @@
   height: 30px;
   padding: 2px;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   cursor: pointer;
 }
 .forms-builder-color-input::-webkit-color-swatch-wrapper { padding: 0; }
-.forms-builder-color-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+.forms-builder-color-input::-webkit-color-swatch { border: none; border-radius: var(--radius-sm); }
 
 /* ---------- Responsive preview toggle ---------- */
 .forms-builder-preview-bar {
@@ -493,7 +493,7 @@
 .forms-builder-preview-toggle {
   display: inline-flex;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--c-background-1);
 }
@@ -545,7 +545,7 @@
   --tabs-form-text: #111827;
   --tabs-form-label: #374151;
   --tabs-form-border: #d1d5db;
-  --tabs-form-radius: 8px;
+  --tabs-form-radius: var(--radius-sm);
   --tabs-form-font: 'Inter', system-ui, sans-serif;
   --tabs-form-font-size: 14px;
   --tabs-form-padding: 20px;
@@ -553,7 +553,7 @@
   color: var(--tabs-form-text);
   font-family: var(--tabs-form-font);
   font-size: var(--tabs-form-font-size);
-  border-radius: calc(var(--tabs-form-radius) + 4px);
+  border-radius: var(--tabs-form-radius);
   transition: width 0.18s ease;
   overflow: hidden;
 }
@@ -636,7 +636,7 @@
   height: 40px;
   padding: 0 18px;
   border: none;
-  border-radius: 100px;
+  border-radius: var(--radius-full);
   background: var(--tabs-form-primary);
   color: #fff;
   font-size: var(--tabs-form-font-size);
@@ -674,7 +674,7 @@
   align-items: center;
   padding: 10px;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
 }
 @media (max-width: 760px) {
@@ -697,7 +697,7 @@
   gap: 8px;
   padding: 6px 8px;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   font-size: var(--fs-sm);
   color: var(--c-text-1);
@@ -739,7 +739,7 @@
 }
 .forms-builder-embed-preview {
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--c-background-1);
   display: flex;
@@ -834,7 +834,7 @@
 }
 .forms-builder-submissions .forms-table-wrap {
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   flex: 1 1 auto;
 }
 .forms-builder-submission-summary {
@@ -922,7 +922,7 @@
   gap: 10px;
   padding: 12px;
   border: 1px dashed var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-warning);
 }

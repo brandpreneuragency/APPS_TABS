@@ -27,8 +27,7 @@ export const AssistantWrapper = forwardRef<HTMLDivElement, AssistantWrapperProps
       >
         <div
           id={contentId ?? 'ai-sidebar-panel'}
-          className="assistant-panel relative overflow-h flex-col h-full min-w-0 w-full"
-          style={{ padding: '10px' }}
+          className="assistant-panel"
         >
           {children}
         </div>

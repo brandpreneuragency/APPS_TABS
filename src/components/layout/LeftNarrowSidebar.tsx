@@ -1,147 +1,90 @@
-import {
-  CheckCircle,
-  FileText,
-  Minus,
-  Plus,
-  TerminalSquare,
-  Users,
-  Settings as SettingsIcon,
-} from 'lucide-react';
+import { Folder, Layers, Users, UserRoundMinus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
-import {
-  canStepEditorFontSize,
-  stepEditorFontSize,
-} from '../../stores/editorFontSize';
+import { useTaskStore } from '../../stores/taskStore';
+import { useClientStore } from '../../stores/clientStore';
+import { isNoClient } from '../../stores/clientOverview';
+import { TabBar } from '../header/TabBar';
+import { SETTINGS_HEADER_TABS } from '../header/moduleNav';
+import { AddNewClientButton } from '../taskManager/AddNewClientButton';
 
 export function LeftNarrowSidebar() {
   const { t } = useTranslation();
-  const taskMode = useUIStore((s) => s.taskMode);
-  const setTaskMode = useUIStore((s) => s.setTaskMode);
-  const contextPanelOpenByMode = useUIStore((s) => s.contextPanelOpenByMode);
-  const setContextPanelOpen = useUIStore((s) => s.setContextPanelOpen);
-  const crmMode = useUIStore((s) => s.crmMode);
-  const setCrmMode = useUIStore((s) => s.setCrmMode);
-  const setActiveCRMPage = useUIStore((s) => s.setActiveCRMPage);
-  const activeView = useUIStore((s) => s.activeView);
-  const openSettings = useUIStore((s) => s.openSettings);
-  const setActiveView = useUIStore((s) => s.setActiveView);
-  const terminalPanelOpen = useUIStore((s) => s.terminalPanelOpen);
-  const setTerminalPanelOpen = useUIStore((s) => s.setTerminalPanelOpen);
-  const editorFontSize = useUIStore((s) => s.editorFontSize);
-  const setEditorFontSize = useUIStore((s) => s.setEditorFontSize);
+  const taskMode = useUIStore((state) => state.taskMode);
+  const crmMode = useUIStore((state) => state.crmMode);
+  const activeView = useUIStore((state) => state.activeView);
+  const settingsTab = useUIStore((state) => state.activeSettingsSubTab);
+  const crmPage = useUIStore((state) => state.activeCRMPage);
+  const formsPage = useUIStore((state) => state.activeFormsPage);
+  const clients = useClientStore((state) => state.clients);
+  const selectedClientId = useTaskStore((state) => state.selectedClientId);
+  const setSelection = useTaskStore((state) => state.setSelection);
+  const noClient = clients.find(isNoClient);
+  const settings = !taskMode && !crmMode && activeView === 'settings';
+  const clientsPage = crmMode && crmPage === 'clients';
+  const scopes = [
+    ...(!clientsPage ? [
+      { id: null, name: t('navigation.everything'), icon: Layers },
+      { id: noClient?.id ?? '__no-client__', name: t('navigation.noClient'), icon: UserRoundMinus },
+    ] : []),
+    ...clients.filter((client) => !isNoClient(client)).sort((left, right) => left.order - right.order)
+      .map((client) => ({ id: client.id, name: client.name, icon: Users })),
+  ];
+  const focusableScopeId = scopes.find((scope) => scope.id === selectedClientId)?.id ?? scopes[0]?.id;
 
-  const docModeOn = !taskMode && !crmMode && activeView !== 'settings';
-  const settingsOn = !taskMode && !crmMode && activeView === 'settings';
-  const canDecreaseFont = canStepEditorFontSize(editorFontSize, -1);
-  const canIncreaseFont = canStepEditorFontSize(editorFontSize, 1);
+  const selectScope = async (id: string | null) => {
+    if (id === '__no-client__') {
+      const created = await useClientStore.getState().createClient('No Client');
+      if (created) setSelection(created.id, null);
+    } else setSelection(id, null);
+  };
 
   return (
-    <div id="nav-bar" className="nav-bar">
-      <div className="nav-section" style={{ width: 'fit-content', gap: 6, paddingTop: 0, paddingBottom: 0, borderTop: 'none' }}>
-        <button
-          id="nav-btn-documents"
-          type="button"
-          onClick={() => {
-            setTaskMode(false);
-            setCrmMode(false);
-            setActiveView('document');
-            // Mode entry: primary is ensured by setActiveView; open file tree if closed (UX).
-            if (!contextPanelOpenByMode.documents) {
-              setContextPanelOpen('documents', true);
-            }
-          }}
-          title="Documents"
-          className={`mode-btn${docModeOn ? ' mode-btn--on' : ''}`}
-        >
-          <FileText size={15} />
-        </button>
-
-        <button
-          id="nav-btn-tasks"
-          type="button"
-          onClick={() => {
-            // setTaskMode ensures primaryWrapperOpen; open task list if closed (UX).
-            setTaskMode(true);
-            if (!contextPanelOpenByMode.tasks) {
-              setContextPanelOpen('tasks', true);
-            }
-          }}
-          title="Tasks"
-          className={`mode-btn${taskMode ? ' mode-btn--on' : ''}`}
-        >
-          <CheckCircle size={15} />
-        </button>
-
-        <button
-          id="nav-btn-crm"
-          type="button"
-          onClick={() => {
-            setActiveCRMPage('leads');
-            // setCrmMode ensures primaryWrapperOpen; preserves assistant/swap/widths.
-            setCrmMode(true);
-          }}
-          title="CRM"
-          className={`mode-btn${crmMode ? ' mode-btn--on' : ''}`}
-        >
-          <Users size={15} />
-        </button>
-
-        <button
-          id="nav-btn-settings"
-          type="button"
-          onClick={() => {
-            setTaskMode(false);
-            setCrmMode(false);
-            if (!taskMode && !crmMode && activeView === 'settings') {
-              setActiveView('document');
-            } else {
-              // openSettings ensures primaryWrapperOpen.
-              openSettings();
-            }
-          }}
-          title="Settings"
-          className={`mode-btn${settingsOn ? ' mode-btn--on' : ''}`}
-        >
-          <SettingsIcon size={15} />
-        </button>
-      </div>
-
-      <div className="nav-section nav-section-bottom">
-        <button
-          id="nav-btn-font-increase"
-          type="button"
-          disabled={!canIncreaseFont}
-          onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, 1))}
-          title={t('settings.increaseTextSize')}
-          aria-label={t('settings.increaseTextSize')}
-          className="nav-btn"
-        >
-          <Plus size={15} />
-        </button>
-        <button
-          id="nav-btn-font-decrease"
-          type="button"
-          disabled={!canDecreaseFont}
-          onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, -1))}
-          title={t('settings.decreaseTextSize')}
-          aria-label={t('settings.decreaseTextSize')}
-          className="nav-btn"
-        >
-          <Minus size={15} />
-        </button>
-        <button
-          id="nav-btn-terminal"
-          type="button"
-          onClick={() => setTerminalPanelOpen(!terminalPanelOpen)}
-          title={terminalPanelOpen ? 'Hide terminal (Ctrl+J)' : 'Show terminal (Ctrl+J)'}
-          aria-label={terminalPanelOpen ? 'Hide terminal' : 'Show terminal'}
-          aria-pressed={terminalPanelOpen}
-          className={`nav-btn${terminalPanelOpen ? ' nav-btn--on' : ''}`}
-        >
-          <TerminalSquare size={15} />
-        </button>
-      </div>
-    </div>
+    <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.scope')}>
+      {!taskMode && !crmMode && !settings ? <TabBar /> : settings ? (
+        <div className="scope-tabs">
+          {SETTINGS_HEADER_TABS.map(({ key, icon: Icon }) => (
+            <button key={key} type="button" className="scope-tab" aria-current={settingsTab === key ? 'page' : undefined}
+              onClick={() => useUIStore.getState().setActiveSettingsSubTab(key)}><Icon size={14} /><span>{t(`navigation.${key}`)}</span></button>
+          ))}
+        </div>
+      ) : (
+        <>
+          <div className="scope-tabs" role="tablist" aria-orientation="vertical" aria-label={t('navigation.clients')}
+            onKeyDown={(event) => {
+              const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+              const index = buttons.indexOf(event.target as HTMLButtonElement);
+              const next = event.key === 'ArrowDown' ? (index + 1) % buttons.length
+                : event.key === 'ArrowUp' ? (index - 1 + buttons.length) % buttons.length
+                : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : null;
+              if (next === null) return;
+              event.preventDefault();
+              buttons[next]?.focus();
+              buttons[next]?.click();
+            }}>
+            {scopes.map(({ id, name, icon: Icon }) => (
+              <button key={id ?? 'everything'} type="button" role="tab" className="scope-tab"
+                aria-selected={selectedClientId === id} tabIndex={focusableScopeId === id ? 0 : -1}
+                title={name} onClick={() => void selectScope(id)}><Icon size={14} /><span>{name}</span></button>
+            ))}
+          </div>
+          <div className="scope-navigation-footer"><AddNewClientButton showLabel /></div>
+          {crmMode && (
+            <details className="scope-more">
+              <summary>{t('navigation.more')}</summary>
+              {(['leads', 'pipeline', 'forms', 'submissions'] as const).map((page) => (
+                <button type="button" className="scope-tab" key={page}
+                  aria-current={(page === 'submissions' ? crmPage === 'forms' && formsPage === 'submissions' : crmPage === page && (page !== 'forms' || formsPage !== 'submissions')) ? 'page' : undefined}
+                  onClick={() => {
+                    const ui = useUIStore.getState();
+                    ui.setActiveCRMPage(page === 'submissions' ? 'forms' : page);
+                    if (page === 'forms' || page === 'submissions') ui.setActiveFormsPage(page === 'forms' ? 'list' : 'submissions');
+                  }}><Folder size={13} /><span>{t(`navigation.${page === 'leads' ? 'crm' : page}`)}</span></button>
+              ))}
+            </details>
+          )}
+        </>
+      )}
+    </nav>
   );
 }

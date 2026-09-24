@@ -77,7 +77,7 @@ export function TrashModal({ onClose }: TrashModalProps) {
                   className="row items-center"
                   style={{
                     padding: '10px 12px',
-                    borderRadius: 10,
+                    borderRadius: 'var(--radius-sm)',
                     background: 'var(--c-background-3)',
                     gap: 12,
                   }}

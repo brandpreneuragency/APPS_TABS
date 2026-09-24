@@ -1,6 +1,12 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { liveQuery } from 'dexie';
 import type { DragEvent as ReactDragEvent, KeyboardEvent as ReactKeyboardEvent, ChangeEvent } from 'react';
-import { Reply, Zap, Plus, X, Square, Brain, User, File, Folder, Shield } from 'lucide-react';
+import type { Editor } from '@tiptap/react';
+import { isTauriRuntime } from '../../services/runtime';
+import { useCodexService } from '../../services/codex/useCodexService';
+import { useCliProviderService } from '../../services/providers/useCliProviderService';
+import { ChatModelControls } from './ChatModelControls';
+import { Reply, Zap, Plus, X, Square, File, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
 import { useActionsStore } from '../../stores/actionsStore';
@@ -9,7 +15,7 @@ import { useAIStore } from '../../stores/aiStore';
 import { useStreamingChat } from '../../hooks/useStreamingChat';
 import { useWorkspaceStore, flattenTree, findNodeByFullPath } from '../../stores/workspaceStore';
 import type { TreeNode } from '../../stores/workspaceStore';
-import { readBinaryFile, basename, getExt } from '../../services/fs-adapter';
+import { readBinaryFile, getMetadata, basename, getExt } from '../../services/fs-adapter';
 import { isImageFile } from '../../utils/fileType';
 import { db } from '../../services/db';
 import { usePlaceholder } from '../../utils/placeholders';
@@ -21,8 +27,7 @@ import {
   ComposerTextarea,
 } from '../ui/Composer';
 import { AttachmentPreviewItem, AttachmentPreviewList } from '../ui/AttachmentPreview';
-import { ReasoningDropup } from './ReasoningDropup';
-import type { Attachment, ChatMessage, QuickPrompt } from '../../types';
+import type { Attachment, ChatMessage, ChatProviderId, QuickPrompt } from '../../types';
 
 interface ChatInputProps {
   mode: 'writer' | 'task';
@@ -32,6 +37,7 @@ interface ChatInputProps {
   settingsTab?: string | null;
   replyToMessage?: ChatMessage | null;
   onClearReply?: () => void;
+  editor?: Editor | null;
 }
 
 /** Max height for the chat input box, expressed as 50vw in pixels. */
@@ -49,6 +55,10 @@ const IMAGE_MIME_TYPES = new Set([
   'image/bmp',
   'image/svg+xml',
 ]);
+
+function isChatProviderId(value: unknown): value is ChatProviderId {
+  return value === 'codex' || value === 'grok' || value === 'commandCode' || value === 'openCode';
+}
 
 /** Convert raw bytes to a base64 string (chunked to avoid call-stack limits). */
 function uint8ToBase64(bytes: Uint8Array): string {
@@ -124,7 +134,7 @@ const TASK_BUILT_INS: PromptOption[] = [
   },
 ];
 
-export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, replyToMessage, onClearReply }: ChatInputProps) {
+export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, replyToMessage, onClearReply, editor }: ChatInputProps) {
   const { t } = useTranslation();
   const accentColor = 'var(--c-accent-2)';
   const [value, setValue] = useState('');
@@ -133,15 +143,13 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
   // Dropdown states
   const [actionsDropdownOpen, setActionsDropdownOpen] = useState(false);
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const [agentDropdownOpen, setAgentDropdownOpen] = useState(false);
+  const [sendError, setSendError] = useState('');
+  const sendLockRef = useRef(false);
   const [quickPrompts, setQuickPrompts] = useState<QuickPrompt[]>([]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const actionsRef = useRef<HTMLDivElement>(null);
-  const modelRef = useRef<HTMLDivElement>(null);
-  const agentRef = useRef<HTMLDivElement>(null);
   const userHeightRef = useRef<number>(0);
   const mentionRef = useRef<HTMLDivElement>(null);
   const indexedNodesRef = useRef<TreeNode[] | null>(null);
@@ -177,38 +185,60 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   }, [workspaceId, taskId]);
 
   const { selectedText } = useUIStore();
-  const { isStreaming } = useChatStore();
-  const {
-    getActiveAgent,
-    getAgentsByScope,
-    activeAgentId,
-    activeTaskAgentId,
-    setActiveAgent,
-    providerConfigs,
-    activeProviderId,
-    setActiveProvider,
-    setActiveModel,
-    isModelHidden,
-  } = useAIStore();
+  const desktop = isTauriRuntime();
+  const codex = useCodexService();
+  const cliRun = useCliProviderService();
+  const threads = useChatStore((state) => state.threads);
+  const newChat = useChatStore((state) => state.newChat);
+  const setEmptyThreadOrigin = useChatStore((state) => state.setEmptyThreadOrigin);
+  const activeThread = threads.find((thread) => thread.id === threadId);
+  const [preferredProvider, setPreferredProvider] = useState<ChatProviderId>('codex');
+  const threadOrigin = activeThread?.origin;
+  const providerLocked = threadOrigin === 'legacy_api';
+  const selectedProvider = isChatProviderId(threadOrigin) ? threadOrigin : preferredProvider;
+  const cliSelected = selectedProvider !== 'codex' && !providerLocked;
+  const ownRun = desktop && (selectedProvider === 'codex'
+    ? Boolean(codex.activeRunId && codex.activeAppThreadId === (useChatStore.getState().activeThreadId ?? threadId))
+    : Boolean(cliRun && cliRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)));
+  const getActiveAgent = useAIStore((state) => state.getActiveAgent);
   const { openSettings } = useUIStore();
-  const { sendMessage, stopStreaming } = useStreamingChat(threadId, mode, workspaceId ?? undefined, taskId ?? undefined, settingsTab ?? undefined);
+  const { sendMessage, stopStreaming } = useStreamingChat(threadId, mode, workspaceId ?? undefined, taskId ?? undefined, settingsTab ?? undefined, editor);
 
-  const activeAgent = getActiveAgent(mode);
-  const scopedAgents = getAgentsByScope(mode);
-  const activeScopedId = mode === 'task' ? activeTaskAgentId : activeAgentId;
-  const activeConfig = providerConfigs.find((config) => config.id === activeProviderId);
-  const activeModelName = activeConfig?.models?.find((m) => m.id === activeConfig.selectedModel)?.name;
-  const modelLabel = activeConfig ? (activeModelName || activeConfig.selectedModel || t('sidebar.noModel')) : t('sidebar.noModel');
+  const activeAgent = getActiveAgent();
   const actionsLabel = t('chat.actions');
-  // Whether the active model advertises tool support (defaults to true).
-  const toolsSupported = activeConfig?.models?.find((m) => m.id === activeConfig.selectedModel)?.supportsTools ?? true;
+
+  useEffect(() => {
+    const subscription = liveQuery(async () => {
+      const saved = await db.settings.get('activeChatProviderId');
+      return isChatProviderId(saved?.value) ? saved.value : 'codex';
+    }).subscribe({ next: setPreferredProvider, error: () => setPreferredProvider('codex') });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleProviderChange(providerId: ChatProviderId) {
+    if (providerLocked || providerId === selectedProvider) return;
+    await db.settings.put({ key: 'activeChatProviderId', value: providerId });
+    setPreferredProvider(providerId);
+    if (!activeThread) return;
+    const updated = await setEmptyThreadOrigin(activeThread.id, providerId);
+    if (updated) return;
+    await newChat({ mode, workspaceId: workspaceId ?? undefined, taskId: taskId ?? undefined,
+      settingsTab: settingsTab ?? undefined, origin: providerId });
+  }
+
+  async function handleModelSelect(providerId: ChatProviderId, modelId: string) {
+    if (providerLocked) return;
+    if (providerId !== selectedProvider) await handleProviderChange(providerId);
+    const key = providerId === 'codex' ? 'codexModelId' : `providerModelId:${providerId}`;
+    if ((await db.settings.get(key))?.value === modelId) return;
+    await db.settings.put({ key, value: modelId });
+    if (providerId === 'codex') await db.settings.put({ key: 'codexEffort', value: '' });
+  }
 
   // Outside-click dismissal for dropdowns
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (actionsRef.current && !actionsRef.current.contains(e.target as Node)) setActionsDropdownOpen(false);
-      if (modelRef.current && !modelRef.current.contains(e.target as Node)) setModelDropdownOpen(false);
-      if (agentRef.current && !agentRef.current.contains(e.target as Node)) setAgentDropdownOpen(false);
       if (mentionRef.current && !mentionRef.current.contains(e.target as Node)) {
         setMentionOpen(false);
         setMentionStart(null);
@@ -243,7 +273,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
   const handleSend = useCallback(async () => {
     const trimmed = value.trim();
-    if ((!trimmed && attachments.length === 0) || isStreaming) return;
+    if ((!trimmed && attachments.length === 0) || !desktop || sendLockRef.current) return;
+    sendLockRef.current = true;
+    setSendError('');
     const toSend = attachments.slice();
     const replyData = replyToMessage
       ? {
@@ -262,18 +294,22 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     }
     try {
       await sendMessage(
-        trimmed,
+        desktop && !trimmed ? t('codex.reviewAttachments') : trimmed,
         selectedText?.text,
         selectedText?.from,
         selectedText?.to,
         toSend.length ? toSend : undefined,
-        true,
+        false,
         replyData
       );
     } catch (err) {
-      console.error('Chat error:', err);
+      setValue(trimmed);
+      setAttachments(toSend);
+      setSendError(err instanceof Error ? err.message : 'Could not send message');
+    } finally {
+      sendLockRef.current = false;
     }
-  }, [value, attachments, isStreaming, sendMessage, selectedText, replyToMessage, onClearReply]);
+  }, [value, attachments, desktop, sendMessage, selectedText, replyToMessage, onClearReply, t]);
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionOpen) {
@@ -338,6 +374,11 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (cliSelected) {
+      e.target.value = '';
+      useUIStore.getState().showToast(t('cliChat.attachmentsUnavailable'), 'error');
+      return;
+    }
     const files = Array.from(e.target.files ?? []);
     e.target.value = '';
     const toast = (msg: string) => useUIStore.getState().showToast(msg, 'error');
@@ -433,12 +474,18 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     const name = basename(fullPath);
     if (resolvedKind === 'file' && isImageFile(fullPath)) {
       try {
+        const metadata = await getMetadata(fullPath);
+        if (!metadata.isFile) throw new Error('Attachment is not a file');
+        if (metadata.size > MAX_FILE_BYTES) {
+          useUIStore.getState().showToast(`"${name}" is too large (max ${Math.round(MAX_FILE_BYTES / (1024 * 1024))} MB).`, 'error');
+          return;
+        }
         const bytes = await readBinaryFile(fullPath);
         const mime = imageMimeFromPath(fullPath);
         const dataUrl = `data:${mime};base64,${uint8ToBase64(bytes)}`;
         addAttachment({ name, dataUrl, mimeType: mime, kind: 'image' });
       } catch {
-        /* ignore unreadable images */
+        useUIStore.getState().showToast(`Failed to read "${name}".`, 'error');
       }
       return;
     }
@@ -455,6 +502,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   };
 
   const handleDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
+    if (cliSelected) return;
     const types = e.dataTransfer.types;
     if (types.includes('application/x-tabs-tree-node') || types.includes('text/plain')) {
       e.preventDefault();
@@ -471,6 +519,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const handleDrop = (e: ReactDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
+    if (cliSelected) return;
     const raw = e.dataTransfer.getData('application/x-tabs-tree-node');
     let fullPath: string | undefined;
     let kind: 'file' | 'directory' | undefined;
@@ -504,6 +553,11 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     const next = e.target.value;
     setValue(next);
     handleInput();
+    if (cliSelected) {
+      setMentionOpen(false);
+      setMentionStart(null);
+      return;
+    }
     const caret = e.target.selectionStart ?? next.length;
     const m = detectMention(next, caret);
     if (m) {
@@ -529,13 +583,17 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     const inserted = token + (needsTrailingSpace ? ' ' : '');
     const newValue = before + inserted + after;
     setValue(newValue);
-    addAttachment({
-      name: node.name,
-      kind: node.kind === 'directory' ? 'folder' : 'file',
-      path: node.fullPath,
-      displayPath: node.path,
-      mimeType: node.kind === 'directory' ? 'folder' : 'text/plain',
-    });
+    if (node.kind === 'file' && isImageFile(node.fullPath)) {
+      void attachDroppedPath(node.fullPath, 'file', node.path);
+    } else {
+      addAttachment({
+        name: node.name,
+        kind: node.kind === 'directory' ? 'folder' : 'file',
+        path: node.fullPath,
+        displayPath: node.path,
+        mimeType: node.kind === 'directory' ? 'folder' : 'text/plain',
+      });
+    }
     setMentionOpen(false);
     setMentionStart(null);
     requestAnimationFrame(() => {
@@ -571,13 +629,14 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     };
   }, [mentionOpen, activeFolderId, indexedFolderId, rootNode, ensureSubtreeLoaded, activeWorkspaceId]);
 
-  const canSend = (value.trim().length > 0 || attachments.length > 0) && !isStreaming;
+  const canSend = desktop && !ownRun && (value.trim().length > 0 || attachments.length > 0);
   const promptOptions: PromptOption[] = mode === 'task' ? [...TASK_BUILT_INS, ...quickPrompts] : quickPrompts;
 
   return (
     <div style={{ flexShrink: 0, padding: 0, height: 'fit-content' }}>
+      {sendError && <p role="alert" style={{ padding: '4px 12px' }}>{sendError}</p>}
       {selectedText && (
-        <div style={{ marginBottom: 8, fontSize: 'var(--fs-xs)', color: accentColor, background: 'var(--c-background-4)', borderRadius: 6, padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ marginBottom: 8, fontSize: 'var(--fs-xs)', color: accentColor, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="med">{t('chat.context')}</span>
           <span className="trunc italic subtle">
             {selectedText.text.slice(0, 60)}{selectedText.text.length > 60 ? '...' : ''}
@@ -586,10 +645,10 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
       )}
 
       {replyToMessage && (
-        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--c-background-4)', borderRadius: 8, padding: '6px 10px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
+        <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 10px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
           <Reply size={12} style={{ color: accentColor, flexShrink: 0 }} />
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, overflow: 'hidden' }}>
-            <div style={{ width: 2, borderRadius: 1, background: accentColor, flexShrink: 0 }} />
+            <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: accentColor, flexShrink: 0 }} />
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
               <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: accentColor, marginBottom: 1 }}>
                 {replyToMessage.role === 'user' ? 'You' : 'Assistant'}
@@ -654,6 +713,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           placeholder={queryAIPlaceholder || t('chat.askPlaceholder', { name: activeAgent.name })}
+          aria-label={t('chat.askPlaceholder', { name: activeAgent.name })}
           rows={1}
           style={{ padding: '18px 18px 0' }}
         />
@@ -697,13 +757,13 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
               />
-              <ComposerIconButton
+              {!cliSelected && <ComposerIconButton
                 onClick={() => fileInputRef.current?.click()}
                 className="composer-attach-button"
                 title={t('chat.attachFile')}
               >
                 <Plus size={14} />
-              </ComposerIconButton>
+              </ComposerIconButton>}
 
               <div ref={actionsRef} className="relative">
                 <ComposerIconButton
@@ -754,112 +814,13 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
               </div>
             </div>
 
-            <div ref={agentRef} className="chat-input-bottom-col chat-input-bottom-col--agent">
-              <button
-                type="button"
-                onClick={() => { setAgentDropdownOpen((v) => !v); setModelDropdownOpen(false); }}
-                className="chat-input-dropup-btn"
-                data-active="true"
-                style={{ color: accentColor }}
-                aria-label={activeAgent.name}
-                aria-haspopup="menu"
-                aria-expanded={agentDropdownOpen}
-              >
-                <User size={12} className="chat-input-dropup-icon" />
-                <span className="trunc med chat-input-dropup-label">{activeAgent.name}</span>
-              </button>
-              {agentDropdownOpen && (
-                <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 4, minWidth: 180 }}>
-                  {scopedAgents.map((agent) => (
-                    <button
-                      type="button"
-                      key={agent.id}
-                      onClick={() => { setActiveAgent(agent.id, mode); setAgentDropdownOpen(false); }}
-                      className={`drop-item${agent.id === activeScopedId ? ' header-dropdown-item--active' : ''}`}
-                      style={{ fontSize: 'var(--fs-base)' }}
-                    >
-                      <span className="trunc med">{agent.name}</span>
-                    </button>
-                  ))}
-                  <div style={{ borderTop: '1px solid var(--c-border-1)', marginTop: 0, paddingTop: 0 }}>
-                    <button
-                      type="button"
-                      onClick={() => { openSettings('agents'); setAgentDropdownOpen(false); }}
-                      className="drop-item drop-item--brand"
-                    >
-                      {mode === 'task' ? '+ Manage Task Profiles' : t('sidebar.manageWriters')}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div ref={modelRef} className="chat-input-bottom-col chat-input-bottom-col--model">
-              <button
-                type="button"
-                onClick={() => { setModelDropdownOpen((v) => !v); setAgentDropdownOpen(false); }}
-                className="chat-input-dropup-btn"
-                data-active="true"
-                style={{ color: accentColor }}
-                aria-label={modelLabel}
-                aria-haspopup="menu"
-                aria-expanded={modelDropdownOpen}
-              >
-                <Brain size={12} className="chat-input-dropup-icon" />
-                <span className="trunc med chat-input-dropup-label">{modelLabel}</span>
-              </button>
-              {modelDropdownOpen && (
-                <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 4, minWidth: 180 }}>
-                  {providerConfigs.length === 0 && (
-                    <div className="subtle" style={{ padding: '14px 12px', fontSize: 'var(--fs-base)' }}>{t('sidebar.noProviders')}</div>
-                  )}
-                  {providerConfigs.filter((config) => config.status === 'connected').flatMap((config) => {
-                    const visibleModels = (config.models ?? []).filter((m) => !isModelHidden(config.id, m.id));
-                    return visibleModels.map((model) => (
-                      <button
-                        type="button"
-                        key={`${config.id}:${model.id}`}
-                        onClick={() => { setActiveProvider(config.id); setActiveModel(config.id, model.id); setModelDropdownOpen(false); }}
-                        className={`drop-item${config.id === activeProviderId && config.selectedModel === model.id ? ' header-dropdown-item--active' : ''}`}
-                        style={{ fontSize: 'var(--fs-base)' }}
-                      >
-                        <span className="med">{config.name} / {model.name}</span>
-                      </button>
-                    ));
-                  })}
-                  <div style={{ borderTop: '1px solid var(--c-border-1)', marginTop: 0, paddingTop: 0 }}>
-                    <button
-                      type="button"
-                      onClick={() => { openSettings('tools'); setModelDropdownOpen(false); }}
-                      className="drop-item drop-item--brand"
-                    >
-                      {t('sidebar.manageModels')}
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <ReasoningDropup />
-
-            <PermissionModeControl
-              threadId={threadId}
-              chatMode={mode}
-              workspaceId={workspaceId}
-              taskId={taskId}
-              settingsTab={settingsTab}
-              disabled={!toolsSupported}
-              title={
-                toolsSupported
-                  ? undefined
-                  : t('chat.tools.disabledTooltip')
-              }
-            />
+            <ChatModelControls providerId={selectedProvider} providerLocked={providerLocked} switchingLocked={ownRun}
+              threadId={threadId} workspaceId={workspaceId} onSelectModel={handleModelSelect} />
           </div>
 
           {/* Right side: send button */}
           <div className="chat-input-bottom-col chat-input-bottom-col--send">
-            {isStreaming ? (
+            {ownRun && (
               <ComposerIconButton
                 onClick={stopStreaming}
                 className="shrink-0"
@@ -867,126 +828,11 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
               >
                 <Square size={12} fill="currentColor" style={{ color: 'var(--c-text-2)' }} />
               </ComposerIconButton>
-            ) : (
-              <ComposerSendButton onClick={handleSend} disabled={!canSend} title={t('chat.send')} />
             )}
+            <ComposerSendButton onClick={handleSend} disabled={!canSend} title={t('chat.send')} />
           </div>
         </ComposerRow>
       </ComposerCard>
-    </div>
-  );
-}
-
-/** Dropup control for the AI tool permission mode (Ask & Approve / Bypass). */
-function PermissionModeControl({
-  threadId,
-  chatMode,
-  workspaceId,
-  taskId,
-  settingsTab,
-  disabled,
-  title,
-}: {
-  threadId: string;
-  chatMode: 'writer' | 'task';
-  workspaceId: string | null;
-  taskId?: string | null;
-  settingsTab?: string | null;
-  disabled?: boolean;
-  title?: string;
-}) {
-  const { t } = useTranslation();
-  const accentColor = 'var(--c-accent-2)';
-  const [open, setOpen] = useState(false);
-  const [creatingThread, setCreatingThread] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const activeThreadId = useChatStore((s) => s.activeThreadId);
-  const currentThreadId = activeThreadId ?? threadId;
-  const permissionMode = useChatStore(
-    (s) => s.threads.find((th) => th.id === currentThreadId)?.permissionMode ?? 'ask',
-  );
-  const newChat = useChatStore((s) => s.newChat);
-  const setPermissionMode = useChatStore((s) => s.setPermissionMode);
-
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, []);
-
-  const handlePermissionModeChange = useCallback(async (nextMode: 'ask' | 'bypass') => {
-    if (disabled || creatingThread) return;
-
-    let nextThreadId = useChatStore.getState().activeThreadId ?? threadId;
-    if (!nextThreadId) {
-      setCreatingThread(true);
-      try {
-        await newChat({
-          mode: chatMode,
-          workspaceId: workspaceId ?? undefined,
-          taskId: taskId ?? undefined,
-          settingsTab: settingsTab ?? undefined,
-        });
-        nextThreadId = useChatStore.getState().activeThreadId ?? '';
-      } finally {
-        setCreatingThread(false);
-      }
-    }
-
-    if (!nextThreadId) return;
-    setPermissionMode(nextThreadId, nextMode);
-    setOpen(false);
-  }, [chatMode, creatingThread, disabled, workspaceId, newChat, setPermissionMode, settingsTab, taskId, threadId]);
-  const currentLabel =
-    permissionMode === 'bypass' ? t('chat.tools.bypass') : t('chat.tools.askApprove');
-  const CurrentIcon = permissionMode === 'bypass' ? Zap : Shield;
-
-  return (
-    <div
-      ref={ref}
-      className="chat-input-bottom-col chat-input-bottom-col--model"
-      title={title}
-    >
-      <button
-        type="button"
-        disabled={disabled || creatingThread}
-        onClick={() => setOpen((v) => !v)}
-        className="chat-input-dropup-btn"
-        data-active="true"
-        style={{
-          color: accentColor,
-          opacity: disabled || creatingThread ? 0.5 : 1,
-          cursor: disabled || creatingThread ? 'not-allowed' : 'pointer',
-        }}
-        aria-label={currentLabel}
-        aria-haspopup="menu"
-        aria-expanded={open}
-      >
-        <CurrentIcon size={12} className="chat-input-dropup-icon" />
-        <span className="trunc med chat-input-dropup-label">{currentLabel}</span>
-      </button>
-      {open && !disabled && (
-        <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 4, minWidth: 160 }}>
-          <button
-            type="button"
-            onClick={() => void handlePermissionModeChange('ask')}
-            className={`drop-item${permissionMode === 'ask' ? ' header-dropdown-item--active' : ''}`}
-            style={{ fontSize: 'var(--fs-base)' }}
-          >
-            <span className="med">{t('chat.tools.askApprove')}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => void handlePermissionModeChange('bypass')}
-            className={`drop-item${permissionMode === 'bypass' ? ' header-dropdown-item--active' : ''}`}
-            style={{ fontSize: 'var(--fs-base)' }}
-          >
-            <span className="med">{t('chat.tools.bypass')}</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

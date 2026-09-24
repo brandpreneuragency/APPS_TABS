@@ -63,24 +63,7 @@
   background: var(--c-background-2);
 }
 
-/* Left list header + items (shared by all sections). */
-.settings-list-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  width: 100%;
-  height: var(--control-height-md);
-  min-height: var(--control-height-md);
-  padding: 0 var(--space-3);
-  border-bottom: none;
-}
-.settings-list-head h3 {
-  margin: 0;
-  font-size: var(--fs-base);
-  font-weight: 600;
-  color: var(--c-text-1);
-}
+/* Left list items (shared by all sections). */
 .settings-list-body {
   flex: 1;
   min-height: 0;
@@ -187,7 +170,7 @@
 .settings-scope-toggle {
   display: inline-flex;
   border: 1px solid var(--c-border-1);
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   padding: 2px;
 }
 .settings-scope-toggle button {
@@ -198,7 +181,7 @@
   font-size: var(--fs-base);
   height: 26px;
   padding: 0 9px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   width: fit-content;
   min-width: 0;
@@ -367,7 +350,7 @@
   min-width: 180px;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 4px;
 }
 .settings-context-menu button {
@@ -454,37 +437,19 @@
 .provider-detail-header {
   flex-shrink: 0;
 }
-.provider-detail-tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--c-border-1);
-  padding: 0 16px;
-  flex-shrink: 0;
-  overflow-x: auto;
+/* Merged provider detail: sections replace the old tab bar. */
+.provider-detail-section + .provider-detail-section {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--c-border-1);
 }
-.provider-detail-tab {
-  appearance: none;
-  border: none;
-  background: transparent;
-  color: var(--c-text-1);
-  font-size: var(--fs-base);
-  font-weight: 500;
-  padding: 8px 12px;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  white-space: nowrap;
-  transition: color 0.15s, border-color 0.15s;
-  width: fit-content;
-  height: fit-content;
-  min-width: 0;
-  min-height: 0;
-}
-.provider-detail-tab:hover {
-  color: var(--c-text-1);
-}
-.provider-detail-tab--active {
-  color: var(--c-text-1);
-  border-bottom-color: var(--c-accent-center-panel);
+.provider-detail-section-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-text-3);
+  margin-bottom: 8px;
 }
 .provider-detail-content {
   flex: 1;
@@ -494,7 +459,7 @@
 
 /* Model row hover within provider detail. */
 .provider-model-row {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   transition: background-color 0.1s;
 }
 .provider-model-row:hover {
@@ -505,7 +470,7 @@
 .settings-status-dot {
   width: 8px;
   height: 8px;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 .settings-status-dot--connected { background: var(--c-success); }
@@ -514,7 +479,7 @@
 /* "Coming soon" placeholder card. */
 .settings-coming-soon-card {
   padding: 24px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px dashed var(--c-border-2);
   background: var(--c-background-1);
   align-items: center;
@@ -530,7 +495,7 @@
   padding: 48px 16px;
   text-align: center;
   border: 1px solid var(--c-border-1);
-  border-radius: 14px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   height: 100%;
 }
@@ -541,7 +506,7 @@
   font-size: var(--fs-base);
   gap: 6px;
   padding: 6px 10px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 .settings-feedback-success {
   color: var(--c-success);
@@ -552,11 +517,15 @@
   background: rgba(220, 38, 38, 0.05);
 }
 
-/* Connection status strip inside accordion/detail. */
+/* Connection status strip inside provider detail (connected, compact). */
 .settings-connection-strip {
   padding: 8px 12px;
+  border: 1px solid var(--c-border-1);
+  border-radius: var(--radius-sm);
+  background: var(--c-background-1);
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 /* Modal icon-button sizing (refresh / close). */
@@ -573,13 +542,7 @@
   background: var(--c-background-1);
   overflow: hidden;
   display: flex;
-  border-radius: var(--radius-md);
-}
-.settings-models-inline-toolbar {
-  height: 56px;
-  padding: 8px 12px;
-  align-items: center;
-  justify-content: space-between;
+  border-radius: var(--radius-sm);
 }
 .settings-models-inline-body {
   padding: 0 12px 16px;
@@ -603,12 +566,11 @@
   justify-content: space-between;
   cursor: default;
   outline: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   gap: 8px;
-  border-bottom: 1px solid var(--c-border-1);
 }
 .settings-model-row-group {
-  border-bottom: 1px solid var(--c-border-1);
+  border-bottom: none;
 }
 .settings-model-row-group .settings-model-table-row {
   border-bottom: none;
@@ -629,11 +591,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: monospace;
-}
-.settings-model-caps {
-  flex: 2;
-  font-size: var(--fs-base);
-  color: var(--c-text-2);
 }
 .settings-model-source {
   flex: 1;
@@ -710,7 +667,7 @@
 .settings-search-input-wrap {
   align-items: center;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 0 8px;
 }
 .settings-search-input {
@@ -722,23 +679,10 @@
   color: var(--c-text-1);
 }
 
-/* Filter bar for model tabs. */
-.settings-filter-bar { flex-wrap: wrap; }
-.settings-filter-btn {
-  font-size: var(--fs-base);
-  padding: 3px 8px;
-  height: auto;
-  width: fit-content;
-  min-width: fit-content;
-  border: none;
-}
-.settings-filter-btn--active { opacity: 1; }
-.settings-filter-btn--inactive { opacity: 0.7; }
-
 /* Defaults task row. */
 .settings-defaults-row {
   padding: 10px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   background: var(--c-background-1);
   align-items: center;
@@ -751,7 +695,7 @@
 .settings-defaults-select {
   flex: 1;
   padding: 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   background: var(--c-background-0);
   color: var(--c-text-1);
@@ -761,13 +705,13 @@
 /* Usage table. */
 .settings-usage-card {
   padding: 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   background: var(--c-background-1);
   align-items: center;
 }
 .settings-usage-table {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   overflow: hidden;
 }
@@ -791,7 +735,7 @@
 /* Provider info card (advanced tab). */
 .settings-provider-info-card {
   padding: 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   background: var(--c-background-1);
 }
@@ -809,7 +753,7 @@
 /* Future feature card (advanced tab). */
 .settings-future-card {
   padding: 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px dashed var(--c-border-2);
   background: var(--c-background-1);
   opacity: 0.7;
@@ -818,7 +762,7 @@
 /* Danger zone card. */
 .settings-danger-zone-card {
   padding: 16px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-danger, #dc2626);
   background: rgba(220, 38, 38, 0.03);
 }
@@ -828,16 +772,13 @@
   padding: 12px 16px;
   border-bottom: 1px solid var(--c-border-1);
 }
-.settings-provider-detail-head-meta {
-  font-size: var(--fs-base);
-}
 
 /* Toggle switch for search tools. */
 .settings-toggle {
   position: relative;
   width: 36px;
   height: 20px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   border: none;
   cursor: pointer;
   transition: background 0.15s;
@@ -850,7 +791,7 @@
   top: 2px;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: #fff;
   transition: left 0.15s;
 }
@@ -860,7 +801,7 @@
 /* Provider info card in connection tab. */
 .settings-connection-info {
   padding: 8px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-4);
   justify-content: space-between;
   align-items: center;
@@ -912,7 +853,7 @@
   gap: 8px;
   height: fit-content;
   padding: 6px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   background: var(--c-background-0);
   color: var(--c-text-1);
@@ -942,63 +883,10 @@
   margin-top: 2px;
 }
 
-/* ── Advanced filter dropdown ── */
-.settings-advanced-filter-wrap {
-  position: relative;
-}
-.settings-advanced-filter-menu {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  z-index: 10;
-  min-width: 140px;
-  padding: 4px;
-  border-radius: var(--radius-md);
-  border: none;
-  background: var(--c-background-3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-  display: flex;
-  flex-direction: column;
-}
-.settings-advanced-filter-menu button {
-  padding: 6px 10px;
-  border: none;
-  background: transparent;
-  color: var(--c-text-1);
-  font-size: var(--fs-base);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  text-align: left;
-  height: auto;
-  width: fit-content;
-  min-width: fit-content;
-  min-height: 0;
-}
-.settings-advanced-filter-menu button:hover {
-  background: var(--c-background-1);
-}
-.settings-advanced-filter-item--active {
-  background: var(--c-accent-center-panel, var(--c-brand));
-  color: #fff;
-  width: fit-content;
-  min-width: fit-content;
-}
-
-/* ── Model row: capability badges ── */
-.settings-cap-badge {
-  display: inline-block;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: var(--fs-base);
-  background: var(--c-background-2, var(--c-border-1));
-  color: var(--c-text-2);
-  margin-right: 3px;
-  white-space: nowrap;
-}
 .settings-model-custom-badge {
   display: inline-block;
   padding: 1px 5px;
-  border-radius: 3px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-base);
   background: var(--c-accent-center-panel, var(--c-brand));
   color: #fff;
@@ -1057,7 +945,7 @@
   padding: 8px 12px;
   background: var(--c-bg-1, #fff);
   border: 1px solid var(--c-border-1, #e5e7eb);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
   white-space: nowrap;
   font-size: var(--fs-base);

@@ -106,7 +106,6 @@ export function EditorWorkspace({ onEditorReady }: EditorWorkspaceProps) {
         id="scroll-main"
         ref={editorScrollRef}
         className="panel-body ai-scroll flex-1 overflow-y-a editor-pane"
-        style={{ padding: '20px 40px' }}
         onMouseDown={(e) => {
           // Empty-canvas clicks on the scroll pane (padding, gutters, space
           // below content). Place the caret on the nearest line — never force

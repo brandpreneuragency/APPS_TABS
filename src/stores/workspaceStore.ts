@@ -304,7 +304,7 @@ interface WorkspaceStore {
   connectFolderInWorkspace: (
     workspaceId: string,
     fullPath?: string,
-    opts?: { preserveName?: boolean },
+    opts?: { preserveName?: boolean; replaceExisting?: boolean },
   ) => Promise<ConnectedFolder | null>;
   disconnectFolderInWorkspace: (workspaceId: string, folderId: string) => void;
   setActiveFolderInWorkspace: (workspaceId: string, folderId: string) => void;
@@ -494,12 +494,12 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     if (!finalName) {
       const existingNumbers = new Set<number>();
       for (const ws of workspaces) {
-        const match = ws.name.match(/^Workspace (\d+)$/);
+        const match = ws.name.match(/^(?:Doc|Workspace) (\d+)$/);
         if (match) existingNumbers.add(parseInt(match[1], 10));
       }
       let next = 1;
       while (existingNumbers.has(next)) next++;
-      finalName = `Workspace ${next}`;
+      finalName = `Doc ${next}`;
     }
 
     const now = Date.now();
@@ -973,9 +973,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     const ws = get().workspaces.find((w) => w.id === workspaceId);
     if (!ws) return null;
 
-    // One folder per workspace — no replace once a folder is attached.
     const existingFolders = getConnectedFolders(ws);
-    if (existingFolders.length > 0 || ws.connectedFolders.length > 0) {
+    if (!opts?.replaceExisting && (existingFolders.length > 0 || ws.connectedFolders.length > 0)) {
       return existingFolders[0] ?? null;
     }
 
@@ -991,7 +990,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         resolvedPath = picked;
       }
 
-      const name = basename(resolvedPath);
+      const name = basename(resolvedPath) || resolvedPath;
       const children = await buildChildren(resolvedPath, name);
       const id = '0';
       const rootNode: TreeNode = { name, path: name, fullPath: resolvedPath, kind: 'directory', children };
@@ -1292,21 +1291,46 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     if (!fullPath) return;
 
     const name = basename(fullPath);
-    const parentPath = getParentFullPath(fullPath);
+    const parentPath = getParentFullPath(fullPath).replace(/^([A-Za-z]:)$/, '$1/');
     const workspaces = get().workspaces;
+    const pathKey = (value: string) => {
+      const normalized = normalizePathSlashes(value).replace(/\/+$/, '');
+      return /^[A-Za-z]:(\/|$)/.test(normalized) || normalized.startsWith('//')
+        ? normalized.toLowerCase()
+        : normalized;
+    };
 
+    const showDocument = (workspaceId: string) => {
+      get().setActiveWorkspace(workspaceId);
+      // Selecting a document must leave Tasks, CRM, Forms, and Settings.
+      // This action also persists DOCS mode and reveals a collapsed editor.
+      useUIStore.getState().setTaskMode(false);
+    };
+
+    // Reuse the document's own page before considering another tab that happens
+    // to share its folder. Do not reload an already-open document's unsaved text.
+    const existing = workspaces.find((ws) =>
+      ws.currentFile && pathKey(ws.currentFile.path) === pathKey(fullPath),
+    );
     const node: TreeNode = { name, path: name, fullPath, kind: 'file' };
+    if (existing) {
+      if (existing.currentFile?.isDirty || await get().swapFileInWorkspace(existing.id, node)) {
+        showDocument(existing.id);
+      }
+      return;
+    }
 
     // Prefer a workspace that already has the parent folder connected.
     for (const ws of workspaces) {
+      // Explorer must not silently discard the different document in this tab.
+      if (ws.currentFile?.isDirty) continue;
       const folders = getConnectedFolders(ws);
       const matchingFolder = folders.find((f) => {
-        const folderPath = normalizePathSlashes(f.path);
-        return folderPath === parentPath || parentPath.startsWith(folderPath + '/');
+        const folderPath = pathKey(f.path);
+        return folderPath === pathKey(parentPath) || pathKey(parentPath).startsWith(folderPath + '/');
       });
       if (matchingFolder) {
-        get().setActiveWorkspace(ws.id);
-        await get().swapFileInWorkspace(ws.id, node, { skipPrompt: true });
+        if (await get().swapFileInWorkspace(ws.id, node)) showDocument(ws.id);
         return;
       }
     }
@@ -1315,9 +1339,10 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     // when the path has a parent directory (drive roots still open the file).
     const newWs = await get().createWorkspace();
     if (isNativeFsAvailable() && parentPath && parentPath !== fullPath) {
-      await get().connectFolderInWorkspace(newWs.id, parentPath);
+      // createWorkspace may have attached the configured default folder first.
+      await get().connectFolderInWorkspace(newWs.id, parentPath, { replaceExisting: true });
     }
-    await get().swapFileInWorkspace(newWs.id, node, { skipPrompt: true });
+    if (await get().swapFileInWorkspace(newWs.id, node)) showDocument(newWs.id);
   },
 
   // ── Helpers ──

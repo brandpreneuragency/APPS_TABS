@@ -1,9 +1,9 @@
 /** Dexie `settings` key for the folder every empty workspace should open with. */
 export const DEFAULT_WORKSPACE_FOLDER_SETTING_KEY = 'defaultWorkspaceFolder';
 
-/** True for the auto-generated tab title `Workspace 1`, `Workspace 2`, … */
+/** True for an auto-generated tab title, including legacy `Workspace N` tabs. */
 export function isGeneratedWorkspaceName(name: string): boolean {
-  return /^Workspace \d+$/.test(name);
+  return /^(?:Doc|Workspace) \d+$/.test(name);
 }
 
 /** Normalize a stored or picked folder path. Empty / non-string values become null. */

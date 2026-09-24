@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?if $(sys.BUILDARCH) = "x86" ?>
+  <?define TabsShellNewWin64 = "no" ?>
+<?else?>
+  <?define TabsShellNewWin64 = "yes" ?>
+<?endif?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <!-- Tauri's MSI uses PRODUCTNAME.extension, unlike the NSIS ProgID.
+           HKLM matches the MSI's per-machine scope. Windows Installer removes
+           these values on uninstall without removing other Markdown templates. -->
+      <Component Id="TabsMarkdownShellNew" Guid="*" Win64="$(var.TabsShellNewWin64)">
+        <RegistryKey Root="HKLM" Key="Software\Classes\.md\TABS.md\ShellNew">
+          <RegistryValue Name="NullFile" Type="string" Value="" KeyPath="yes" />
+          <!-- Intentionally English, matching the supported installer language. -->
+          <RegistryValue Name="ItemName" Type="string" Value="TABS Markdown Document" />
+          <RegistryValue Name="IconPath" Type="string" Value="&quot;[INSTALLDIR]tabs.exe&quot;,0" />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+</Wix>

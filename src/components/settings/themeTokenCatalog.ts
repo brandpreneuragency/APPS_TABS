@@ -20,27 +20,6 @@ export interface TokenCategory {
 
 export const THEME_TOKEN_CATEGORIES: TokenCategory[] = [
   {
-    id: 'font',
-    label: 'Text & Font',
-    hint: 'Font family, font sizes and line heights.',
-    tokens: [
-      { name: '--c-font-1', label: 'Font family', type: 'font' },
-      { name: '--fs-xs', label: 'Font size — xs', type: 'text' },
-      { name: '--fs-sm', label: 'Font size — sm', type: 'text' },
-      { name: '--fs-base', label: 'Font size — base', type: 'text' },
-      { name: '--lh-xs', label: 'Line height — xs', type: 'text' },
-      { name: '--lh-sm', label: 'Line height — sm', type: 'text' },
-      { name: '--lh-base', label: 'Line height — base', type: 'text' },
-      { name: '--font-fluid-12', label: 'Fluid font 12', type: 'text' },
-      { name: '--font-fluid-14', label: 'Fluid font 14', type: 'text' },
-      { name: '--font-fluid-16', label: 'Fluid font 16', type: 'text' },
-      { name: '--font-fluid-18', label: 'Fluid font 18', type: 'text' },
-      { name: '--line-tight', label: 'Line height — tight', type: 'text' },
-      { name: '--line-normal', label: 'Line height — normal', type: 'text' },
-      { name: '--line-relaxed', label: 'Line height — relaxed', type: 'text' },
-    ],
-  },
-  {
     id: 'color',
     label: 'Color',
     hint: 'Background, text, border, accent and status colors.',
@@ -92,12 +71,7 @@ export const THEME_TOKEN_CATEGORIES: TokenCategory[] = [
     label: 'Radius',
     hint: 'Corner radius scale (px).',
     tokens: [
-      { name: '--radius-xs', label: 'radius-xs', type: 'text' },
       { name: '--radius-sm', label: 'radius-sm', type: 'text' },
-      { name: '--radius-md', label: 'radius-md', type: 'text' },
-      { name: '--radius-lg', label: 'radius-lg', type: 'text' },
-      { name: '--radius-xl', label: 'radius-xl', type: 'text' },
-      { name: '--radius-2xl', label: 'radius-2xl', type: 'text' },
       { name: '--radius-full', label: 'radius-full', type: 'text' },
     ],
   },

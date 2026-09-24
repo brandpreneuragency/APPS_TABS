@@ -13,7 +13,7 @@ export function ToastContainer() {
           className="row"
           style={{
             padding: '12px 16px',
-            borderRadius: 12,
+            borderRadius: 'var(--radius-sm)',
             fontSize: 'var(--fs-sm)',
             maxWidth: 384,
             border: t.type === 'error' ? '1px solid rgba(239,68,68,0.3)' : '1px solid var(--c-border-1)',

@@ -97,7 +97,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
               className="col gap-2"
               style={{
                 border: '1px solid rgba(139,92,246,0.3)',
-                borderRadius: 12,
+                borderRadius: 'var(--radius-sm)',
                 padding: 16,
                 background: 'rgba(139,92,246,0.06)',
               }}
@@ -153,7 +153,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
               className="row gap-3 c-ptr"
               style={{
                 padding: 12,
-                borderRadius: 12,
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--c-border-1)',
                 transition: 'border-color 0.15s, background-color 0.15s',
               }}

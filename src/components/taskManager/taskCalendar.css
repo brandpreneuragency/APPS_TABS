@@ -1,0 +1,47 @@
+:root .primary-workspace-content[data-context-only='true'] { grid-template-columns: minmax(0, 1fr); }
+:root .primary-workspace-content[data-context-only='true'] > .center-content-panel,
+:root .primary-workspace-content[data-context-only='true'] > .context-resize-handle { display: none; }
+:root #task-list-content:has(> div:not([hidden]) .task-calendar) { overflow: hidden; }
+#task-list-content > div:not([hidden]):has(> .task-calendar) { display: flex; flex: 1; min-height: 0; min-width: 0; }
+.task-calendar { display: flex; flex-direction: column; gap: 12px; flex: 1; min-width: 0; min-height: 0; padding-bottom: 8px; }
+.task-calendar-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 10px; flex: 0 0 auto; padding: 0; }
+.task-calendar-toolbar .task-calendar-today { justify-self: start; font-variant-numeric: tabular-nums; }
+.task-calendar-toolbar button { width: auto; flex-shrink: 0; white-space: nowrap; }
+.task-calendar-navigation { justify-self: center; min-width: 0; }
+.task-calendar-navigation, .task-calendar-switch { display: flex; align-items: center; gap: 2px; }
+.task-calendar-toolbar button, .task-calendar-day .crm-kanban-column-header button { display: inline-flex; justify-content: center; align-items: center; min-width: 30px; height: var(--control-height-sm); border: 0; border-radius: var(--radius-sm); background: transparent; padding: 0 8px; font: inherit; color: var(--c-text-1); cursor: pointer; }
+.task-calendar-toolbar button:hover { background-color: var(--c-background-3); }
+.task-calendar button:focus-visible { outline: 2px solid var(--c-accent-center-panel, var(--c-accent-2)); outline-offset: -2px; }
+.task-calendar-toolbar .task-calendar-picker { display: flex; align-items: center; gap: 8px; height: auto; min-height: 32px; font-size: var(--fs-base); font-weight: 600; max-width: 100%; min-width: 0; padding: 0 8px; white-space: normal; flex-shrink: 1; }
+.task-calendar-picker span { overflow-wrap: anywhere; }
+.task-calendar-picker svg { flex-shrink: 0; }
+.task-calendar-actions { justify-self: end; display: flex; align-items: center; gap: 4px; }
+.task-calendar-actions .ai-toggle-btn { width: 32px; min-width: 32px; height: 24px; min-height: 24px; padding: 0; border-radius: var(--radius-sm); color: var(--c-text-2); }
+.task-calendar-switch { padding: 4px; border-radius: var(--radius-sm); background: var(--c-background-3); }
+.task-calendar-switch button { height: 24px; min-width: 0px; }
+.task-calendar-switch button[aria-pressed='true'] { background: var(--c-background-1); box-shadow: inset 0 -2px var(--c-accent-center-panel); }
+.task-calendar-board { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 8px; flex: 1; min-width: 0; min-height: 0; overflow: auto; }
+@media (min-width: 850px) {
+  .task-calendar-board { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+}
+.task-calendar-board--week { grid-auto-rows: minmax(160px, 1fr); padding-right: 10px; }
+.task-calendar-board--month { grid-auto-rows: minmax(160px, 1fr); }
+.task-calendar-board > .task-calendar-day { width: 100%; min-height: 0; border-radius: var(--radius-sm); background: var(--c-background-3); }
+.task-calendar-day.crm-kanban-column--drop-target { background: var(--c-background-5); }
+.task-calendar-day .crm-kanban-column-header { flex-shrink: 0; gap: 4px; padding-right: 0; }
+.task-calendar-day .crm-kanban-column-body { min-height: 0; }
+.task-calendar-day-label { display: flex; align-items: baseline; gap: 8px; margin-right: auto; font-size: var(--fs-base); }
+.task-calendar-board > .task-calendar-day--today { background: var(--c-background-3); border: 1px solid color-mix(in srgb, var(--c-accent-center-panel) 45%, var(--c-border-1)); }
+.task-calendar-day--today .task-calendar-day-label { color: var(--c-accent-center-panel); }
+.task-calendar-day--outside .task-calendar-day-label { color: var(--c-text-3); }
+.task-calendar-day .crm-kanban-card { flex-shrink: 0; min-width: 0; }
+.task-calendar-day .crm-kanban-card-title { overflow-wrap: anywhere; }
+.task-calendar, .task-calendar :is(button, input, strong, p, .crm-kanban-column-empty):not(.tdp-meta-field-btn) { font-size: var(--fs-base); }
+@media (max-width: 900px) {
+  .task-calendar-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .task-calendar-navigation { grid-row: 2; grid-column: 1 / -1; max-width: 100%; }
+  .task-calendar-actions { grid-column: 2; grid-row: 1; }
+}
+@media (max-width: 420px) {
+  .task-calendar-board { grid-template-columns: 1fr; }
+}

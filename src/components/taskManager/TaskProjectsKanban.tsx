@@ -1,26 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Calendar,
-  CalendarDays,
-  CheckCircle2,
   FolderPlus,
   GripVertical,
-  List,
-  ListTodo,
-  Plus,
+  User,
   Users,
 } from 'lucide-react';
 import '../crm/crm.css';
 import './taskProjectsKanban.css';
 import './taskDetail.css';
 import { useTranslation } from 'react-i18next';
+import { formatDate } from '../crm/components/format';
 import { dateOptions } from './taskMetadataUtils';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
-import { useUIStore } from '../../stores/uiStore';
-import { kanbanColumnsForClient } from '../../stores/taskSelection';
-import { KPICard } from '../crm/components';
+import { kanbanColumnsForClient, projectsForClient, resolveQuickCreateProjectId } from '../../stores/taskSelection';
+import { useClientStore } from '../../stores/clientStore';
 import type { Task } from '../../types';
+import { AddNewClientButton } from './AddNewClientButton';
+import { TaskKanbanAddTask } from './TaskKanbanAddTask';
+import './taskList.css';
 
 const PROJECT_DOT_COLORS: Record<string, string> = {
   'text-blue-500': '#3b82f6',
@@ -37,15 +36,6 @@ function projectDotColor(color?: string): string {
   return (color && PROJECT_DOT_COLORS[color]) || 'var(--c-text-3)';
 }
 
-function isOverdue(t: Task): boolean {
-  if (t.status === 'completed' || !t.date) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(t.date);
-  due.setHours(0, 0, 0, 0);
-  return due.getTime() < today.getTime();
-}
-
 interface Column {
   id: string; // project id
   name: string;
@@ -57,12 +47,16 @@ interface TaskKanbanCardProps {
   task: Task;
   isActive: boolean;
   onClick: (taskId: string) => void;
+  dragLabel?: string;
 }
 
-function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
+export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to move project' }: TaskKanbanCardProps) {
+  const { t } = useTranslation();
   const updateTask = useTaskStore((s) => s.updateTask);
-  const openTaskInActiveTab = useTaskStore((s) => s.openTaskInActiveTab);
-  const setActiveTaskPage = useUIStore((s) => s.setActiveTaskPage);
+  const projects = useProjectStore((s) => s.projects);
+  const clients = useClientStore((s) => s.clients);
+  const project = projects.find((item) => item.id === task.projectId);
+  const client = clients.find((item) => item.id === project?.clientId);
   const [isDragging, setIsDragging] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const dateRef = useRef<HTMLDivElement>(null);
@@ -85,20 +79,15 @@ function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
     setIsDragging(true);
   };
 
-  const handleOpenInList = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setActiveTaskPage('list');
-    openTaskInActiveTab(task.id);
-  };
-
   return (
     <div
-      className={`crm-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`}
+      className={`crm-kanban-card task-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`}
       draggable
       role="button"
       tabIndex={0}
       onClick={() => onClick(task.id)}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onClick(task.id);
@@ -107,52 +96,29 @@ function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
       onDragStart={handleDragStart}
       onDragEnd={() => setIsDragging(false)}
     >
-      <div
-        className="crm-kanban-card-drag"
-        title="Drag to move project"
-        draggable
-        onClick={(e) => e.stopPropagation()}
-        onDragStart={(e) => {
-          e.stopPropagation();
-          handleDragStart(e);
-        }}
-      >
-        <GripVertical size={12} />
-      </div>
-      <div className="crm-kanban-card-title-zone">
-        <span className="crm-kanban-card-title">{task.title}</span>
-        <button
-          type="button"
-          className="crm-kanban-card-edit"
-          title="Open in List"
-          aria-label="Open in List"
-          onMouseDown={(e) => e.stopPropagation()}
-          onClick={handleOpenInList}
-        >
-          <List size={12} />
-        </button>
-      </div>
-      <div className="crm-kanban-card-primary">
+      <div className="task-kanban-card-header">
         <div
           ref={dateRef}
-          className="tdp-meta-field"
+          className="crm-kanban-card-date"
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === 'Escape') setShowDatePicker(false); }}
         >
           <button
             type="button"
             className="tdp-meta-field-btn"
             onClick={() => setShowDatePicker(!showDatePicker)}
-            title={task.date ? `Due: ${task.date}` : 'Set due date'}
-            style={{ color: task.date ? 'var(--c-text-1)' : 'var(--c-text-2)' }}
+            aria-label={t('tasks.dueDateCalendar')}
+            aria-expanded={showDatePicker}
+            title={task.date || t('tasks.dueDateCalendar')}
           >
             <Calendar size={12} />
             <span className="tdp-meta-field-label">
-              {task.date ? task.date : 'No due date'}
+              {task.date ? formatDate(task.date, { month: 'short', day: 'numeric' }) : t('tasks.noDate')}
             </span>
           </button>
           {showDatePicker && (
-            <div className="drop" style={{ position: 'absolute', top: '100%', left: 0, minWidth: 160, marginTop: 2, zIndex: 1000 }}>
+            <div className="drop" style={{ position: 'absolute', top: '100%', right: 0, minWidth: 160, marginTop: 2, zIndex: 1000 }}>
               {dateOptions().map((opt) => (
                 <button
                   key={opt.value || '__empty__'}
@@ -167,6 +133,47 @@ function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
             </div>
           )}
         </div>
+        <div
+          className="task-kanban-card-assignment"
+          onClick={(e) => e.stopPropagation()}
+          onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+        >
+          <div className="task-kanban-card-picker" title={client?.name ?? t('tasks.selectClient')}>
+            <User size={12} aria-hidden="true" />
+            <span>{client?.name ?? t('tasks.selectClient')}</span>
+            <select
+              aria-label={t('tasks.selectClient')}
+              value={client?.id ?? ''}
+              onChange={(e) => {
+                const clientId = e.target.value;
+                if (clientId === client?.id) return;
+                const projectId = resolveQuickCreateProjectId(clientId, null, projects)
+                  ?? projectsForClient(projects, clientId)[0]?.id;
+                if (projectId) void updateTask(task.id, { projectId });
+              }}
+            >
+              {!client && <option value="" disabled>{t('tasks.selectClient')}</option>}
+              {clients.map((item) => (
+                <option key={item.id} value={item.id} disabled={!projects.some((entry) => entry.clientId === item.id)}>{item.name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <div
+          className="crm-kanban-card-drag"
+          title={dragLabel}
+          draggable
+          onClick={(e) => e.stopPropagation()}
+          onDragStart={(e) => {
+            e.stopPropagation();
+            handleDragStart(e);
+          }}
+        >
+          <GripVertical size={12} />
+        </div>
+      </div>
+      <div className="crm-kanban-card-title-zone">
+        <span className="crm-kanban-card-title">{task.title}</span>
       </div>
       {task.assignees.length > 0 && (
         <div className="crm-kanban-card-footer">
@@ -183,12 +190,14 @@ function TaskKanbanCard({ task, isActive, onClick }: TaskKanbanCardProps) {
 export function TaskProjectsKanban() {
   const { t } = useTranslation();
   const tasks = useTaskStore((s) => s.tasks);
-  const selectedClientId = useTaskStore((s) => s.selectedClientId);
+  const clients = useClientStore((s) => s.clients);
+  const [clientFilterId, setClientFilterId] = useState<string | null>(null);
+  const activeClientFilterId = clients.some((client) => client.id === clientFilterId) ? clientFilterId : null;
   const activeTaskId = useTaskStore((s) => s.activeTaskId);
   const updateTask = useTaskStore((s) => s.updateTask);
-  const createTask = useTaskStore((s) => s.createTask);
   const openTaskInActiveTab = useTaskStore((s) => s.openTaskInActiveTab);
   const { projects, createProject } = useProjectStore();
+  const [newProjectClientId, setNewProjectClientId] = useState('');
 
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [addingProject, setAddingProject] = useState(false);
@@ -203,7 +212,7 @@ export function TaskProjectsKanban() {
 
   const columns: Column[] = useMemo(() => {
     const byId = new Map(livingTasks.map((task) => [task.id, task]));
-    return kanbanColumnsForClient(projects, livingTasks, selectedClientId).map((col) => ({
+    return kanbanColumnsForClient(projects, livingTasks, null).map((col) => ({
       id: col.id,
       name: col.name,
       color: col.color,
@@ -211,24 +220,10 @@ export function TaskProjectsKanban() {
         .map((id) => byId.get(id))
         .filter((task): task is Task => task !== undefined),
     }));
-  }, [projects, livingTasks, selectedClientId]);
+  }, [projects, livingTasks]);
 
-  const metrics = useMemo(() => {
-    const columnTasks = columns.flatMap((col) => col.tasks);
-    const total = columnTasks.length;
-    const completed = columnTasks.filter((t) => t.status === 'completed').length;
-    const overdue = columnTasks.filter(isOverdue).length;
-    return { total, completed, overdue };
-  }, [columns]);
-
-  const handleAddTask = async (projectId: string) => {
-    const title = window.prompt('New task title');
-    if (!title || !title.trim()) return;
-    const created = await createTask(title.trim(), { projectId });
-    if (created) openTaskInActiveTab(created.id);
-  };
-
-  const startAddProject = () => {
+  const startAddProject = (clientId: string) => {
+    setNewProjectClientId(clientId);
     setAddingProject(true);
     setNewProjectName('');
   };
@@ -240,9 +235,8 @@ export function TaskProjectsKanban() {
 
   const submitNewProject = async () => {
     const name = newProjectName.trim();
-    if (!name || !selectedClientId) return;
-    await createProject(name, selectedClientId);
-    cancelAddProject();
+    if (!name || !newProjectClientId) return;
+    if (await createProject(name, newProjectClientId)) cancelAddProject();
   };
 
   const handleMove = async (taskId: string, columnId: string) => {
@@ -252,7 +246,7 @@ export function TaskProjectsKanban() {
     await updateTask(taskId, { projectId: columnId });
   };
 
-  const newProjectForm = addingProject ? (
+  const newProjectForm = (clientId: string) => addingProject && newProjectClientId === clientId ? (
     <div className="task-kanban-add-column task-kanban-add-column--form">
       <input
         ref={newProjectInputRef}
@@ -271,7 +265,7 @@ export function TaskProjectsKanban() {
         <button
           type="button"
           className="crm-btn crm-btn--primary crm-btn--sm"
-          disabled={!newProjectName.trim()}
+          disabled={!newProjectName.trim() || !newProjectClientId}
           onClick={() => void submitNewProject()}
         >
           Add
@@ -285,7 +279,7 @@ export function TaskProjectsKanban() {
     <button
       type="button"
       className="task-kanban-add-column"
-      onClick={startAddProject}
+      onClick={() => startAddProject(clientId)}
       title="Add project"
     >
       <FolderPlus size={14} />
@@ -293,47 +287,28 @@ export function TaskProjectsKanban() {
     </button>
   );
 
-  if (!selectedClientId) {
-    return (
-      <div className="crm-page">
-        <div className="crm-page-body" style={{ paddingTop: 14 }}>
-          <div className="task-kanban-empty" role="status">
-            {t('tasks.kanbanPickClient')}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="crm-page">
       <div className="crm-page-body" style={{ paddingTop: 14 }}>
-        <div className="crm-kpi-row">
-          <KPICard
-            label="Total Tasks"
-            value={metrics.total}
-            icon={ListTodo}
-            delta={`${columns.length} project${columns.length === 1 ? '' : 's'}`}
-            deltaPositive
-          />
-          <KPICard
-            label="Completed"
-            value={metrics.completed}
-            icon={CheckCircle2}
-            delta={`${metrics.total} total`}
-            deltaPositive
-          />
-          <KPICard
-            label="Overdue"
-            value={metrics.overdue}
-            icon={CalendarDays}
-            delta={metrics.overdue > 0 ? 'needs attention' : 'on track'}
-            deltaPositive={metrics.overdue === 0}
-          />
+        <div className="task-kanban-client-actions" role="group" aria-label={t('tasks.clients')}>
+          <AddNewClientButton showLabel />
+          <div className="task-kanban-client-filters">
+            <button type="button" aria-pressed={activeClientFilterId === null} onClick={() => setClientFilterId(null)}>
+              {t('tasks.allClients')}
+            </button>
+            {clients.map((client) => (
+              <button key={client.id} type="button" aria-pressed={activeClientFilterId === client.id} onClick={() => setClientFilterId(client.id)}>
+                {client.name}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className="crm-kanban" onDragEnd={() => setDropTarget(null)}>
-          {columns.map((col) => {
+        {clients.filter((client) => activeClientFilterId === null || client.id === activeClientFilterId).map((client) => (
+          <section key={client.id} className="task-kanban-client-section" aria-label={client.name}>
+            <h2 className="task-kanban-client-heading">{client.name}</h2>
+            <div className="crm-kanban task-kanban-client-row" onDragEnd={() => setDropTarget(null)}>
+          {columns.filter((col) => projects.some((project) => project.id === col.id && project.clientId === client.id)).map((col) => {
             const isDrop = dropTarget === col.id;
             return (
               <div
@@ -349,7 +324,6 @@ export function TaskProjectsKanban() {
                     />
                     {col.name}
                   </span>
-                  <span className="crm-kanban-column-count">{col.tasks.length}</span>
                 </div>
                 <div
                   className="crm-kanban-column-body"
@@ -389,18 +363,14 @@ export function TaskProjectsKanban() {
                     />
                   ))}
                 </div>
-                <button
-                  type="button"
-                  className="task-kanban-add-btn"
-                  onClick={() => handleAddTask(col.id)}
-                >
-                  <Plus size={12} /> Add task
-                </button>
+                <TaskKanbanAddTask projectId={col.id} />
               </div>
             );
           })}
-          {newProjectForm}
-        </div>
+          {newProjectForm(client.id)}
+            </div>
+          </section>
+        ))}
       </div>
     </div>
   );

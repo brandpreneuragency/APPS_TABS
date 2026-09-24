@@ -240,7 +240,14 @@ export function ClientProjectTree() {
           >
             <Trash2 size={12} />
           </button>
-          <AddNewProjectButton clientId={client.id} label={t('tasks.addProjectToClient')} />
+          <AddNewProjectButton
+            clientId={client.id}
+            label={t('tasks.addProjectToClient')}
+            onCreated={(project) => {
+              expandClient(project.clientId);
+              setSelection(project.clientId, project.id);
+            }}
+          />
         </div>
         {expanded && childProjects.map((project) => renderProjectRow(project, client.name))}
       </div>

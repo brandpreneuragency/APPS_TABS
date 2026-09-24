@@ -31,7 +31,7 @@ const shellStyle: CSSProperties = {
 const cardStyle: CSSProperties = {
   background: '#ffffff',
   border: '1px solid rgba(15, 23, 42, 0.12)',
-  borderRadius: 12,
+  borderRadius: 'var(--radius-sm)',
   overflow: 'hidden',
 };
 
@@ -72,7 +72,7 @@ const placeholderStyle: CSSProperties = {
   fontSize: 14,
   textAlign: 'center',
   border: '1px dashed rgba(15, 23, 42, 0.18)',
-  borderRadius: 12,
+  borderRadius: 'var(--radius-sm)',
   background: 'rgba(248, 250, 252, 0.6)',
 };
 

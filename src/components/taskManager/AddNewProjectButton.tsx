@@ -5,13 +5,15 @@ import { useProjectStore } from '../../stores/projectStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NAME_MAX } from '../../stores/taskTreeNames';
 import { resolveCreateProjectName } from './createProjectName';
+import type { Project } from '../../types';
 
 interface AddNewProjectButtonProps {
   clientId: string;
   label?: string;
+  onCreated?: (project: Project) => void;
 }
 
-export function AddNewProjectButton({ clientId, label }: AddNewProjectButtonProps) {
+export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjectButtonProps) {
   const { t } = useTranslation();
   const resolvedLabel = label ?? t('tasks.addNewProject');
   const createProject = useProjectStore((s) => s.createProject);
@@ -64,6 +66,7 @@ export function AddNewProjectButton({ clientId, label }: AddNewProjectButtonProp
     try {
       const created = await createProject(result.name, clientId);
       if (created) {
+        onCreated?.(created);
         showToast(t('tasks.projectCreated', { name: created.name }), 'info');
         close();
       }

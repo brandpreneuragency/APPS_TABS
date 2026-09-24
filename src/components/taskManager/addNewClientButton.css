@@ -1,0 +1,41 @@
+.task-client-name-field {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.task-client-name-field .task-list-add-project-input {
+  padding-right: 32px;
+}
+
+.task-client-name-save {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-text-3);
+  cursor: pointer;
+}
+
+.task-client-name-save:hover:not(:disabled) {
+  color: #fff;
+}
+
+.task-client-name-field .task-client-name-save:focus {
+  color: var(--c-accent-2);
+  outline: 1px solid var(--c-accent-2);
+  outline-offset: -1px;
+}
+
+.task-client-name-save:disabled {
+  cursor: default;
+}

@@ -237,7 +237,7 @@ function FormPreviewOverlay({ form, previewMode, setPreviewMode, onClose }: Form
     '--tabs-form-text': form.style.textColor ?? '#111827',
     '--tabs-form-label': form.style.labelColor ?? '#374151',
     '--tabs-form-border': form.style.borderColor ?? '#d1d5db',
-    '--tabs-form-radius': `${form.style.borderRadius ?? 8}px`,
+    '--tabs-form-radius': (form.style.borderRadius ?? 8) > 29 ? 'var(--radius-full)' : 'var(--radius-sm)',
     '--tabs-form-font': form.style.fontFamily ?? "'Inter', system-ui, sans-serif",
     '--tabs-form-font-size': `${form.style.fontSize ?? 14}px`,
     '--tabs-form-padding': `${form.style.padding ?? 20}px`,

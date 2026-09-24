@@ -199,7 +199,7 @@
   background: rgba(0, 0, 0, 0.08);
   color: inherit;
   border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   padding: 2px 8px;
   font-size: var(--fs-xs);
   cursor: pointer;

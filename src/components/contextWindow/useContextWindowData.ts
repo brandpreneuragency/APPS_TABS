@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useChatStore } from '../../stores/chatStore';
-import { useAIStore } from '../../stores/aiStore';
-import { estimateTokens, parseContextLength } from '../../utils/tokens';
+import { useCodexService } from '../../services/codex/useCodexService';
+import { db } from '../../services/db';
+import { estimateTokens } from '../../utils/tokens';
 import type { ChatMessage } from '../../types';
 
 export interface ContextWindowStats {
@@ -103,7 +104,19 @@ export function aggregateContextMessages(messages: ChatMessage[]): ContextWindow
 
 export function useContextWindowData() {
   const { threads, activeThreadId, messagesByThread } = useChatStore();
-  const provider = useAIStore((state) => state.getActiveProvider());
+  const codex = useCodexService();
+  const [lastRunModel, setLastRunModel] = useState<{ threadId: string; id?: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!activeThreadId) return;
+    void db.codexRuns.where('appThreadId').equals(activeThreadId).toArray().then((runs) => {
+      if (cancelled) return;
+      const latest = runs.sort((a, b) => b.createdAt - a.createdAt)[0];
+      setLastRunModel(latest ? { threadId: activeThreadId, id: latest.scope.model } : null);
+    }).catch(() => { if (!cancelled) setLastRunModel(null); });
+    return () => { cancelled = true; };
+  }, [activeThreadId, codex.activeRunId]);
 
   const activeThread = useMemo(
     () => threads.find((thread) => thread.id === activeThreadId) ?? null,
@@ -115,8 +128,14 @@ export function useContextWindowData() {
   );
   const stats = useMemo(() => aggregateContextMessages(messages), [messages]);
 
-  const activeModel = provider?.models?.find((model) => model.id === provider.selectedModel);
-  const contextLimit = parseContextLength(activeModel?.capabilities?.contextLength);
+  const currentRunModel = lastRunModel?.threadId === activeThreadId ? lastRunModel : null;
+  const model = currentRunModel && (codex.models.find((item) => item.id === currentRunModel.id)
+    ?? codex.models.find((item) => item.isDefault) ?? codex.models[0]);
+  const modelName = currentRunModel?.id && !codex.models.some((item) => item.id === currentRunModel.id)
+    ? currentRunModel.id : model?.displayName;
+  const activeModel = modelName ? { name: modelName } : undefined;
+  const provider = currentRunModel ? { name: 'Codex', selectedModel: currentRunModel.id ?? model?.id ?? '' } : undefined;
+  const contextLimit = null;
   const usagePercent =
     contextLimit && contextLimit > 0
       ? Math.min(100, Math.round((stats.totalTokens / contextLimit) * 100))

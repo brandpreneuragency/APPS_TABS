@@ -3,6 +3,7 @@
 // quick edits launched from CharactersPanel in the sidebar / page mode.
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Trash2 } from 'lucide-react';
 import { useAIStore } from '../../stores/aiStore';
 import type { Agent } from '../../types';
@@ -14,13 +15,12 @@ function shortId() {
 interface AgentEditorFormProps {
   /** Agent to edit, or null to create a new one. */
   agentId: string | null;
-  /** Scope for a newly created agent (ignored when editing an existing one). */
-  scope: 'writer' | 'task';
   /** Called after a successful save or delete (e.g. to clear selection). */
-  onDone?: () => void;
+  onDone?: (savedAgentId?: string) => void;
 }
 
-export function AgentEditorForm({ agentId, scope, onDone }: AgentEditorFormProps) {
+export function AgentEditorForm({ agentId, onDone }: AgentEditorFormProps) {
+  const { t } = useTranslation();
   const { agents, saveAgent, deleteAgent, setActiveAgent } = useAIStore();
   const editingAgent = agentId ? agents.find((a) => a.id === agentId) ?? null : null;
 
@@ -36,7 +36,7 @@ export function AgentEditorForm({ agentId, scope, onDone }: AgentEditorFormProps
     } else {
       setName('');
       setAvatarUrl('');
-      setSystemPrompt('You are a helpful writing assistant.');
+      setSystemPrompt('You are a helpful assistant.');
     }
   }, [editingAgent, agentId]);
 
@@ -48,11 +48,10 @@ export function AgentEditorForm({ agentId, scope, onDone }: AgentEditorFormProps
       avatarUrl: avatarUrl.trim(),
       systemPrompt: systemPrompt.trim(),
       isDefault: editingAgent?.isDefault ?? false,
-      scope: editingAgent?.scope ?? scope,
     };
     await saveAgent(agent);
-    setActiveAgent(agent.id, agent.scope);
-    onDone?.();
+    setActiveAgent(agent.id);
+    onDone?.(agent.id);
   };
 
   const handleDelete = async () => {
@@ -69,7 +68,7 @@ export function AgentEditorForm({ agentId, scope, onDone }: AgentEditorFormProps
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Aaron the Script Writer"
+            placeholder={t('sidebar.agentNamePlaceholder')}
             className="ctrl w-full"
             style={{ fontSize: 'var(--fs-base)' }}
           />
@@ -114,7 +113,7 @@ export function AgentEditorForm({ agentId, scope, onDone }: AgentEditorFormProps
               style={{
                 width: 40,
                 border: '1px solid rgba(239,68,68,0.3)',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 color: 'var(--c-danger)',
                 transition: 'background-color 0.15s, color 0.15s',
               }}

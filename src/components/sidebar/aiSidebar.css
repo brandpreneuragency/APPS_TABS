@@ -4,11 +4,35 @@
  * Import this file from the owning component.
  * ========================================================= */
 
+.right-panel-subheader-wrapper {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 10px;
+}
+
+.chat-window-wrapper,
+.chat-window {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.chat-window-wrapper {
+  padding: 0 10px;
+}
+
+.chat-window {
+  padding: 0;
+}
+
 /*CHAT THREAD*/
 .composer-root {
   background: transparent;
   padding: 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 .composer-root--clear {
   background: transparent;
@@ -16,7 +40,7 @@
 .composer-card {
   background: transparent;
   padding: 0 4px 4px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   border-color: var(--c-border-1);
   overflow: visible;
 }
@@ -68,7 +92,7 @@
 }
 .composer-search-active {
   background: var(--c-background-4);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 .composer-input {
   flex: 1;
@@ -84,7 +108,7 @@
   color: var(--c-text-1);
 }
 .composer-input::placeholder {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .composer-textarea {
   /* Override .composer-input { flex: 1 } — flex-basis:0% ignores height, so
@@ -117,14 +141,14 @@
   color: var(--c-text-1);
 }
 .chat-textarea::placeholder {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 /* @keyframes blink defined once below in :root section */
 
 /*CHAT INPUT*/
 #chat-input-card {
   background: var(--c-background-3);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   padding: 0;
   height: fit-content;
@@ -134,7 +158,29 @@
   position: relative;
 }
 #chat-input-root {
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
+}
+:root #chat-input-card .drop {
+  border-width: 0 !important;
+  padding: 0;
+  background: var(--c-background-1) !important;
+}
+#chat-input-card .drop-item {
+  background-color: transparent;
+}
+#chat-input-card .drop-item:focus,
+#chat-input-card button.drop-item:focus {
+  background-color: var(--c-accent-3);
+  color: var(--c-accent-1);
+}
+#chat-input-card .drop-item:hover,
+#chat-input-card .drop-item.drop-item--brand:hover {
+  background-color: var(--c-background-1);
+}
+#chat-input-card button.drop-item.header-dropdown-item--active,
+#chat-input-card button.drop-item.header-dropdown-item--active:hover {
+  background-color: var(--c-accent-3);
+  color: var(--c-accent-1);
 }
 #chat-input {
   border: none;
@@ -197,7 +243,7 @@
 :root .composer-root {
   background: transparent;
   padding: 0;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 :root .composer-root--clear {
   background: transparent;
@@ -205,7 +251,7 @@
 :root .composer-card {
   background: transparent;
   padding: 0 4px 4px;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   border-color: var(--c-border-1);
   overflow: visible;
 }
@@ -250,10 +296,19 @@
   flex-shrink: 0;
   padding: 0;
   box-sizing: border-box;
+  color: var(--c-text-3);
+}
+:root .composer-attach-button:hover {
+  color: var(--c-text-2);
+}
+:root .composer-attach-button:focus-visible {
+  color: var(--c-accent-3);
+  outline: 1px solid var(--c-accent-3);
+  outline-offset: 1px;
 }
 :root .composer-search-active {
   background: var(--c-background-4);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 :root .composer-input {
   flex: 1;
@@ -269,7 +324,7 @@
   color: var(--c-text-1);
 }
 :root .composer-input::placeholder {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root .composer-textarea {
   /* Override .composer-input { flex: 1 } — flex-basis:0% ignores height, so
@@ -301,7 +356,7 @@
   color: var(--c-text-1);
 }
 :root .chat-textarea::placeholder {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root .streaming-cursor::after {
   content: '\25CB';

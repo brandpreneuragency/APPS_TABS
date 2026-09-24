@@ -1,0 +1,21 @@
+{
+  "cliVersion": "codex-cli 0.155.1",
+  "generator": "codex app-server generate-json-schema --experimental",
+  "bundle": "codex_app_server_protocol.v2.schemas.json",
+  "sha256": "f82d3752f35e2f16348e4cdd59e774855c79b4d8903b70187c4efeab9722263c",
+  "requiredClientMethods": [
+    "initialize",
+    "account/read",
+    "model/list",
+    "thread/start",
+    "thread/resume",
+    "turn/start",
+    "turn/interrupt"
+  ],
+  "requiredServerMethods": [
+    "item/tool/call",
+    "item/tool/requestUserInput",
+    "item/commandExecution/requestApproval",
+    "item/fileChange/requestApproval"
+  ]
+}

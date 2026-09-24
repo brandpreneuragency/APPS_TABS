@@ -8,6 +8,8 @@ import { SettingsNav } from './lists/SettingsNav';
 import { useCrmSettingsTab } from './pages/CRMSettingsPage';
 
 const CRM_LIST_TITLES: Record<CRMPage, string> = {
+  clients: 'Client List',
+  projects: 'Projects List',
   dashboard: 'Dashboard',
   leads: 'Leads',
   contacts: 'Contacts',

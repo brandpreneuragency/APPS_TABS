@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import {
   useUIStore,
   selectActiveWorkspaceMode,
@@ -7,10 +7,14 @@ import {
   type WorkspaceMode,
 } from '../../stores/uiStore';
 import { LeftNarrowSidebar } from './LeftNarrowSidebar';
+import { NavigationResizeHandle } from './NavigationResizeHandle';
+import './navigation.css';
 import { FileViewerPanel } from '../fileViewer/FileViewerPanel';
 import { RightPanelSubheader } from '../sidebar/RightPanelSubheader';
 import { TerminalPanel } from '../terminal/TerminalPanel';
 import { SettingsDocument } from '../settings/SettingsDocument';
+import { useTaskStore } from '../../stores/taskStore';
+import { resolveTaskAssistantBinding } from '../../stores/taskAssistantBinding';
 import {
   WorkspaceShell,
   PrimaryWorkspaceContent,
@@ -37,6 +41,8 @@ export function AppLayout({
   subtasksBar,
 }: AppLayoutProps) {
   const editorFontSize = useUIStore((s) => s.editorFontSize);
+  const navigationWidth = useUIStore((s) => s.navigationWidth);
+  const navigationCollapsed = useUIStore((s) => s.navigationCollapsed);
 
   useEffect(() => {
     if (editorFontSize === 14) {
@@ -49,13 +55,13 @@ export function AppLayout({
   }, [editorFontSize]);
 
   return (
-    <div className="workspace">
-      <div className="sidebar-panel">
+    <div className="workspace" data-navigation-collapsed={navigationCollapsed} style={{ '--sidebar-width': `${navigationCollapsed ? 0 : navigationWidth}px` } as CSSProperties}>
+      <div className="sidebar-panel" aria-hidden={navigationCollapsed} inert={navigationCollapsed}>
         <LeftNarrowSidebar />
+        <NavigationResizeHandle />
       </div>
-
-      <div id="workspace-panels" className="workspace-panels flex flex-1 min-w-0 min-h-0 overflow-h">
-        <div id="workspace-content" className="workspace-content flex flex-1 min-w-0 min-h-0 overflow-h">
+      <div id="workspace-panels" className="workspace-panels">
+        <div id="workspace-content" className="workspace-content">
           <UniversalWorkspaceShell
             editor={editor}
             sidebar={sidebar}
@@ -95,7 +101,21 @@ function UniversalWorkspaceShell({
   const activeTaskPage = useUIStore((s) => s.activeTaskPage);
   const activeCRMPage = useUIStore((s) => s.activeCRMPage);
   const activeSettingsSubTab = useUIStore((s) => s.activeSettingsSubTab);
+  const taskMode = useUIStore((s) => s.taskMode);
+  const crmMode = useUIStore((s) => s.crmMode);
+  const activeTaskId = useUIStore((s) => s.activeTaskId);
+  const storeActiveTaskId = useTaskStore((s) => s.activeTaskId);
+  const selectedClientId = useTaskStore((s) => s.selectedClientId);
+  const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
   const mode = useUIStore(selectActiveWorkspaceMode);
+  const taskBinding = resolveTaskAssistantBinding({
+    taskMode,
+    crmMode,
+    activeCRMPage,
+    activeTaskId: activeTaskId ?? storeActiveTaskId,
+    selectedClientId,
+    selectedProjectId,
+  });
   const contextPanelVisible = useUIStore(
     (s) => selectIsContextPanelAvailable(s) && selectIsContextPanelOpen(s),
   );
@@ -113,24 +133,30 @@ function UniversalWorkspaceShell({
   });
 
   const assistantBody = fileViewerOpen ? (
-    <div className="flex-1 min-h-0 overflow-hidden flex flex-col h-full">
+    <div className="assistant-file-viewer-wrapper">
       <FileViewerPanel />
     </div>
   ) : (
     <>
-      {mode === 'settings' ? (
-        <RightPanelSubheader
-          mode="writer"
-          workspaceId={null}
-          taskId={null}
-          settingsTab={activeSettingsSubTab}
-        />
-      ) : mode === 'tasks' ? (
-        <RightPanelSubheader mode="task" />
-      ) : (
-        <RightPanelSubheader />
-      )}
-      <div className="flex-1 min-h-0 overflow-hidden">{sidebar}</div>
+      <div id="right-panel-subheader-wrapper" className="right-panel-subheader-wrapper">
+        {mode === 'settings' ? (
+          <RightPanelSubheader
+            mode="writer"
+            workspaceId={null}
+            taskId={null}
+            settingsTab={activeSettingsSubTab}
+          />
+        ) : taskBinding ? (
+          <RightPanelSubheader
+            mode="task"
+            workspaceId={null}
+            taskId={taskBinding.taskId}
+          />
+        ) : (
+          <RightPanelSubheader />
+        )}
+      </div>
+      {sidebar}
     </>
   );
 
@@ -202,7 +228,7 @@ function resolveModeLayout(args: {
 
   if (mode === 'tasks') {
     const projectsOnly = activeTaskPage === 'projects';
-    const showSubtasks = !projectsOnly && Boolean(subtasksBar);
+    const showSubtasks = !projectsOnly && activeTaskPage !== 'calendar' && Boolean(subtasksBar);
     const contextAvailable = !projectsOnly;
     return {
       primary: (
@@ -210,6 +236,7 @@ function resolveModeLayout(args: {
           mode="tasks"
           contextPanel={taskListPanel}
           centerPanel={editor}
+          contextOnly={activeTaskPage === 'calendar'}
           contextPanelAvailable={contextAvailable}
           contextPanelOpen={contextPanelOpenByMode.tasks}
           contextPanelWidthVw={contextPanelWidth}
@@ -227,8 +254,7 @@ function resolveModeLayout(args: {
   }
 
   if (mode === 'crm') {
-    const pipelineOnly = activeCRMPage === 'pipeline';
-    const contextAvailable = !pipelineOnly;
+    const contextAvailable = activeCRMPage !== 'pipeline' && activeCRMPage !== 'projects';
     return {
       primary: (
         <PrimaryWorkspaceContent

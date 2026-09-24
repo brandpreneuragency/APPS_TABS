@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useTerminalStore } from '../../stores/terminalStore';
+import { useUIStore } from '../../stores/uiStore';
 import { invoke } from '@tauri-apps/api/core';
 
 interface TerminalTabsProps {
@@ -15,6 +16,7 @@ export function TerminalTabs({ onSelect, activeId }: TerminalTabsProps) {
   const createTerminal = useTerminalStore((s) => s.createTerminal);
   const closeTerminal = useTerminalStore((s) => s.closeTerminal);
   const renameTerminal = useTerminalStore((s) => s.renameTerminal);
+  const setTerminalPanelOpen = useUIStore((s) => s.setTerminalPanelOpen);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
 
@@ -83,6 +85,15 @@ export function TerminalTabs({ onSelect, activeId }: TerminalTabsProps) {
         aria-label={t('terminal.newTerminal')}
       >
         <Plus size={12} />
+      </button>
+      <button
+        type="button"
+        className="terminal-hide-panel"
+        onClick={() => setTerminalPanelOpen(false)}
+        title={t('terminal.hideTerminal')}
+        aria-label={t('terminal.hideTerminal')}
+      >
+        <X size={14} />
       </button>
     </div>
   );

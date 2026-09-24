@@ -1,4 +1,5 @@
 import '../crm/crmLayout.css';
+import './workspacePages.css';
 import { useUIStore, type CRMPage } from '../../stores/uiStore';
 import CRMDashboardPage from '../crm/pages/CRMDashboardPage';
 import CRMLeadsPage from '../crm/pages/CRMLeadsPage';
@@ -8,6 +9,7 @@ import CRMPipelinePage from '../crm/pages/CRMPipelinePage';
 import CRMActivitiesPage from '../crm/pages/CRMActivitiesPage';
 import CRMSettingsPage from '../crm/pages/CRMSettingsPage';
 import { FormsWorkspace } from './FormsWorkspace';
+import { TaskProjectsKanban } from '../taskManager/TaskProjectsKanban';
 
 function renderCRMPage(page: CRMPage) {
   switch (page) {
@@ -35,9 +37,11 @@ function renderCRMPage(page: CRMPage) {
 export function CRMWorkspace() {
   const { activeCRMPage } = useUIStore();
 
+  if (activeCRMPage === 'projects') return <TaskProjectsKanban />;
+
   return (
-    <div id="crm-workspace" className="panel flex-col h-full w-full min-w-0" style={{ background: 'rgba(233, 233, 233, 0)' }}>
-      <div className="panel-body flex-1 overflow-y-a">{renderCRMPage(activeCRMPage)}</div>
+    <div id="crm-workspace" className="crm-workspace panel">
+      <div className="crm-workspace-body panel-body">{renderCRMPage(activeCRMPage)}</div>
     </div>
   );
 }

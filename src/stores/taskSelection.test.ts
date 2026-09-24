@@ -84,8 +84,8 @@ describe('resolveQuickCreateProjectId', () => {
 });
 
 describe('kanbanColumnsForClient', () => {
-  it('returns an empty array when no client is selected', () => {
-    expect(kanbanColumnsForClient(projects, tasks, null)).toEqual([]);
+  it('returns all projects when no client is selected', () => {
+    expect(kanbanColumnsForClient(projects, tasks, null).map((column) => column.id)).toEqual(['p-gen', 'p-web', 'p-other']);
   });
 
   it('builds one column per client project with living task ids', () => {

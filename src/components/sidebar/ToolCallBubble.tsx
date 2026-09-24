@@ -77,7 +77,7 @@ export function ToolCallBubble({ message, onApprove, onReject }: ToolCallBubbleP
         <div className="tool-call-bubble__summary">{tc.resultSummary}</div>
       )}
 
-      {pending && (
+      {pending && onApprove && onReject && (
         <div className="tool-call-bubble__actions">
           <button
             type="button"
@@ -94,6 +94,9 @@ export function ToolCallBubble({ message, onApprove, onReject }: ToolCallBubbleP
             <X size={13} /> {t('chat.tools.reject')}
           </button>
         </div>
+      )}
+      {pending && (!onApprove || !onReject) && (
+        <div className="tool-call-bubble__summary">{t('chat.tools.legacyUnavailable')}</div>
       )}
     </div>
   );

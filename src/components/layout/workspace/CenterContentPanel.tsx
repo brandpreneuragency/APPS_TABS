@@ -21,27 +21,16 @@ export function CenterContentPanel({
   return (
     <div
       id="center-panel"
-      className="center-content-panel panel flex-1 h-full overflow-h flex-col min-w-0"
+      className="center-content-panel panel"
       style={{ minWidth: CENTER_MIN_PX }}
     >
       {(showSubtasksBar && subtasksBar) || leadingControls ? (
-        <div
-          className="subtasks-bar-wrapper"
-          style={{
-            paddingTop: '10px',
-            paddingBottom: '10px',
-            paddingLeft: '10px',
-            paddingRight: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
-        >
+        <div className="center-panel-toolbar subtasks-bar-wrapper">
           {leadingControls}
           {showSubtasksBar ? subtasksBar : null}
         </div>
       ) : null}
-      <div id="center-panel-body" className="panel-body flex-1 min-h-0 overflow-h">
+      <div id="center-panel-body" className="center-panel-body panel-body">
         {children}
       </div>
     </div>

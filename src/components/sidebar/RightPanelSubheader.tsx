@@ -1,9 +1,13 @@
-import { Clock, Plus, X } from 'lucide-react';
+import { Clock, Plus, User, X } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useAIStore } from '../../stores/aiStore';
 import { useChatStore } from '../../stores/chatStore';
 import { useUIStore } from '../../stores/uiStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { ContextWindowPanel, ContextWindowSummaryTooltip, ContextWindowRing } from '../contextWindow';
+import { db } from '../../services/db';
+import type { ChatThreadMeta } from '../../types';
 
 interface RightPanelSubheaderProps {
   /**
@@ -39,14 +43,20 @@ export function RightPanelSubheader({
   } = useUIStore();
   const { activeWorkspaceId } = useWorkspaceStore();
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [legacyThreads, setLegacyThreads] = useState<ChatThreadMeta[]>([]);
   const [contextSummaryOpen, setContextSummaryOpen] = useState(false);
   const historyRef = useRef<HTMLDivElement>(null);
+  const agentRef = useRef<HTMLDivElement>(null);
+  const [agentOpen, setAgentOpen] = useState(false);
+  const { t } = useTranslation();
+  const { getActiveAgent, agents, setActiveAgent } = useAIStore();
   const contextWindowRef = useRef<HTMLDivElement>(null);
 
   // Resolve the active chat context. Props take precedence so this
   // subheader can be mounted under a Settings sub-tab without the global
   // uiStore knowing about the settings context.
   const mode: 'writer' | 'task' = modeOverride ?? (taskMode ? 'task' : 'writer');
+  const activeAgent = getActiveAgent();
   const contextDocId = taskIdOverride
     ? null
     : workspaceIdOverride !== undefined
@@ -61,7 +71,18 @@ export function RightPanelSubheader({
     : null;
 
   useEffect(() => {
+    if (!historyOpen) return;
+    let cancelled = false;
+    void db.chatThreads.where('origin').equals('legacy_api').reverse().toArray()
+      .then((rows) => { if (!cancelled) setLegacyThreads(rows); });
+    return () => { cancelled = true; };
+  }, [historyOpen]);
+
+  useEffect(() => {
     const handler = (e: MouseEvent) => {
+      if (agentRef.current && !agentRef.current.contains(e.target as Node)) {
+        setAgentOpen(false);
+      }
       if (historyRef.current && !historyRef.current.contains(e.target as Node)) {
         setHistoryOpen(false);
       }
@@ -77,6 +98,7 @@ export function RightPanelSubheader({
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        setAgentOpen(false);
         setHistoryOpen(false);
         setContextSummaryOpen(false);
         setContextWindowOpen(false);
@@ -140,6 +162,51 @@ export function RightPanelSubheader({
           )}
         </div>
       </div>
+      <div className="editor-topbar-col right-panel-agent-column">
+        <div ref={agentRef} className="right-panel-agent-picker">
+          <button
+            type="button"
+            className="tbar-btn right-panel-agent-button"
+            title={activeAgent.name}
+            aria-label={activeAgent.name}
+            aria-haspopup="menu"
+            aria-expanded={agentOpen}
+            onClick={() => {
+              setHistoryOpen(false);
+              setContextSummaryOpen(false);
+              setContextWindowOpen(false);
+              setAgentOpen((open) => !open);
+            }}
+          >
+            <User size={12} />
+            <span className="trunc">{activeAgent.name}</span>
+          </button>
+          {agentOpen && (
+            <div className="drop right-panel-agent-menu" role="menu" aria-label={activeAgent.name}>
+              {agents.map((agent) => (
+                <button
+                  type="button"
+                  key={agent.id}
+                  role="menuitemradio"
+                  aria-checked={agent.id === activeAgent.id}
+                  className={`drop-item${agent.id === activeAgent.id ? ' header-dropdown-item--active' : ''}`}
+                  onClick={() => { setActiveAgent(agent.id); setAgentOpen(false); }}
+                >
+                  <span className="trunc med">{agent.name}</span>
+                </button>
+              ))}
+              <button
+                type="button"
+                role="menuitem"
+                className="drop-item drop-item--brand"
+                onClick={() => { useUIStore.getState().openSettings('agents'); setAgentOpen(false); }}
+              >
+                {t('sidebar.manageAgents')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
       <div className="editor-topbar-col justify-end">
         <div
           ref={historyRef}
@@ -168,7 +235,7 @@ export function RightPanelSubheader({
           </button>
           {historyOpen && (
             <div className="chat-history-dropdown">
-              {threads.length === 0 && (
+              {threads.length === 0 && legacyThreads.length === 0 && (
                 <div className="chat-history-empty subtle">No chats yet</div>
               )}
               {threads.map((thread) => (
@@ -191,6 +258,17 @@ export function RightPanelSubheader({
                   </button>
                 </div>
               ))}
+              {legacyThreads.some((thread) => !threads.some((current) => current.id === thread.id)) && (
+                <div className="chat-history-empty subtle">{t('codex.legacyHistory')}</div>
+              )}
+              {legacyThreads.filter((thread) => !threads.some((current) => current.id === thread.id))
+                .map((thread) => (
+                  <button type="button" key={thread.id}
+                    className={`chat-history-item ${thread.id === activeThreadId ? 'active' : ''}`}
+                    onClick={() => void handleSelectThread(thread.id)}>
+                    <span className="trunc">{thread.title}</span>
+                  </button>
+                ))}
             </div>
           )}
         </div>

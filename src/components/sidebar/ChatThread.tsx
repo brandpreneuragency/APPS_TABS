@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 import type { Editor } from '@tiptap/react';
 import { useTranslation } from 'react-i18next';
 import { useChatStore } from '../../stores/chatStore';
+import { useCodexService } from '../../services/codex/useCodexService';
+import { useCliProviderService } from '../../services/providers/useCliProviderService';
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
 import { ToolCallBubble } from './ToolCallBubble';
-import { resolveApproval } from '../../services/aiTools';
 import type { ChatMessage } from '../../types';
 
 interface ChatThreadProps {
@@ -17,15 +18,24 @@ interface ChatThreadProps {
 
 export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) {
   const { t } = useTranslation();
-  const { getActiveThreadMessages, streamingMessageId, isStreaming } = useChatStore();
+  const { getActiveThreadMessages, activeThreadId } = useChatStore();
+  const codex = useCodexService();
+  const cliRun = useCliProviderService();
   const messages = getActiveThreadMessages();
+  const codexStreaming = Boolean(codex.activeRunId && codex.activeAppThreadId === activeThreadId);
+  const cliStreaming = Boolean(cliRun && cliRun.appThreadId === activeThreadId);
+  const isStreaming = codexStreaming || cliStreaming;
+  const streamingMessageId = codexStreaming
+    ? [...messages].reverse().find((message) => message.role === 'assistant'
+      && message.id.startsWith(`codex:assistant:${codex.activeRunId}:`))?.id
+    : cliStreaming ? `cli:assistant:${cliRun?.runId}` : undefined;
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!scrollRef.current || !bottomRef.current) return;
     scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages.length, isStreaming]);
+  }, [messages, isStreaming]);
 
   if (messages.length === 0) {
     return (
@@ -41,7 +51,7 @@ export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) 
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--c-background-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+          <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-full)', background: 'var(--c-background-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
             <span style={{ color: 'var(--c-accent-center-panel)', fontSize: 'var(--font-fluid-12)' }}>✦</span>
           </div>
           <p className="subtle" style={{ fontSize: 'var(--fs-xs)' }}>
@@ -59,8 +69,6 @@ export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) 
           <ToolCallBubble
             key={msg.id}
             message={msg}
-            onApprove={(id) => resolveApproval(id, true)}
-            onReject={(id) => resolveApproval(id, false)}
           />
         ) : msg.role === 'user' ? (
           <UserMessage key={msg.id} message={msg} onReplyMessage={onReplyMessage} />

@@ -1,0 +1,125 @@
+.task-quick-create {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 8px 8px 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.task-quick-create-first-row {
+  display: flex;
+  gap: 6px;
+}
+
+.task-quick-create-input {
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height-sm, 28px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+  font-size: var(--fs-sm);
+  outline: none;
+}
+
+.task-quick-create-input:focus {
+  border-color: var(--c-accent-1);
+}
+
+.task-quick-create-selects {
+  display: flex;
+  gap: 6px;
+}
+
+.task-quick-create-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  height: var(--control-height-sm, 28px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+  font-size: var(--fs-sm);
+  outline: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.task-quick-create-select-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-quick-create-select svg {
+  flex-shrink: 0;
+  color: var(--c-text-2);
+}
+
+.task-quick-create-select:focus-visible {
+  outline: 2px solid var(--c-accent-2);
+  outline-offset: -2px;
+}
+
+.task-quick-create-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.task-quick-create-select:hover {
+  background: var(--c-background-2);
+}
+
+.task-calendar .task-quick-create-select,
+.task-calendar .task-quick-create-select span {
+  font-size: var(--fs-sm);
+}
+
+.drop.task-quick-create-menu {
+  position: fixed;
+  margin: 0;
+  min-width: 0;
+  max-height: min(240px, calc(100vh - 16px));
+  overflow-y: auto;
+}
+
+.task-quick-create-btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--c-accent-1);
+  color: #fff;
+  cursor: pointer;
+  padding: 0;
+}
+
+.task-quick-create-btn:hover {
+  background: var(--c-accent-1);
+  opacity: 0.9;
+}
+
+.task-quick-create-btn:disabled {
+  background: var(--c-border-1);
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.task-quick-create-wrapper {
+  margin: 0;
+}
+

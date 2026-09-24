@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Task, TaskComment } from '../types';
-import { buildTaskAIContext } from './taskAIContext';
+import { buildScopedWorkAIContext, buildTaskAIContext } from './taskAIContext';
 
 const task: Task = {
   id: 't1',
@@ -46,5 +46,34 @@ describe('buildTaskAIContext', () => {
     expect(payload.text).not.toContain('SUBTASKS');
     expect(payload.text).toContain('COMMENTS');
     expect(payload.text).toContain('- (none)');
+  });
+});
+
+describe('buildScopedWorkAIContext', () => {
+  it('summarizes a selected client', () => {
+    const text = buildScopedWorkAIContext({
+      kind: 'client',
+      clientName: 'Brandpreneur',
+      projects: [{ name: 'General', openTaskCount: 2 }],
+      openTasks: [{ title: 'Write brief', status: 'pending' }],
+    });
+
+    expect(text).toContain('ACTIVE CLIENT');
+    expect(text).toContain('client: Brandpreneur');
+    expect(text).toContain('- General (2 open)');
+    expect(text).toContain('- [pending] Write brief');
+  });
+
+  it('summarizes a selected project', () => {
+    const text = buildScopedWorkAIContext({
+      kind: 'project',
+      clientName: 'Brandpreneur',
+      projectName: 'Website',
+      openTasks: [{ title: 'Ship header', status: 'in_progress' }],
+    });
+
+    expect(text).toContain('ACTIVE PROJECT');
+    expect(text).toContain('project: Website');
+    expect(text).toContain('- [in_progress] Ship header');
   });
 });

@@ -1,9 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { Task } from '../../types';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
+import { useUIStore } from '../../stores/uiStore';
 import { filterTasksForSelection } from '../../stores/taskSelection';
+import { TaskKanbanCard } from './TaskProjectsKanban';
+import { TaskCalendarDatePicker } from './TaskCalendarDatePicker';
+import { TaskQuickCreate } from './TaskQuickCreate';
+import { AssistantToggle } from '../layout/workspace/AssistantToggle';
+import './taskCalendar.css';
 
 interface TaskCalendarViewProps {
   tasks: Task[];
@@ -12,106 +19,121 @@ interface TaskCalendarViewProps {
   onSetDate?: (date: string | null) => void;
 }
 
-const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-
-function getDaysInMonth(year: number, month: number): { day: number; weekday: string; dateStr: string }[] {
-  const days: { day: number; weekday: string; dateStr: string }[] = [];
-  const lastDay = new Date(year, month + 1, 0).getDate();
-  for (let d = 1; d <= lastDay; d++) {
-    const date = new Date(year, month, d);
-    const dateStr = date.toISOString().slice(0, 10);
-    days.push({ day: d, weekday: WEEKDAYS[date.getDay()], dateStr });
-  }
-  return days;
+function dateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-export function TaskCalendarView({ tasks, onSetDate }: TaskCalendarViewProps) {
-  const activeTaskId = useTaskStore((s) => s.activeTaskId);
-  const selectedClientId = useTaskStore((s) => s.selectedClientId);
-  const selectedProjectId = useTaskStore((s) => s.selectedProjectId);
-  const { projects } = useProjectStore();
-  const now = new Date();
-  const [currentMonth, setCurrentMonth] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1));
+export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
+  const { t, i18n } = useTranslation();
+  const activeTaskId = useTaskStore((state) => state.activeTaskId);
+  const selectedClientId = useTaskStore((state) => state.selectedClientId);
+  const selectedProjectId = useTaskStore((state) => state.selectedProjectId);
+  const updateTask = useTaskStore((state) => state.updateTask);
+  const openTask = useTaskStore((state) => state.openTaskInActiveTab);
+  const setActiveTaskPage = useUIStore((state) => state.setActiveTaskPage);
+  const projects = useProjectStore((state) => state.projects);
+  const [anchor, setAnchor] = useState(() => new Date());
+  const [today, setToday] = useState(() => new Date());
+  const [view, setView] = useState<'week' | 'month'>('week');
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+  const [quickCreateDay, setQuickCreateDay] = useState<string | null>(null);
+  const calendarBoard = useRef<HTMLDivElement>(null);
+  const scrollToToday = useRef(false);
 
-  const year = currentMonth.getFullYear();
-  const month = currentMonth.getMonth();
-  const monthLabel = currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
-
-  const days = useMemo(() => getDaysInMonth(year, month), [year, month]);
-
-  const visibleTasks = useMemo(
-    () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
-    [tasks, projects, selectedClientId, selectedProjectId],
-  );
-
-  const tasksByDate = useMemo(() => {
-    const map: Record<string, Task[]> = {};
-    for (const t of visibleTasks) {
-      if (!t.date) continue;
-      const d = new Date(t.date);
-      if (d.getMonth() !== month || d.getFullYear() !== year) continue;
-      map[t.date] = map[t.date] ?? [];
-      map[t.date].push(t);
+  useEffect(() => {
+    if (scrollToToday.current) {
+      calendarBoard.current?.querySelector('.task-calendar-day--today')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      scrollToToday.current = false;
     }
-    return map;
-  }, [visibleTasks, month, year]);
+  }, [anchor]);
 
-  const prevMonth = () => setCurrentMonth(new Date(year, month - 1, 1));
-  const nextMonth = () => setCurrentMonth(new Date(year, month + 1, 1));
+  useEffect(() => {
+    const timer = window.setInterval(() => setToday(new Date()), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
-  const importanceDot = (imp: string) => {
-    const cls = imp === 'high' ? 'task-dot-high' : imp === 'medium' ? 'task-dot-medium' : 'task-dot-low';
-    return <span className={cls} />;
-  };
+  const visibleTasks = filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId);
+  const first = new Date(anchor.getFullYear(), anchor.getMonth(), view === 'month' ? 1 : anchor.getDate());
+  first.setDate(first.getDate() - (first.getDay() + 6) % 7);
+  const monthStart = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  const monthLength = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0).getDate();
+  const count = view === 'week' ? 7 : Math.ceil(((monthStart.getDay() + 6) % 7 + monthLength) / 7) * 7;
+  const days = Array.from({ length: count }, (_, index) => new Date(first.getFullYear(), first.getMonth(), first.getDate() + index));
+  const format = (date: Date, options: Intl.DateTimeFormatOptions) => date.toLocaleDateString(i18n.language, options);
+  const clockLabel = `${format(today, { month: 'short', day: 'numeric' })}. ${format(today, { weekday: 'short' }).replace(/\.$/, '')}. ${today.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })}`;
+  const label = view === 'month' ? format(anchor, { month: 'long', year: 'numeric' }) : `${format(days[0], { day: 'numeric', month: 'short', year: 'numeric' })} - ${format(days[6], { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  const move = (direction: number) => setAnchor(view === 'week'
+    ? new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + direction * 7)
+    : new Date(anchor.getFullYear(), anchor.getMonth() + direction, 1));
 
   return (
-    <div className="calendar-view">
-      <div className="calendar-month-nav">
-        <div className="calendar-month-nav-left">
-          <button type="button" className="calendar-month-btn" onClick={prevMonth}><ChevronLeft size={14} /></button>
-          <span className="calendar-month-label">{monthLabel}</span>
-          <button type="button" className="calendar-month-btn" onClick={nextMonth}><ChevronRight size={14} /></button>
+    <section className="task-calendar" aria-label={t('navigation.calendar')}>
+      <div className="task-calendar-toolbar">
+        <button className="task-calendar-today" type="button" title={t('navigation.today')} aria-label={t('navigation.today')} onClick={() => {
+          const now = new Date();
+          scrollToToday.current = true;
+          setToday(now);
+          setAnchor(now);
+        }}>
+          <time dateTime={today.toISOString()}>{clockLabel}</time>
+        </button>
+        <div className="task-calendar-navigation">
+          <button type="button" title={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(-1)}><ChevronLeft size={16} /></button>
+          <TaskCalendarDatePicker value={anchor} label={label} onChange={setAnchor} />
+          <button type="button" title={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(1)}><ChevronRight size={16} /></button>
+        </div>
+        <div className="task-calendar-actions">
+          <div className="task-calendar-switch" role="group" aria-label={t('calendar.view')}>
+            {(['week', 'month'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)}>{t(`calendar.${mode}`)}</button>)}
+          </div>
+          <AssistantToggle id="task-calendar-btn-assistant" variant="header" />
         </div>
       </div>
-
-      {days.map(({ day, weekday, dateStr }) => {
-        const dayTasks = tasksByDate[dateStr] ?? [];
-        return (
-          <div key={dateStr} className="calendar-day-card">
-            <div className="calendar-day-header">
-              <span className="calendar-day-title">{day} {weekday}</span>
-              <button
-                type="button"
-                className="calendar-day-btn"
-                title="Add task on this day"
-                onClick={() => onSetDate?.(dateStr)}
-              >
-                <Plus size={12} />
-              </button>
-            </div>
-            {dayTasks.length === 0 && (
-              <div className="calendar-task-row" style={{ cursor: 'default', color: 'var(--c-text-2)', fontStyle: 'italic' }}>
-                No tasks
-              </div>
-            )}
-            {dayTasks.map((t) => {
-              const project = projects.find((p) => p.id === t.projectId);
-              return (
+      {error && <div role="alert">{t('calendar.moveFailed')}</div>}
+      <div ref={calendarBoard} className={`task-calendar-board task-calendar-board--${view}`} onDragEnd={() => setDropTarget(null)}>
+        {days.map((day) => {
+          const key = dateKey(day);
+          const dayTasks = visibleTasks.filter((task) => task.date === key);
+          return (
+            <section key={key} aria-label={key} className={`crm-kanban-column task-calendar-day${key === dateKey(today) ? ' task-calendar-day--today' : ''}${day.getMonth() !== anchor.getMonth() && view === 'month' ? ' task-calendar-day--outside' : ''}${dropTarget === key ? ' crm-kanban-column--drop-target' : ''}`}
+              onDragOver={(event) => { if (event.dataTransfer.types.includes('application/x-task-card')) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; setDropTarget(key); } }}
+              onDragLeave={(event) => { if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setDropTarget(null); }}
+              onDrop={(event) => {
+                event.preventDefault(); setDropTarget(null);
+                const id = event.dataTransfer.getData('application/x-task-card');
+                if (!visibleTasks.some((task) => task.id === id && task.date !== key)) return;
+                setError(false);
+                void updateTask(id, { date: key }).catch(() => setError(true));
+              }}>
+              <div className="crm-kanban-column-header">
+                <span className="task-calendar-day-label"><span>{format(day, { weekday: 'short' })}</span><strong>{day.getDate()}</strong></span>
                 <button
-                  key={t.id}
                   type="button"
-                  className={`calendar-task-row${t.id === activeTaskId ? ' calendar-task-row--active' : ''}`}
-                  onClick={() => useTaskStore.getState().openTaskInActiveTab(t.id)}
+                  aria-label={`${t('calendar.addTask')} ${key}`}
+                  title={t('calendar.addTask')}
+                  onClick={() => setQuickCreateDay(quickCreateDay === key ? null : key)}
                 >
-                  {importanceDot(t.importance)}
-                  <span className="trunc">{t.title}</span>
-                  {project && <span className="calendar-task-project">{project.name}</span>}
+                  <Plus size={14} />
                 </button>
-              );
-            })}
-          </div>
-        );
-      })}
-    </div>
+              </div>
+              {quickCreateDay === key && (
+                <div className="task-quick-create-wrapper">
+                  <TaskQuickCreate
+                    date={key}
+                    onClose={() => setQuickCreateDay(null)}
+                    onSuccess={() => setQuickCreateDay(null)}
+                  />
+                </div>
+              )}
+              <div className="crm-kanban-column-body">
+                {!dayTasks.length && <div className="crm-kanban-column-empty">{t('navigation.noTasks')}</div>}
+                {dayTasks.map((task) => <TaskKanbanCard key={task.id} task={task} isActive={task.id === activeTaskId} dragLabel={t('calendar.reschedule')} onClick={(id) => { openTask(id); setActiveTaskPage('list'); }} />)}
+              </div>
+            </section>
+          );
+        })}
+      </div>
+    </section>
   );
 }

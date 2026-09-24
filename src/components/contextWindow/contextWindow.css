@@ -39,8 +39,9 @@
 .ctx-ring--danger .ctx-ring-progress { stroke: var(--c-danger); }
 .ctx-ring--danger .ctx-ring-label    { color: var(--c-danger); }
 
-.ctx-ring--unknown .ctx-ring-progress { stroke: var(--c-text-2); }
-.ctx-ring--unknown .ctx-ring-label    { color: var(--c-text-2); }
+.ctx-ring--unknown { color: var(--c-text-3); }
+.ctx-ring--unknown .ctx-ring-progress { stroke: var(--c-text-3); }
+.ctx-ring--unknown .ctx-ring-label    { color: var(--c-text-3); }
 
 .context-window-trigger {
   position: relative;
@@ -75,7 +76,7 @@
   width: min(260px, calc(100vw - 32px));
   padding: 10px 12px;
   border: 1px solid var(--c-border-1);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--c-background-1) 94%, white 6%);
   display: flex;
   flex-direction: column;
@@ -99,7 +100,7 @@
 .context-window-summary-badge {
   flex-shrink: 0;
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--c-accent-center-panel) 14%, transparent);
   color: var(--c-accent-center-panel);
   font-size: var(--fs-xs);
@@ -116,8 +117,8 @@
 .context-window-popover-card {
   width: fit-content;
   border: none;
-  border-radius: 8px;
-  background: var(--c-background-3);
+  border-radius: var(--radius-sm);
+  background: var(--c-background-0);
   overflow: hidden;
 }
 
@@ -129,7 +130,7 @@
   width: 100%;
   padding: 14px 16px 12px;
   border-bottom: none;
-  background: var(--c-background-3);
+  background: transparent;
 }
 
 .context-window-popover-heading {
@@ -166,7 +167,7 @@
 .context-window-usage-chip {
   flex-shrink: 0;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: color-mix(in srgb, var(--c-accent-center-panel) 14%, transparent);
   color: var(--c-accent-center-panel);
   font-size: var(--fs-xs);
@@ -234,7 +235,7 @@
 
 .context-window-bar {
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   overflow: hidden;
   display: block;
   width: 100%;
@@ -275,7 +276,7 @@
 .context-window-legend-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 .context-window-legend-dot--user {

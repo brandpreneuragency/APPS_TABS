@@ -173,7 +173,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
               placeholder="New project name..."
               style={{
                 width: '100%', fontSize: 'var(--fs-base)', padding: '6px 8px',
-                border: '1px solid var(--c-border-1)', borderRadius: 4,
+                border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)',
                 background: 'var(--c-background-1)', color: 'var(--c-text-1)',
                 outline: 'none',
               }}
@@ -216,7 +216,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
               }}
               style={{
                 width: '100%', fontSize: 'var(--fs-base)', padding: '6px 8px',
-                border: '1px solid var(--c-border-1)', borderRadius: 4,
+                border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)',
                 background: 'var(--c-background-1)', color: 'var(--c-text-1)',
                 outline: 'none',
               }}

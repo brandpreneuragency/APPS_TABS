@@ -55,7 +55,7 @@
   padding: 10px 14px;
   border: none;
   border-bottom: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   flex-shrink: 0;
 }
@@ -103,7 +103,7 @@
 .crm-card {
   background: var(--c-background-3);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -149,7 +149,7 @@
 .crm-kpi-card {
   background: var(--c-background-3);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
@@ -178,7 +178,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--c-text-1) 8%, transparent);
   color: var(--c-text-2);
   flex-shrink: 0;
@@ -228,7 +228,7 @@
   min-height: 28px;
   cursor: pointer;
   white-space: nowrap;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border-bottom: none;
   transition: color 0.15s, background-color 0.15s;
 }
@@ -257,7 +257,7 @@
 .crm-empty-state-icon {
   width: 44px;
   height: 44px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   color: var(--c-text-2);
   display: flex;
@@ -287,7 +287,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--c-text-1) 8%, transparent);
   color: var(--c-text-2);
   font-size: var(--fs-xs);
@@ -305,7 +305,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
   font-weight: 600;
   text-transform: capitalize;
@@ -325,7 +325,7 @@
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--fs-xs);
   font-weight: 600;
   background: color-mix(in srgb, var(--c-text-1) 8%, transparent);
@@ -348,7 +348,7 @@
   gap: 10px;
   padding: 8px 10px;
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
   transition: background-color 0.12s;
 }
@@ -375,7 +375,7 @@
 .crm-timeline-icon {
   width: 24px;
   height: 24px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   color: var(--c-text-2);
   display: inline-flex;
@@ -439,7 +439,7 @@
   flex-direction: column;
   background: var(--c-background-3);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   max-height: 100%;
   padding: 0 6px 8px;
 }
@@ -448,8 +448,9 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 10px 10px 8px;
+  padding: 10px 8px 8px;
   flex-shrink: 0;
+  height: 40px;
 }
 .crm-kanban-column-title {
   display: inline-flex;
@@ -464,7 +465,7 @@
 .crm-kanban-column-dot {
   width: 7px;
   height: 7px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--c-text-3);
   flex-shrink: 0;
 }
@@ -484,12 +485,12 @@
 .crm-kanban-column-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 0 2px 4px;
+  padding: 0 6px 4px 4px;
   display: flex;
   flex-direction: column;
   gap: 6px;
   min-height: 60px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .crm-kanban-column-empty {
   padding: 12px;
@@ -510,7 +511,7 @@
   position: relative;
   background: var(--c-background-2);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   padding: var(--kanban-card-pad-y) var(--kanban-card-pad-x) var(--kanban-card-pad-y) var(--kanban-card-pad-left);
   display: grid;
   grid-template-rows: minmax(0, auto) auto auto;
@@ -527,7 +528,7 @@
   background: color-mix(in srgb, var(--c-background-2) 85%, var(--c-text-1) 8%);
 }
 .crm-kanban-card--active {
-  background: color-mix(in srgb, var(--c-accent-center-panel) 14%, var(--c-background-2));
+  background: var(--c-background-2);
   box-shadow: inset 2px 0 0 var(--c-accent-center-panel);
 }
 .crm-kanban-card--dragging {
@@ -546,14 +547,16 @@
 .crm-kanban-column--drop-target .crm-kanban-column-body {
   background: color-mix(in srgb, var(--c-accent-center-panel) 8%, transparent);
   outline: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 .crm-kanban-card-drag {
   position: absolute;
   left: 4px;
   top: var(--kanban-card-pad-y);
+  padding-top: 1px;
   color: var(--c-text-3);
   opacity: 0.5;
+  transform: rotate(90deg);
 }
 .crm-kanban-card:hover .crm-kanban-card-drag { opacity: 0.9; }
 .crm-kanban-card-title-zone {
@@ -566,7 +569,7 @@
 }
 .crm-kanban-card-title {
   font-size: var(--fs-base);
-  font-weight: 600;
+  font-weight: 400;
   color: var(--c-text-1);
   line-height: 1.3;
   word-break: break-word;
@@ -665,7 +668,7 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   border: none;
   color: var(--c-text-2);
@@ -695,11 +698,11 @@
   padding: 0;
   height: fit-content;
   background-color: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 #crm-note-card {
   background-color: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   padding-left: 0;
   padding-right: 0;
@@ -790,7 +793,7 @@
   height: 30px;
   padding: 0 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   color: var(--c-text-1);
   font-size: var(--fs-sm);
@@ -803,13 +806,13 @@
   background: color-mix(in srgb, var(--c-background-1) 80%, var(--c-text-1) 10%);
   color: var(--c-text-1);
 }
-.crm-btn--sm { height: 26px; padding: 0 9px; font-size: var(--fs-xs); border-radius: 8px; }
+.crm-btn--sm { height: 26px; padding: 0 9px; font-size: var(--fs-xs); border-radius: var(--radius-sm); }
 .crm-btn--primary {
   background: var(--c-accent-center-panel);
   border: none;
   color: #fff;
 }
-.crm-btn--primary:hover { color: #fff; filter: brightness(1.08); background: var(--c-accent-center-panel); }
+.crm-btn--primary:hover { color: #fff; filter: brightness(1.08); background: var(--c-accent-3); }
 .crm-btn--ghost { border: none; background: transparent; color: var(--c-text-2); }
 .crm-btn--ghost:hover {
   background: color-mix(in srgb, var(--c-text-1) 10%, transparent);
@@ -832,7 +835,7 @@
   gap: 3px;
   min-width: 0;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--c-text-1) 4%, transparent);
   border: none;
 }
@@ -865,7 +868,7 @@
   height: 30px;
   padding: 0 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   margin-bottom: 8px;
 }
@@ -898,7 +901,7 @@
   min-width: 0;
   height: 26px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-text-1);
   font-size: var(--fs-xs);
@@ -922,7 +925,7 @@
   background: var(--c-accent-3);
   padding: 6px 0;
   margin: 10px 0 6px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
 }
 
@@ -936,7 +939,7 @@
   text-align: left;
   padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
   cursor: pointer;
   margin-bottom: 2px;
@@ -983,7 +986,7 @@
   text-align: left;
   padding: 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   cursor: pointer;
   margin-bottom: 4px;
@@ -1050,7 +1053,7 @@
   color: var(--c-text-2);
   font-size: var(--fs-xs);
   padding: 4px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color 0.12s, color 0.12s;
 }
@@ -1094,10 +1097,10 @@
   background: var(--c-background-1);
 }
 .crm-table tbody tr:hover td:first-child {
-  border-radius: 8px 0 0 8px;
+  border-radius: var(--radius-sm);
 }
 .crm-table tbody tr:hover td:last-child {
-  border-radius: 0 8px 8px 0;
+  border-radius: var(--radius-sm);
 }
 .crm-table .trunc {
   max-width: 220px;
@@ -1131,7 +1134,7 @@
   margin: 0 -4px;
   border: none;
   border-bottom: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: background-color 0.12s;
 }
@@ -1187,7 +1190,7 @@
 .crm-pipeline-bar-legend-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 
 /* ---------- Settings ---------- */
@@ -1215,7 +1218,7 @@
   width: 100%;
   padding: 7px 10px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-2);
   font-size: var(--fs-sm);
@@ -1246,7 +1249,7 @@
   gap: 8px;
   padding: 10px 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   font-size: var(--fs-sm);
 }
@@ -1255,7 +1258,7 @@
 .crm-settings-note {
   padding: 10px 12px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   font-size: var(--fs-xs);
   color: var(--c-text-2);
@@ -1286,7 +1289,7 @@
   left: 2px;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: #fff;
   transition: transform 0.15s;
 }
@@ -1358,7 +1361,7 @@
   /* Kanban: keep columns usable via existing horizontal scroll;
      hold each column at 220px so cards never squeeze to slivers. */
   .crm-kanban { padding: 4px 12px 12px; gap: 10px; }
-  .crm-kanban-column { flex: 0 0 220px; width: 220px; min-width: 220px; }
+  .crm-kanban-column { flex: 0 0 200px; width: 200px; min-width: 200px; }
   .crm-card { padding: 12px; }
   .crm-kpi-card { padding: 10px 12px; }
   .crm-kpi-row { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
@@ -1382,7 +1385,7 @@
   .crm-page-header { flex-direction: column; align-items: stretch; gap: 8px; }
   .crm-page-header-actions { justify-content: flex-end; flex-wrap: wrap; }
   .crm-kanban { padding: 4px 12px 12px; }
-  .crm-kanban-column { flex: 0 0 220px; width: 220px; min-width: 220px; }
+  .crm-kanban-column { flex: 0 0 200px; width: 200px; min-width: 200px; }
   .crm-card:has(.crm-table) { overflow-x: auto; }
   .crm-table { min-width: 480px; }
 }

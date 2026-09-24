@@ -299,10 +299,10 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
           title="Drag up to expand"
         />
         {replyToComment && (
-          <div style={{ marginBottom: 4, marginLeft: 0, marginRight: 0, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, borderRadius: 6, padding: '4px 8px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
+          <div style={{ marginBottom: 4, marginLeft: 0, marginRight: 0, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, borderRadius: 'var(--radius-sm)', padding: '4px 8px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
             <Reply size={11} style={{ color: accentColor, flexShrink: 0 }} />
             <div style={{ display: 'flex', alignItems: 'stretch', gap: 4, flex: 1, overflow: 'hidden' }}>
-              <div style={{ width: 2, borderRadius: 1, background: accentColor, flexShrink: 0 }} />
+              <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: accentColor, flexShrink: 0 }} />
               <div style={{ overflow: 'hidden', minWidth: 0 }}>
                 <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: accentColor, marginBottom: 1 }}>
                   You
@@ -326,6 +326,7 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
 
         {attachments.length > 0 && (
           <AttachmentPreviewList
+            className="composer-attachments--task-comment"
             footer={
               showProgress ? (
                 <span className="composer-attachment-progress">

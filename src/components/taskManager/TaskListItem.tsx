@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import type { Task } from '../../types';
+import { useClientStore } from '../../stores/clientStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { useLongPress } from '../../hooks/useLongPress';
 import { TaskContextMenu } from './TaskContextMenu';
@@ -14,7 +15,9 @@ const metaStyle = { color: 'var(--c-text-3)', fontSize: 'var(--fs-sm)' } as cons
 
 export function TaskListItem({ task, isActive, onClick }: TaskListItemProps) {
   const { getProjectById } = useProjectStore();
+  const { getClientById } = useClientStore();
   const project = getProjectById(task.projectId);
+  const client = getClientById(project?.clientId ?? null);
 
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
 
@@ -47,9 +50,12 @@ export function TaskListItem({ task, isActive, onClick }: TaskListItemProps) {
         {...longPress}
         className={`task-item${isActive ? ' task-item--on' : ''}`}
       >
-        {/* Row 1: Category (left) + Due date (right) */}
+        {/* Row 1: Client + project (left) + Due date (right) */}
         <div className="row-xs justify-between">
           <div className="flex items-center gap-1 min-w-0">
+            {client && (
+              <span className="meta trunc" style={metaStyle}>{client.name}</span>
+            )}
             {project ? (
               <span className="meta trunc" style={metaStyle}>{project.name}</span>
             ) : (

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ClientProjectTree } from './ClientProjectTree';
 
@@ -15,7 +15,7 @@ const clients = [
   { id: 'c2', name: 'Wagner Atelier', color: 'text-emerald-500', createdAt: 0, order: 1 },
 ];
 
-const projects = [
+let projects = [
   { id: 'p-gen', name: 'General', color: 'text-blue-500', clientId: 'c1', createdAt: 0, order: 0 },
   { id: 'p-web', name: 'Yeni web sitesi', color: 'text-amber-500', clientId: 'c1', createdAt: 0, order: 1 },
   { id: 'p-gen-2', name: 'General', color: 'text-emerald-500', clientId: 'c2', createdAt: 0, order: 0 },
@@ -85,6 +85,28 @@ describe('ClientProjectTree', () => {
     render(<ClientProjectTree />);
     await user.click(screen.getByRole('button', { name: 'General' }));
     expect(setSelection).toHaveBeenCalledWith('c1', 'p-gen');
+  });
+
+  it('reveals and selects a project created under a collapsed client', async () => {
+    const user = userEvent.setup();
+    const created = { id: 'p-new', name: 'Launch', color: 'text-blue-500', clientId: 'c2', createdAt: 1, order: 1 };
+    createProject.mockImplementation(async () => {
+      projects = [...projects, created];
+      return created;
+    });
+    try {
+      render(<ClientProjectTree />);
+      const client = screen.getByRole('group', { name: 'Wagner Atelier' });
+      await user.click(within(client).getByRole('button', { name: 'tasks.addProjectToClient' }));
+      await user.type(screen.getByRole('textbox'), 'Launch');
+      await user.click(screen.getByRole('button', { name: 'tasks.addProject' }));
+
+      expect(createProject).toHaveBeenCalledWith('Launch', 'c2');
+      expect(within(client).getByRole('button', { name: 'Launch' })).toBeInTheDocument();
+      expect(setSelection).toHaveBeenCalledWith('c2', 'p-new');
+    } finally {
+      projects = projects.filter((project) => project.id !== created.id);
+    }
   });
 
   it('selects a client without changing expand via the name button', async () => {

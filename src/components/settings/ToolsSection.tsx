@@ -1,105 +1,106 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAIStore } from '../../stores/aiStore';
+import { TerminalSquare } from 'lucide-react';
+import { useCodexService } from '../../services/codex/useCodexService';
+import { probeCliProvider, type CliProviderId } from '../../services/providers/desktopClient';
+import { useProviderModelVisibility, visibleProviderModels, type ProviderId, type ProviderModel } from '../../services/providers/modelVisibility';
+import { isTauriRuntime } from '../../services/runtime';
+import { CliProviderSettings } from './CliProviderSettings';
+import { cliProviderStatus, type CliProviderState } from './cliProviderStatus';
+import { CodexSettings } from './CodexSettings';
 import { SettingsPanels } from './SettingsPanels';
-import {
-  ToolsList,
-  DEFAULTS_SELECTION_ID,
-  ADD_PROVIDER_SELECTION_ID,
-} from './tools/ToolsList';
-import { SearchToolDetail } from './tools/SearchToolDetail';
-import { ModelManagementContent } from './ModelsContent';
-import { ConnectProviderPanel } from './modelProviders/ConnectProviderPanel';
-import { ProviderDefaultsTab } from './modelProviders/ProviderDefaultsTab';
-import type { SearchProvider } from '../../types';
+import './codexSettings.css';
 
-const SEARCH_PROVIDER_IDS: string[] = ['tavily', 'exa', 'firecrawl', 'brave'];
+const cliProviders: Record<CliProviderId, { name: string; loginCommand: string }> = {
+  grok: { name: 'Grok', loginCommand: 'grok login' },
+  commandCode: { name: 'Command Code', loginCommand: 'cmdc login' },
+  openCode: { name: 'OpenCode', loginCommand: 'opencode auth login' },
+};
+const cliProviderIds: CliProviderId[] = ['grok', 'commandCode', 'openCode'];
 
-function isStableSelectionId(id: string): boolean {
-  return (
-    SEARCH_PROVIDER_IDS.includes(id) ||
-    id === DEFAULTS_SELECTION_ID ||
-    id === ADD_PROVIDER_SELECTION_ID
-  );
+function SelectedProviderCount({ providerId, models }: { providerId: ProviderId; models: ProviderModel[] }) {
+  const { t } = useTranslation();
+  const visibility = useProviderModelVisibility(providerId);
+  const shown = visibility ? visibleProviderModels(models, visibility).length : models.length;
+  return <div className="codex-provider-nav__footer">{t('codex.modelsShown', { shown, total: models.length })}</div>;
 }
 
 export function ToolsSection() {
   const { t } = useTranslation();
-  const providerConfigs = useAIStore((s) => s.providerConfigs);
-  const [focusId, setFocusId] = useState<string | null>(null);
-  const [customFormKey, setCustomFormKey] = useState(0);
+  const { connection, models } = useCodexService();
+  const desktop = isTauriRuntime();
+  const [provider, setProvider] = useState<ProviderId>('codex');
+  const [probeState, setProbeState] = useState<Partial<Record<CliProviderId, CliProviderState>>>({});
+  const inFlight = useRef(new Map<CliProviderId, Promise<void>>());
 
-  // If a focused LLM provider was deleted, treat selection as cleared without an effect.
-  const activeFocusId = useMemo(() => {
-    if (!focusId) return null;
-    if (isStableSelectionId(focusId)) return focusId;
-    return providerConfigs.some((p) => p.id === focusId) ? focusId : null;
-  }, [focusId, providerConfigs]);
-
-  const handleSelect = useCallback((id: string) => {
-    if (id === ADD_PROVIDER_SELECTION_ID) {
-      setCustomFormKey((k) => k + 1);
-    }
-    setFocusId(id);
+  const refreshProvider = useCallback((providerId: CliProviderId): Promise<void> => {
+    const running = inFlight.current.get(providerId);
+    if (running) return running;
+    setProbeState((current) => ({ ...current, [providerId]: { loading: true } }));
+    const request = probeCliProvider(providerId)
+      .then((probe) => setProbeState((current) => ({ ...current, [providerId]: { probe } })))
+      .catch((cause: unknown) => setProbeState((current) => ({
+        ...current,
+        [providerId]: { error: errorMessage(cause) },
+      })))
+      .finally(() => { inFlight.current.delete(providerId); });
+    inFlight.current.set(providerId, request);
+    return request;
   }, []);
 
-  const handleProviderConnected = useCallback((providerId: string) => {
-    setFocusId(providerId);
-  }, []);
+  const selectedCliState = provider === 'codex' ? undefined : probeState[provider];
+  useEffect(() => {
+    if (provider !== 'codex' && desktop && !selectedCliState) void refreshProvider(provider);
+  }, [provider, desktop, selectedCliState, refreshProvider]);
 
-  const handleCancelAddProvider = useCallback(() => {
-    setFocusId(null);
-  }, []);
+  const selectedModels = provider === 'codex' ? (connection ? models : [])
+    : probeState[provider]?.probe?.installed ? probeState[provider].probe.models : [];
 
-  const handleDeleteProvider = useCallback((id: string) => {
-    void useAIStore.getState().deleteCustomProvider(id);
-  }, []);
-
-  const isSearchTool = SEARCH_PROVIDER_IDS.includes(activeFocusId ?? '');
-  const focusedSearchTool = isSearchTool ? (activeFocusId as SearchProvider) : null;
-  const isAddProvider = activeFocusId === ADD_PROVIDER_SELECTION_ID;
-  const isDefaults = activeFocusId === DEFAULTS_SELECTION_ID;
-  const selectedProvider = !isSearchTool && !isAddProvider && !isDefaults
-    ? providerConfigs.find((p) => p.id === activeFocusId)
-    : undefined;
-
-  const centerMain = isAddProvider ? (
-    <ConnectProviderPanel
-      key={customFormKey}
-      open={isAddProvider}
-      onClose={handleCancelAddProvider}
-      onConnected={handleProviderConnected}
-    />
-  ) : isDefaults ? (
-    <div className="settings-detail-body">
-      <div style={{ padding: '0 16px', overflowY: 'auto', height: '100%' }}>
-        <ProviderDefaultsTab />
+  const providerList = (
+    <nav className="codex-provider-nav" aria-label={t('codex.providers')}>
+      <div className="codex-provider-nav__heading">{t('codex.providers')}</div>
+      <div className="settings-list-body">
+        <button type="button" aria-current={provider === 'codex' ? 'page' : undefined}
+          className={`settings-list-item codex-provider-nav__item${provider === 'codex' ? ' settings-list-item--active' : ''}`}
+          onClick={() => setProvider('codex')}>
+          <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size={16} /></span>
+          <span className="codex-provider-nav__text">
+            <span className="codex-provider-nav__name">Codex</span>
+            <span className="codex-provider-nav__meta">{connection ? t('codex.signedIn') : t('codex.disconnected')}</span>
+          </span>
+          <span className={`settings-status-dot settings-status-dot--${connection ? 'connected' : 'disconnected'}`} aria-hidden="true" />
+        </button>
+        {cliProviderIds.map((providerId) => {
+          const state = probeState[providerId];
+          const status = cliProviderStatus(state);
+          return <button key={providerId} type="button" aria-current={provider === providerId ? 'page' : undefined}
+            className={`settings-list-item codex-provider-nav__item${provider === providerId ? ' settings-list-item--active' : ''}`}
+            onClick={() => setProvider(providerId)}>
+            <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size={16} /></span>
+            <span className="codex-provider-nav__text">
+              <span className="codex-provider-nav__name">{cliProviders[providerId].name}</span>
+              <span className="codex-provider-nav__meta">
+                {desktop ? t(`cliProviders.status.${status}`) : t('cliProviders.status.desktopOnly')}
+              </span>
+            </span>
+            <span className={`settings-status-dot settings-status-dot--${status === 'signedIn' ? 'connected' : 'disconnected'}`} aria-hidden="true" />
+          </button>;
+        })}
       </div>
-    </div>
-  ) : focusedSearchTool ? (
-    <div className="settings-detail-body">
-      <SearchToolDetail providerId={focusedSearchTool} />
-    </div>
-  ) : selectedProvider ? (
-    <div className="flex-1 min-h-0 overflow-h flex-col items-start justify-start">
-      <ModelManagementContent
-        isInline
-        selectedProviderId={selectedProvider.id}
-        onDeleteProvider={handleDeleteProvider}
-      />
-    </div>
-  ) : (
-    <div className="settings-detail-body">
-      <div className="settings-empty">
-        <p>{t('tools.selectToolHint')}</p>
-      </div>
-    </div>
+      {selectedModels.length > 0 && <SelectedProviderCount key={provider} providerId={provider} models={selectedModels} />}
+    </nav>
   );
 
-  return (
-    <SettingsPanels
-      leftMain={<ToolsList focusId={activeFocusId} onSelect={handleSelect} />}
-      centerMain={centerMain}
-    />
-  );
+  const centerMain = provider === 'codex' ? <CodexSettings /> : <CliProviderSettings
+    key={provider} providerId={provider} name={cliProviders[provider].name}
+    loginCommand={cliProviders[provider].loginCommand} desktop={desktop}
+    state={probeState[provider]} onRefresh={refreshProvider}
+  />;
+
+  return <SettingsPanels leftMain={providerList} centerMain={centerMain} />;
+}
+
+function errorMessage(error: unknown): string {
+  return error && typeof error === 'object' && 'message' in error && typeof error.message === 'string'
+    ? error.message : String(error);
 }

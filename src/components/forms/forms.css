@@ -55,7 +55,7 @@
   padding: 14px 16px;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 
 .forms-kpi-card-row {
@@ -79,7 +79,7 @@
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-accent-center-panel);
   flex-shrink: 0;
@@ -126,7 +126,7 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   transition: color 0.15s, border-color 0.15s, background-color 0.15s;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
 }
 
 .forms-tab:hover {
@@ -159,7 +159,7 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-text-3);
 }
@@ -250,7 +250,7 @@
   padding: 16px;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   flex-shrink: 0;
 }
 
@@ -326,7 +326,7 @@
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   white-space: nowrap;
 }
@@ -405,7 +405,7 @@
 }
 .forms-table-wrap {
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: auto;
   background: var(--c-background-1);
   flex-shrink: 0;
@@ -426,7 +426,7 @@
   padding: 14px;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   transition: border-color 0.15s;
 }
@@ -466,7 +466,7 @@
   height: 30px;
   padding: 0 8px;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   margin-top: 4px;
   margin-bottom: 12px;
@@ -485,7 +485,7 @@
   color: var(--c-text-1);
   height: 100%;
 }
-.forms-list-search input::placeholder { color: var(--c-text-2); }
+.forms-list-search input::placeholder { color: var(--c-text-3); }
 
 .forms-list-filters {
   display: flex;
@@ -618,7 +618,7 @@
 .forms-textarea {
   width: 100%;
   border: 1px solid var(--c-border-1);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   color: var(--c-text-1);
   font-size: var(--fs-sm);
@@ -700,7 +700,7 @@
   left: 2px;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: #fff;
   transition: transform 0.15s;
 }
@@ -716,7 +716,7 @@
 .forms-snippet-preview {
   position: relative;
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   overflow: hidden;
 }
@@ -743,7 +743,7 @@
   height: 24px;
   padding: 0 8px;
   border: 1px solid var(--c-border-1);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   color: var(--c-text-2);
   font-size: var(--fs-xs);
@@ -826,7 +826,7 @@
   padding: 14px;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
 }
 .forms-template-card-head {
   display: flex;
@@ -870,7 +870,7 @@
   flex-direction: column;
   background: var(--c-background-1);
   border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 .forms-preview-modal-head {
@@ -892,7 +892,7 @@
   gap: 6px;
   padding: 8px;
   border: 1px dashed var(--c-border-1);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   background: var(--c-background-1);
   min-height: 40px;
   align-items: center;
@@ -919,7 +919,7 @@
   background: transparent;
   color: var(--c-text-2);
   cursor: pointer;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
 }
 .forms-domain-chip button:hover {
   color: var(--c-danger);

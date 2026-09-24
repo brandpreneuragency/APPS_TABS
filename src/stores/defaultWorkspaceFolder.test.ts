@@ -21,9 +21,10 @@ describe('normalizeDefaultWorkspaceFolder', () => {
 });
 
 describe('isGeneratedWorkspaceName', () => {
-  it('matches only the auto-generated Workspace N titles', () => {
+  it('matches current and legacy generated tab titles', () => {
+    expect(isGeneratedWorkspaceName('Doc 1')).toBe(true);
+    expect(isGeneratedWorkspaceName('Doc 12')).toBe(true);
     expect(isGeneratedWorkspaceName('Workspace 1')).toBe(true);
-    expect(isGeneratedWorkspaceName('Workspace 12')).toBe(true);
     expect(isGeneratedWorkspaceName('Notes')).toBe(false);
     expect(isGeneratedWorkspaceName('Workspace')).toBe(false);
     expect(isGeneratedWorkspaceName('Workspace 1 copy')).toBe(false);

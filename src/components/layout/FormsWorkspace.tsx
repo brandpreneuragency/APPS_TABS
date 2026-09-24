@@ -1,4 +1,5 @@
 import '../forms/formsLayout.css';
+import './workspacePages.css';
 import { useUIStore, type FormsPage } from '../../stores/uiStore';
 import FormsDashboardPage from '../forms/pages/FormsDashboardPage';
 import FormsListPage from '../forms/pages/FormsListPage';
@@ -26,8 +27,8 @@ export function FormsWorkspace() {
   const { activeFormsPage } = useUIStore();
 
   return (
-    <div id="forms-workspace" className="panel flex-col h-full w-full min-w-0" style={{ background: 'rgba(233, 233, 233, 0)' }}>
-      <div className="panel-body flex-1 overflow-y-a">{renderFormsPage(activeFormsPage)}</div>
+    <div id="forms-workspace" className="forms-workspace panel">
+      <div className="forms-workspace-body panel-body">{renderFormsPage(activeFormsPage)}</div>
     </div>
   );
 }

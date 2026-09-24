@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, Folder } from 'lucide-react';
+import { Calendar, ChevronDown, Folder } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   ComposerCard,
@@ -193,9 +193,9 @@ export function QuickCreateInput({
   const resolvedProjectId = pickedProjectId ?? fallbackProjectId;
   const hasProjectValue = !!effectiveProject?.trim();
   const hasDateValue = !!effectiveDate?.trim();
-  const projectButtonLabel = effectiveProject?.trim() || 'Project';
+  const projectButtonLabel = effectiveProject?.trim() || 'No Project';
   const dateButtonLabel = (() => {
-    if (!effectiveDate) return 'Due date';
+    if (!effectiveDate) return 'No Due Date';
     if (effectiveDate === getTodayIso()) return 'Today';
     if (effectiveDate === getTomorrowIso()) return 'Tomorrow';
     const parsedDate = new Date(effectiveDate);
@@ -304,13 +304,18 @@ export function QuickCreateInput({
                   className="btn-icon task-quick-create-dropup-btn"
                   data-kind="project"
                   data-active={hasProjectValue ? 'true' : 'false'}
-                  title={hasProjectValue ? `Project: ${projectButtonLabel}` : 'Set project'}
-                  aria-label={hasProjectValue ? `Project: ${projectButtonLabel}` : 'Set project'}
+                  title={hasProjectValue ? `Project: ${projectButtonLabel}` : 'No Project'}
+                  aria-label={hasProjectValue ? `Project: ${projectButtonLabel}` : 'No Project'}
                   aria-haspopup="menu"
                   aria-expanded={showProjectPicker}
                 >
-                  <Folder size={12} className="task-quick-create-dropup-icon" />
+                  {hasProjectValue ? (
+                    <Folder size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
+                  ) : (
+                    <span className="task-quick-create-dropup-bar" aria-hidden="true" />
+                  )}
                   <span className="trunc med task-quick-create-dropup-label">{projectButtonLabel}</span>
+                  <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
                 </button>
                 <ProjectDropdown show={showProjectPicker} projects={clientProjects} onPick={handleProjectPick} />
               </div>
@@ -321,13 +326,18 @@ export function QuickCreateInput({
                   className="btn-icon task-quick-create-dropup-btn"
                   data-kind="date"
                   data-active={hasDateValue ? 'true' : 'false'}
-                  title={hasDateValue ? `Due: ${dateButtonLabel}` : 'Set due date'}
-                  aria-label={hasDateValue ? `Due: ${dateButtonLabel}` : 'Set due date'}
+                  title={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
+                  aria-label={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
                   aria-haspopup="menu"
                   aria-expanded={showDatePicker}
                 >
-                  <Calendar size={12} className="task-quick-create-dropup-icon" />
+                  {hasDateValue ? (
+                    <Calendar size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
+                  ) : (
+                    <span className="task-quick-create-dropup-bar" aria-hidden="true" />
+                  )}
                   <span className="trunc med task-quick-create-dropup-label">{dateButtonLabel}</span>
+                  <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
                 </button>
                 <DateDropdown show={showDatePicker} dateInputRef={dateInputRef} onPick={handleDatePick} onClose={() => setShowDatePicker(false)} />
                 <input

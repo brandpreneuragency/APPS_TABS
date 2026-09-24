@@ -1,12 +1,16 @@
-import { ArrowLeftRight } from 'lucide-react';
-import { TabBar } from './TabBar';
+import { ArrowLeftRight, Minus, Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ModeNavigation } from './ModeNavigation';
 import { AssistantToggle, ContextPanelToggle } from '../layout/workspace';
+import { canStepEditorFontSize, stepEditorFontSize } from '../../stores/editorFontSize';
 import { selectCanSwapWrappers, useUIStore } from '../../stores/uiStore';
 
 export function Header() {
+  const { t } = useTranslation();
   const wrappersSwapped = useUIStore((s) => s.wrappersSwapped);
   const toggleWrappersSwapped = useUIStore((s) => s.toggleWrappersSwapped);
   const canSwapWrappers = useUIStore(selectCanSwapWrappers);
+  const fontSize = useUIStore((s) => s.editorFontSize);
 
   const swapLabel = wrappersSwapped
     ? 'Restore workspace and assistant order'
@@ -14,8 +18,12 @@ export function Header() {
 
   return (
     <div id="header-bar" className="header-bar">
-      <TabBar />
+      <ModeNavigation />
       <div className="ai-toggle-col">
+        <button id="nav-btn-font-decrease" type="button" className="ai-toggle-btn" title={t('settings.decreaseTextSize')} aria-label={t('settings.decreaseTextSize')}
+          disabled={!canStepEditorFontSize(fontSize, -1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, -1))}><Minus size={15} /></button>
+        <button id="nav-btn-font-increase" type="button" className="ai-toggle-btn" title={t('settings.increaseTextSize')} aria-label={t('settings.increaseTextSize')}
+          disabled={!canStepEditorFontSize(fontSize, 1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, 1))}><Plus size={15} /></button>
         <ContextPanelToggle variant="header" />
         <button
           id="header-btn-swap"

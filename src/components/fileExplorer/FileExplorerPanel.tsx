@@ -1,23 +1,17 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type React from 'react';
 import {
-  FilePlus, FolderPlus, X,
+  SquarePlus, SquareSlash, Search, X,
   File, Folder,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useWorkspaceStore, type TreeNode as TreeNodeType } from '../../stores/workspaceStore';
+import { findNodeByFullPath, useWorkspaceStore, type TreeNode as TreeNodeType } from '../../stores/workspaceStore';
 import { useUIStore } from '../../stores/uiStore';
 import { TreeNode } from './TreeNode';
 import { FileTreeTabs } from './FileTreeTabs';
 
 const POLL_INTERVAL_MS = 10_000;
 const SEARCH_RESULT_LIMIT = 50;
-
-function hasUnloadedDirectory(node: TreeNodeType): boolean {
-  if (node.kind !== 'directory') return false;
-  if (node.children === undefined) return true;
-  return node.children.some(hasUnloadedDirectory);
-}
 
 function collectSearchMatches(nodes: TreeNodeType[], query: string, max = SEARCH_RESULT_LIMIT): TreeNodeType[] {
   const results: TreeNodeType[] = [];
@@ -43,7 +37,6 @@ export function FileExplorerPanel() {
     refreshWorkspaceDir,
     createFileInWorkspace,
     createDirectoryInWorkspace,
-    ensureSubtreeLoaded,
     ensureChildrenLoaded,
     swapFileInWorkspace,
     setExpandedPaths,
@@ -65,11 +58,14 @@ export function FileExplorerPanel() {
   const [rootInputValue, setRootInputValue] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
+  const [searchIndexing, setSearchIndexing] = useState(false);
   const rootInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
   const normalizedSearch = searchQuery.trim().toLowerCase();
   const searchActive = normalizedSearch.length > 0;
-  const searchIndexing = searchActive && Boolean(rootNode && hasUnloadedDirectory(rootNode));
+  const rootFullPath = rootNode?.fullPath;
   const searchMatches = rootNode?.children && searchActive
     ? collectSearchMatches(rootNode.children, normalizedSearch)
     : [];
@@ -80,21 +76,17 @@ export function FileExplorerPanel() {
     }
   }, [rootInput]);
 
+  useEffect(() => {
+    if (searchDropdownOpen) searchInputRef.current?.focus();
+  }, [searchDropdownOpen]);
+
   // Track the folder ID that was active when the search query was entered.
   // This lets us distinguish "user is typing in search" from "rootNode changed
   // because the user switched root folders" so we don't trigger a full subtree
   // load on every folder switch.
   const searchFolderIdRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (searchActive) {
-      searchFolderIdRef.current = activeFolderId;
-    }
-  }, [searchActive, activeFolderId]);
-
-  // Clear search when switching root folders – the old query is meaningless
-  // in the new folder and would otherwise trigger ensureSubtreeLoaded on the
-  // entire new tree (potentially thousands of readDir calls).
+  // Clear the old query before indexing a different folder.
   useEffect(() => {
     if (searchActive && searchFolderIdRef.current !== activeFolderId) {
       setSearchQuery('');
@@ -104,12 +96,36 @@ export function FileExplorerPanel() {
   }, [activeFolderId, searchActive]);
 
   useEffect(() => {
-    if (!searchActive || !searchIndexing || !rootNode || !activeWorkspaceId) return;
-    // Only trigger the expensive full-subtree load when the search query
-    // actually changed (not when rootNode changed due to a folder switch).
-    if (searchFolderIdRef.current !== activeFolderId) return;
-    void ensureSubtreeLoaded(activeWorkspaceId, rootNode.fullPath).catch(() => undefined);
-  }, [ensureSubtreeLoaded, rootNode, searchActive, searchIndexing, activeFolderId, activeWorkspaceId]);
+    if (!searchActive || !rootFullPath || !activeWorkspaceId || searchFolderIdRef.current !== activeFolderId) {
+      setSearchIndexing(false);
+      return;
+    }
+    let cancelled = false;
+    const scan = async () => {
+      setSearchIndexing(true);
+      const queue = [{ fullPath: rootFullPath, depth: 0 }];
+      try {
+        for (let cursor = 0; cursor < queue.length && !cancelled; cursor++) {
+          const { fullPath, depth } = queue[cursor];
+          if (depth >= 48) continue;
+          try {
+            await ensureChildrenLoaded(activeWorkspaceId, fullPath);
+          } catch {
+            continue;
+          }
+          if (cancelled) return;
+          const node = findNodeByFullPath(useWorkspaceStore.getState().getActiveRootNode(), fullPath);
+          for (const child of node?.children ?? []) {
+            if (child.kind === 'directory') queue.push({ fullPath: child.fullPath, depth: depth + 1 });
+          }
+        }
+      } finally {
+        if (!cancelled) setSearchIndexing(false);
+      }
+    };
+    void scan();
+    return () => { cancelled = true; };
+  }, [ensureChildrenLoaded, rootFullPath, searchActive, activeFolderId, activeWorkspaceId]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -154,6 +170,7 @@ export function FileExplorerPanel() {
 
   const startRootNew = (mode: 'new-file' | 'new-folder') => {
     if (!rootNode || !activeWorkspaceId) return;
+    setSearchDropdownOpen(false);
     // ensure root is "expanded" so the virtual row appears
     if (!expandedPaths.includes(rootNode.path)) {
       setExpandedPaths(activeWorkspaceId, [...expandedPaths, rootNode.path]);
@@ -181,7 +198,7 @@ export function FileExplorerPanel() {
     if (e.key === 'Escape') {
       setSearchQuery('');
       setSearchDropdownOpen(false);
-      e.currentTarget.blur();
+      searchButtonRef.current?.focus();
     }
   };
 
@@ -202,113 +219,117 @@ export function FileExplorerPanel() {
     setSearchQuery('');
   };
 
-  return (
-    <div className="panel flex-col h-full" style={{ display: 'flex', minHeight: 0 }}>
-      <div className="panel-header fep-header">
-        <div className="shrink-0" style={{ height: 'fit-content', paddingLeft: 0, paddingRight: 0 }}>
-          <FileTreeTabs />
-        </div>
-
+  const renderToolbar = () => (
+    <div className="panel-header fep-header" ref={searchRef}>
+      <FileTreeTabs>
         {rootNode?.children && (
-          <div
-            id="filetree-search"
-            ref={searchRef}
-            role="search"
-            className="filetree-search"
-          >
-            <div className="filetree-search-input-wrap">
-              <input
-                type="search"
-                className="filetree-search-input"
-                aria-label={t('explorer.searchFiles')}
-                title={t('explorer.searchFiles')}
-                placeholder={t('explorer.searchPlaceholder')}
-                value={searchQuery}
-                spellCheck={false}
-                aria-expanded={searchDropdownOpen}
-                aria-haspopup="listbox"
-                onFocus={() => setSearchDropdownOpen(true)}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  className="filetree-search-clear"
-                  title={t('explorer.clearSearch')}
-                  aria-label={t('explorer.clearSearch')}
-                  onClick={() => setSearchQuery('')}
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-            <div
-              className="flex items-center gap-0.5 filetree-actions"
-              style={{ padding: 0, fontSize: 'var(--fs-xs)' }}
+          <div className="filetree-actions">
+            <button
+              type="button"
+              onClick={() => startRootNew('new-file')}
+              title={t('explorer.newFile')}
+              aria-label={t('explorer.newFile')}
+              className="btn-icon"
             >
+              <SquarePlus size={12} />
+            </button>
+            <button
+              type="button"
+              onClick={() => startRootNew('new-folder')}
+              title={t('explorer.newFolder')}
+              aria-label={t('explorer.newFolder')}
+              className="btn-icon"
+            >
+              <SquareSlash size={12} />
+            </button>
+            <button
+              ref={searchButtonRef}
+              type="button"
+              className="btn-icon"
+              title={t('explorer.searchFiles')}
+              aria-label={t('explorer.searchFiles')}
+              aria-expanded={searchDropdownOpen}
+              aria-controls="filetree-search"
+              onClick={() => setSearchDropdownOpen((open) => !open)}
+            >
+              <Search size={12} />
+            </button>
+          </div>
+        )}
+      </FileTreeTabs>
+      {rootNode?.children && searchDropdownOpen && (
+        <div
+          id="filetree-search"
+          role="search"
+          aria-label={t('explorer.searchFiles')}
+          className="drop filetree-search"
+        >
+          <div className="filetree-search-input-wrap">
+            <input
+              ref={searchInputRef}
+              type="search"
+              className="filetree-search-input"
+              aria-label={t('explorer.searchFiles')}
+              title={t('explorer.searchFiles')}
+              placeholder={t('explorer.searchPlaceholder')}
+              value={searchQuery}
+              spellCheck={false}
+              aria-controls="filetree-search-results"
+              onChange={(e) => {
+                searchFolderIdRef.current = activeFolderId;
+                setSearchQuery(e.target.value);
+                setSearchDropdownOpen(true);
+              }}
+              onKeyDown={handleSearchKeyDown}
+            />
+            {searchQuery && (
               <button
                 type="button"
-                onClick={() => startRootNew('new-file')}
-                title={t('explorer.newFile')}
-                aria-label={t('explorer.newFile')}
-                className="btn-icon"
+                className="filetree-search-clear"
+                title={t('explorer.clearSearch')}
+                aria-label={t('explorer.clearSearch')}
+                onClick={() => setSearchQuery('')}
               >
-                <FilePlus size={14} />
+                <X size={12} />
               </button>
+            )}
+          </div>
+          <div
+            id="filetree-search-results"
+            className="filetree-search-results"
+            role="listbox"
+            aria-label={t('explorer.searchFiles')}
+            aria-busy={searchIndexing}
+          >
+            {searchActive && searchMatches.map((node) => (
               <button
                 type="button"
-                onClick={() => startRootNew('new-folder')}
-                title={t('explorer.newFolder')}
-                aria-label={t('explorer.newFolder')}
-                className="btn-icon"
+                key={node.path}
+                role="option"
+                onClick={() => { void handleSearchResultClick(node); }}
+                className="drop-item"
+                style={{ fontSize: 'var(--fs-base)' }}
               >
-                <FolderPlus size={12} />
+                {node.kind === 'file'
+                  ? <File size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />
+                  : <Folder size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />}
+                <span className="trunc med">{node.name}</span>
               </button>
-            </div>
-            {searchDropdownOpen && (
-              <div
-                className="drop"
-                role="listbox"
-                aria-label={t('explorer.searchFiles')}
-                style={{ left: 0, top: '100%', marginTop: 0, marginRight: 0, minWidth: 0, width: 182 }}
-              >
-                {searchIndexing && (
-                  <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>
-                    {t('explorer.searchLoading')}
-                  </div>
-                )}
-                {!searchIndexing && searchActive && searchMatches.map((node) => (
-                  <button
-                    type="button"
-                    key={node.path}
-                    role="option"
-                    onClick={() => { void handleSearchResultClick(node); }}
-                    className="drop-item"
-                    style={{ fontSize: 'var(--fs-base)' }}
-                  >
-                    {node.kind === 'file'
-                      ? <File size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />
-                      : <Folder size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />}
-                    <span className="trunc med">{node.name}</span>
-                  </button>
-                ))}
-                {!searchIndexing && searchActive && searchMatches.length === 0 && (
-                  <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>
-                    {t('explorer.noSearchMatches')}
-                  </div>
-                )}
-                {!searchActive && (
-                  <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>
-                    {t('explorer.searchPlaceholder')}
-                  </div>
-                )}
+            ))}
+            {!searchIndexing && searchActive && searchMatches.length === 0 && (
+              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>
+                {t('explorer.noSearchMatches')}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+    </div>
+  );
 
+  return (
+    <div className="panel flex-col h-full" style={{ display: 'flex', minHeight: 0 }}>
+      {renderToolbar()}
       {/* Body */}
       <div className="panel-body ai-scroll flex-1 overflow-y-a" style={{ minHeight: 0, padding: '8px 8px 8px 0' }}>
         {error && (

@@ -10,6 +10,9 @@ export default defineConfig({
     port: 1421,
     strictPort: true,
     host: true,
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
   },
   css: {
     devSourcemap: true,

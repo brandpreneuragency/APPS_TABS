@@ -1,0 +1,318 @@
+/* Unified provider and reasoning controls for the chat composer. */
+:root #chat-input-card .chat-model-controls {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+:root #chat-input-card .chat-model-trigger,
+:root #chat-input-card .chat-reasoning-trigger,
+:root #chat-input-card .chat-options-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  margin: 0;
+  padding: 0 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-text-2);
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:root #chat-input-card .chat-model-trigger {
+  flex: 1 1 116px;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+:root #chat-input-card .chat-model-trigger-label {
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root #chat-input-card .chat-model-trigger-label { flex: 1 1 auto; }
+
+:root #chat-input-card .chat-model-trigger > svg,
+:root #chat-input-card .chat-reasoning-trigger > svg,
+:root #chat-input-card .chat-options-trigger > svg {
+  flex: 0 0 auto;
+  color: var(--c-text-3);
+}
+
+:root #chat-input-card .chat-model-trigger:hover,
+:root #chat-input-card .chat-reasoning-trigger:hover,
+:root #chat-input-card .chat-options-trigger:hover,
+:root #chat-input-card .chat-model-trigger[aria-expanded='true'],
+:root #chat-input-card .chat-reasoning-trigger[aria-expanded='true'],
+:root #chat-input-card .chat-options-trigger[aria-expanded='true'] {
+  background: var(--c-background-4);
+  color: var(--c-text-1);
+}
+
+:root #chat-input-card .chat-model-trigger:focus-visible,
+:root #chat-input-card .chat-reasoning-trigger:focus-visible,
+:root #chat-input-card .chat-options-trigger:focus-visible,
+:root #chat-input-card .chat-model-search:focus-visible,
+:root #chat-input-card .chat-model-option:focus-visible,
+:root #chat-input-card .chat-reasoning-option:focus-visible,
+:root #chat-input-card .chat-options-field select:focus-visible {
+  outline: 1px solid var(--c-accent-1);
+  outline-offset: 1px;
+}
+
+:root #chat-input-card .chat-model-popover,
+:root #chat-input-card .chat-reasoning-popover,
+:root #chat-input-card .chat-options-popover {
+  position: absolute;
+  z-index: calc(var(--z-dropdown) + 1);
+  bottom: calc(100% + 8px);
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  max-height: min(420px, 60vh);
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid var(--c-border-1);
+  border-radius: var(--radius-sm);
+  background: var(--c-background-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+:root #chat-input-card .chat-model-popover {
+  right: 0;
+  left: auto;
+  width: min(420px, calc(100cqw - 12px));
+  gap: 6px;
+}
+
+:root #chat-input-card .chat-reasoning-popover {
+  right: 0;
+  width: min(216px, calc(100cqw - 12px));
+  gap: 2px;
+}
+
+:root #chat-input-card .chat-options-popover {
+  right: 0;
+  width: min(280px, calc(100cqw - 12px));
+  gap: 6px;
+}
+
+:root #chat-input-card .chat-model-search {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  padding: 0 8px;
+  border: 1px solid var(--c-border-1);
+  border-radius: var(--radius-sm);
+  background: var(--c-background-3);
+  color: var(--c-text-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+:root #chat-input-card .chat-model-search::placeholder { color: var(--c-text-3); }
+
+:root #chat-input-card .chat-model-list {
+  display: grid;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+:root #chat-input-card .chat-model-group + .chat-model-group { margin-top: 4px; }
+
+:root #chat-input-card .chat-model-group-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 6px 8px 5px;
+  background: var(--c-background-2);
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: var(--line-tight);
+  text-transform: uppercase;
+}
+
+:root #chat-input-card .chat-model-option,
+:root #chat-input-card .chat-reasoning-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-text-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+  line-height: var(--line-tight);
+  text-align: left;
+  cursor: pointer;
+}
+
+:root #chat-input-card .chat-model-option { justify-content: space-between; }
+
+:root #chat-input-card .chat-model-option:hover,
+:root #chat-input-card .chat-reasoning-option:hover,
+:root #chat-input-card .chat-model-option.is-selected,
+:root #chat-input-card .chat-reasoning-option.is-selected {
+  background: var(--c-background-4);
+}
+
+:root #chat-input-card .chat-model-option.is-selected,
+:root #chat-input-card .chat-reasoning-option.is-selected {
+  box-shadow: inset 2px 0 var(--c-accent-1);
+}
+
+:root #chat-input-card .chat-model-option > svg,
+:root #chat-input-card .chat-reasoning-option > svg { flex: 0 0 auto; color: var(--c-accent-1); }
+
+:root #chat-input-card .chat-model-option-provider,
+:root #chat-input-card .chat-model-status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+:root #chat-input-card .chat-model-option-provider {
+  flex: 1 1 auto;
+  color: var(--c-text-1);
+}
+
+:root #chat-input-card .chat-model-status {
+  flex: 0 1 auto;
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+}
+
+:root #chat-input-card .chat-model-status--empty {
+  padding: 4px 8px 8px;
+  overflow: visible;
+  white-space: normal;
+  line-height: var(--line-normal);
+}
+:root #chat-input-card .chat-model-status--no-results { padding: 8px; }
+
+:root #chat-input-card .chat-model-footer {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px 2px;
+  border-top: 1px solid var(--c-border-1);
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+  line-height: var(--line-normal);
+}
+
+:root #chat-input-card .chat-model-footer[role='alert'] { color: var(--c-danger); }
+
+:root #chat-input-card .chat-model-footer button {
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--c-text-2);
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+:root #chat-input-card .chat-model-footer button:hover,
+:root #chat-input-card .chat-model-footer button:focus-visible {
+  background: var(--c-background-4);
+  color: var(--c-text-1);
+}
+
+:root #chat-input-card .chat-model-footer button:focus-visible {
+  outline: 1px solid var(--c-accent-1);
+}
+
+:root #chat-input-card .chat-reasoning-control { position: relative; flex: 0 0 auto; min-width: 0; }
+
+:root #chat-input-card .chat-reasoning-trigger {
+  width: 112px;
+  max-width: 132px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:root #chat-input-card .chat-reasoning-option { justify-content: flex-start; }
+
+:root #chat-input-card .chat-reasoning-help {
+  margin: 4px 6px 2px;
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+  line-height: var(--line-normal);
+}
+
+:root #chat-input-card .chat-options-trigger { flex: 0 0 auto; }
+
+:root #chat-input-card .chat-options-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 5px 6px;
+}
+
+:root #chat-input-card .chat-options-field > span {
+  color: var(--c-text-2);
+  font-size: var(--fs-xs);
+  line-height: var(--line-tight);
+}
+
+:root #chat-input-card .chat-options-field select {
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  padding: 0 26px 0 8px;
+  border: 1px solid var(--c-border-1);
+  border-radius: var(--radius-sm);
+  background: var(--c-background-3);
+  color: var(--c-text-1);
+  font: inherit;
+  font-size: var(--fs-sm);
+}
+
+:root #chat-input-card .chat-options-unavailable {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  background: var(--c-background-3);
+  color: var(--c-text-3);
+  font-size: var(--fs-xs);
+  line-height: var(--line-normal);
+}
+
+@container (max-width: 260px) {
+  :root #chat-input-card .chat-reasoning-trigger {
+    width: var(--control-height-sm);
+    padding: 0;
+    justify-content: center;
+  }
+
+  :root #chat-input-card .chat-reasoning-trigger > span { display: none; }
+
+  :root #chat-input-card .chat-model-trigger { flex-basis: 72px; }
+}

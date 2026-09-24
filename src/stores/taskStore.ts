@@ -8,9 +8,10 @@ import { TASK_TITLE_MAX_LENGTH } from '../types';
 import { db, getSetting, setSetting } from '../services/db';
 import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
+import { assertSubtaskParent, assertTaskProjectChange, assertTaskSoftDelete } from '../services/taskRelations';
 import { useUIStore } from './uiStore';
 import { useProjectStore } from './projectStore';
-import { formatProjectIndex, projectMirrorDir, taskMirrorDir } from './taskTreeNames';
+import { formatProjectIndex, nameKey, projectMirrorDir, sanitizeFsName, taskMirrorDir } from './taskTreeNames';
 
 function showError(err: unknown, fallback: string): void {
   const msg = err instanceof Error ? err.message : fallback;
@@ -61,6 +62,7 @@ interface TaskStore {
   selectedProjectId: string | null;
 
   loadTasks: () => Promise<void>;
+  refreshTasksFromDb: () => Promise<void>;
   setSelection: (clientId: string | null, projectId: string | null) => void;
   createTask: (title: string, opts?: Partial<Task>) => Promise<Task | null>;
   updateTask: (id: string, updates: Partial<Pick<Task,
@@ -114,27 +116,12 @@ async function syncTaskToFile(task: Task): Promise<void> {
   const taskDir = taskMirrorDir(names.clientName, names.projectName, task.id);
 
   try {
+    if (await fsAdapter.exists(`${taskDir}/task.md`)) return;
     await fsAdapter.mkdir(taskDir, true);
     const taskContent = `# ${task.title}\n\n${task.content}`;
     await fsAdapter.writeTextFile(`${taskDir}/task.md`, taskContent);
   } catch (err) {
     console.warn('[taskStore] Failed to sync task to file:', err);
-  }
-}
-
-// Helper to delete task markdown file
-async function deleteTaskFile(task: Task): Promise<void> {
-  if (!isTauriRuntime() || !task.projectId) return;
-
-  const names = await resolveMirrorNames(task.projectId);
-  if (!names) return;
-
-  const taskDir = taskMirrorDir(names.clientName, names.projectName, task.id);
-
-  try {
-    await fsAdapter.remove(taskDir, true);
-  } catch (err) {
-    console.warn('[taskStore] Failed to delete task file:', err);
   }
 }
 
@@ -154,6 +141,73 @@ async function regenerateProjectIndex(projectId: string): Promise<void> {
     await fsAdapter.writeTextFile(`${projectDir}/INDEX.md`, indexContent);
   } catch (err) {
     console.warn('[taskStore] Failed to regenerate project index:', err);
+  }
+}
+
+/** Strict projection for Codex receipts. The database effect remains recorded if disk sync fails. */
+export async function syncCodexTaskProjection(task: Task, previousTask?: Task): Promise<void> {
+  if (!isTauriRuntime()) return;
+  const previousProjectId = previousTask && previousTask.projectId !== task.projectId
+    ? previousTask.projectId : undefined;
+  const projectIds = new Set([task.projectId, previousProjectId].filter((id): id is string => !!id));
+  if (!task.deletedAt) {
+    const names = await resolveMirrorNames(task.projectId);
+    if (!names) throw new Error('Task project or client is missing');
+    const taskDir = taskMirrorDir(names.clientName, names.projectName, task.id);
+    const targetFile = `${taskDir}/task.md`;
+    const nextContent = `# ${task.title}\n\n${task.content}`;
+    let previousFile: string | undefined;
+    const previousContent = previousTask ? `# ${previousTask.title}\n\n${previousTask.content}` : undefined;
+    if (previousProjectId && previousTask) {
+      const oldNames = await resolveMirrorNames(previousProjectId);
+      if (!oldNames) throw new Error('Previous task project or client is missing');
+      previousFile = `${taskMirrorDir(oldNames.clientName, oldNames.projectName, task.id)}/task.md`;
+      if (previousFile === targetFile) throw new Error('Task project mirrors overlap');
+      if (await fsAdapter.exists(previousFile)
+        && await fsAdapter.readTextFile(previousFile) !== previousContent) {
+        throw new Error('Previous task mirror changed outside TABS');
+      }
+    }
+    const existingTarget = await fsAdapter.exists(targetFile)
+      ? await fsAdapter.readTextFile(targetFile) : undefined;
+    if (existingTarget !== undefined && existingTarget !== nextContent
+      && (previousProjectId || !previousTask || existingTarget !== previousContent)) {
+      throw new Error('Task mirror already contains different content');
+    }
+    if (existingTarget !== nextContent) {
+      await fsAdapter.mkdir(taskDir, true);
+      await fsAdapter.writeTextFile(targetFile, nextContent);
+      if (await fsAdapter.readTextFile(targetFile) !== nextContent) {
+        throw new Error('Task mirror could not be verified');
+      }
+    }
+    if (previousFile && await fsAdapter.exists(previousFile)) {
+      if (await fsAdapter.readTextFile(previousFile) !== previousContent) {
+        throw new Error('Previous task mirror changed outside TABS');
+      }
+      // Only the generated file is removed. The old folder and other files survive.
+      await fsAdapter.remove(previousFile);
+    }
+  } else {
+    const names = await resolveMirrorNames(task.projectId);
+    if (!names) throw new Error('Task project or client is missing');
+    const taskFile = `${taskMirrorDir(names.clientName, names.projectName, task.id)}/task.md`;
+    if (await fsAdapter.exists(taskFile)) {
+      const before = previousTask ?? task;
+      if (await fsAdapter.readTextFile(taskFile) !== `# ${before.title}\n\n${before.content}`) {
+        throw new Error('Task mirror changed outside TABS');
+      }
+      // Soft-delete only the generated mirror. Other files in the task folder survive.
+      await fsAdapter.remove(taskFile);
+    }
+  }
+  for (const projectId of projectIds) {
+    const names = await resolveMirrorNames(projectId);
+    if (!names) throw new Error('Task project or client is missing');
+    const projectDir = projectMirrorDir(names.clientName, names.projectName);
+    const tasks = await db.tasks.where('projectId').equals(projectId).filter((row) => !row.deletedAt).toArray();
+    await fsAdapter.mkdir(projectDir, true);
+    await fsAdapter.writeTextFile(`${projectDir}/INDEX.md`, formatProjectIndex(names.projectName, tasks));
   }
 }
 
@@ -224,6 +278,17 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
+  refreshTasksFromDb: async () => {
+    const tasks = await db.tasks.filter((task) => !task.deletedAt).toArray();
+    set((state) => ({ tasks,
+      openTabs: state.openTabs.map((tab) => tab.taskId && !tasks.some((task) => task.id === tab.taskId)
+        ? { ...tab, taskId: null } : tab),
+      activeTaskId: state.activeTaskId && tasks.some((task) => task.id === state.activeTaskId)
+        ? state.activeTaskId : null,
+      openTaskIds: state.openTaskIds.filter((id) => tasks.some((task) => task.id === id)),
+    }));
+  },
+
   setSelection: (clientId, projectId) => {
     let nextClientId = clientId;
     let nextProjectId = projectId;
@@ -259,6 +324,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       importance: opts.importance ?? 'medium',
       date: opts.date ?? todayIso(),
       projectId,
+      parentTaskId: opts.parentTaskId,
       assignees: opts.assignees ?? [],
       createdAt: now,
       updatedAt: now,
@@ -267,9 +333,18 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       sourceChatMessageId: opts.sourceChatMessageId ?? undefined,
     };
     try {
-      await db.tasks.add(task);
-      // Sync to markdown file
-      await syncTaskToFile(task);
+      await db.transaction('rw', db.tasks, db.projects, async () => {
+        if (!await db.projects.get(projectId)) throw new Error('Task project is missing');
+        if (task.parentTaskId) {
+          assertSubtaskParent(await db.tasks.get(task.parentTaskId), projectId);
+        }
+        await db.tasks.add(task);
+      });
+      try {
+        await syncCodexTaskProjection(task);
+      } catch (error) {
+        showError(error, 'Task created, but its file mirror needs attention.');
+      }
       
       set((s) => {
         // Open new task in active tab if possible, else append new tab
@@ -310,21 +385,39 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         : updates;
     // Optimistic local update with an `updatedAt` tick so the UI shows the
     // new "last modified" immediately.
-    const optimisticPatch = { ...enforcedUpdates, updatedAt: Date.now() } as Task;
+    const nextUpdatedAt = Math.max(Date.now(), (previous?.updatedAt ?? 0) + 1);
+    const optimisticPatch = { ...enforcedUpdates, updatedAt: nextUpdatedAt } as Task;
     set((s) => ({
       tasks: s.tasks.map((t) => (t.id === id ? { ...t, ...optimisticPatch } : t)),
     }));
     try {
-      await db.tasks.update(id, enforcedUpdates);
-      // Sync to markdown file if projectId or content changed
-      const updatedTask = await db.tasks.get(id);
-      if (updatedTask) {
-        await syncTaskToFile(updatedTask);
-        // Regenerate project index if projectId changed
-        if (enforcedUpdates.projectId !== undefined && enforcedUpdates.projectId !== previous?.projectId) {
-          if (previous?.projectId) await regenerateProjectIndex(previous.projectId);
-          if (enforcedUpdates.projectId) await regenerateProjectIndex(enforcedUpdates.projectId);
+      const { before, after } = await db.transaction('rw', db.tasks, db.projects, async () => {
+        const current = await db.tasks.get(id);
+        if (!current || current.deletedAt) throw new Error('Task is unavailable');
+        const projectId = enforcedUpdates.projectId ?? current.projectId;
+        if (projectId !== current.projectId) {
+          const [source, target, childCount] = await Promise.all([
+            db.projects.get(current.projectId), db.projects.get(projectId),
+            db.tasks.where('parentTaskId').equals(id).filter((child) => !child.deletedAt).count(),
+          ]);
+          if (!source || !target || source.clientId !== target.clientId) {
+            throw new Error('Project assignment is outside the task client');
+          }
+          assertTaskProjectChange(current, projectId, childCount);
+          if (nameKey(sanitizeFsName(source.name)) === nameKey(sanitizeFsName(target.name))) {
+            throw new Error('Project assignment would overlap the existing task mirror');
+          }
         }
+        const next: Task = { ...current, ...enforcedUpdates,
+          updatedAt: Math.max(nextUpdatedAt, current.updatedAt + 1) };
+        await db.tasks.put(next);
+        return { before: current, after: next };
+      });
+      await get().refreshTasksFromDb();
+      try {
+        await syncCodexTaskProjection(after, before);
+      } catch (error) {
+        showError(error, 'Task saved, but its file mirror needs attention.');
       }
     } catch (err) {
       if (previous) {
@@ -337,46 +430,46 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   deleteTask: async (id) => {
-    const previous = get().tasks;
-    // Soft-delete locally: drop from the active list, pick a neighbour as
-    // the new active task if necessary, close the tab. Matches the
-    // previous Dexie behaviour.
-    set((s) => {
-      const remaining = s.tasks.filter((t) => t.id !== id);
-      const stillOpen = s.openTaskIds.filter((tid) => tid !== id);
-      let nextActive = s.activeTaskId;
-      if (nextActive === id) {
-        nextActive = stillOpen[stillOpen.length - 1] ?? null;
-      }
-      return {
-        tasks: remaining,
-        openTaskIds: stillOpen,
-        activeTaskId: nextActive,
-      };
-    });
-    useUIStore.getState().setActiveTaskId(get().activeTaskId);
     try {
-      const taskToDelete = await db.tasks.get(id);
-      if (taskToDelete) {
-        await db.tasks.update(id, { deletedAt: Date.now() });
-        // Delete markdown file
-        await deleteTaskFile(taskToDelete);
-        // Regenerate project index
-        if (taskToDelete.projectId) await regenerateProjectIndex(taskToDelete.projectId);
+      const change = await db.transaction('rw', db.tasks, async () => {
+        const task = await db.tasks.get(id);
+        if (!task || task.deletedAt) throw new Error('Task is unavailable');
+        assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(id)
+          .filter((child) => !child.deletedAt).count());
+        const after: Task = { ...task, deletedAt: Date.now(),
+          updatedAt: Math.max(Date.now(), task.updatedAt + 1) };
+        await db.tasks.put(after);
+        return { before: task, after };
+      });
+      await get().refreshTasksFromDb();
+      useUIStore.getState().setActiveTaskId(get().activeTaskId);
+      try {
+        await syncCodexTaskProjection(change.after, change.before);
+      } catch (error) {
+        showError(error, 'Task deleted, but its file mirror needs attention.');
       }
     } catch (err) {
-      set({ tasks: previous });
       showError(err, 'Failed to delete task.');
     }
   },
 
   restoreTask: async (id) => {
     try {
-      const task = await db.tasks.get(id);
-      if (task) {
-        await db.tasks.update(id, { deletedAt: undefined });
-        // Regenerate project index
-        if (task.projectId) await regenerateProjectIndex(task.projectId);
+      const change = await db.transaction('rw', db.tasks, async () => {
+        const task = await db.tasks.get(id);
+        if (!task?.deletedAt) throw new Error('Deleted task is unavailable');
+        if (task.parentTaskId) {
+          assertSubtaskParent(await db.tasks.get(task.parentTaskId), task.projectId);
+        }
+        const after: Task = { ...task, deletedAt: undefined,
+          updatedAt: Math.max(Date.now(), task.updatedAt + 1) };
+        await db.tasks.put(after);
+        return { before: task, after };
+      });
+      try {
+        await syncCodexTaskProjection(change.after, change.before);
+      } catch (error) {
+        showError(error, 'Task restored, but its file mirror needs attention.');
       }
       // Re-fetch the active list so the restored task reappears with
       // the canonical server `order` and `updatedAt`.
@@ -403,35 +496,22 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   permanentlyDeleteTask: async (id) => {
-    const previous = get().tasks;
-    set((s) => {
-      const remaining = s.tasks.filter((t) => t.id !== id);
-      const tabs = s.openTabs.map((t) => (t.taskId === id ? { ...t, taskId: null } : t));
-      const nextActiveTab = s.activeTabId;
-      let nextActiveTask: string | null = null;
-      if (s.activeTaskId === id) {
-        const actTab = tabs.find((t) => t.tabId === nextActiveTab);
-        nextActiveTask = actTab?.taskId ?? null;
-      }
-      const derivedOpen = tabs.map((t) => t.taskId).filter(Boolean) as string[];
-      return {
-        tasks: remaining,
-        openTabs: tabs,
-        openTaskIds: derivedOpen,
-        activeTaskId: nextActiveTask,
-      };
-    });
     try {
-      const taskToDelete = await db.tasks.get(id);
-      if (taskToDelete) {
+      const taskToDelete = await db.transaction('rw', db.tasks, async () => {
+        const task = await db.tasks.get(id);
+        if (!task) throw new Error('Task is unavailable');
+        assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(id).count());
         await db.tasks.delete(id);
-        // Delete markdown file
-        await deleteTaskFile(taskToDelete);
-        // Regenerate project index
-        if (taskToDelete.projectId) await regenerateProjectIndex(taskToDelete.projectId);
+        return task;
+      });
+      await get().refreshTasksFromDb();
+      useUIStore.getState().setActiveTaskId(get().activeTaskId);
+      try {
+        await syncCodexTaskProjection({ ...taskToDelete, deletedAt: taskToDelete.deletedAt ?? Date.now() }, taskToDelete);
+      } catch (error) {
+        showError(error, 'Task removed, but its file mirror needs attention.');
       }
     } catch (err) {
-      set({ tasks: previous });
       showError(err, 'Failed to permanently delete task.');
     }
   },

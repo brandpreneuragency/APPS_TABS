@@ -8,6 +8,8 @@ import {
   applyPrimaryWrapperOpen,
   clampAssistantWrapperWidth,
   clampContextPanelWidth,
+  clampNavigationWidth,
+  NAVIGATION_WIDTH_DEFAULT_PX,
   migrateLayoutStateFromStored,
   selectActiveWorkspaceMode as selectActiveWorkspaceModeImpl,
   selectCanSwapWrappers as selectCanSwapWrappersImpl,
@@ -48,7 +50,7 @@ export type SidebarTab = 'chat' | 'actions' | 'characters' | 'models';
 /** Active sub-page within the CRM module (owned by uiStore so the shell can switch panels).
  *  'forms' hosts the merged Forms sub-module (list/builder/submissions/templates/settings),
  *  whose exact page is tracked by `activeFormsPage`. */
-export type CRMPage = 'dashboard' | 'leads' | 'contacts' | 'companies' | 'pipeline' | 'activities' | 'forms' | 'settings';
+export type CRMPage = 'clients' | 'projects' | 'dashboard' | 'leads' | 'contacts' | 'companies' | 'pipeline' | 'activities' | 'forms' | 'settings';
 /** Active sub-page within the Forms module (owned by uiStore so the shell can switch panels). */
 export type FormsPage = 'dashboard' | 'list' | 'builder' | 'submissions' | 'templates' | 'settings';
 /** Active view within the Task module list panel (owned by uiStore so the shell header can switch views). */
@@ -70,6 +72,8 @@ interface UIStore {
   assistantWrapperWidth: number;
   /** Contextual panel width in vw (shared across modes). */
   contextPanelWidth: number;
+  navigationWidth: number;
+  navigationCollapsed: boolean;
   contextPanelOpenByMode: ContextPanelOpenByMode;
 
   sidebarTab: SidebarTab;
@@ -150,6 +154,8 @@ interface UIStore {
    */
   setAssistantWrapperWidth: (w: number, options?: { persist?: boolean }) => void;
   setContextPanelWidth: (w: number, options?: { persist?: boolean }) => void;
+  setNavigationWidth: (width: number, options?: { persist?: boolean }) => void;
+  setNavigationCollapsed: (collapsed: boolean) => void;
 
   setSidebarTab: (tab: SidebarTab) => void;
   setSelectedText: (sel: SelectionState | null) => void;
@@ -288,6 +294,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
   wrappersSwapped: false,
   assistantWrapperWidth: ASSISTANT_WRAPPER_WIDTH_DEFAULT_VW,
   contextPanelWidth: CONTEXT_PANEL_WIDTH_DEFAULT_VW,
+  navigationWidth: NAVIGATION_WIDTH_DEFAULT_PX,
+  navigationCollapsed: false,
   contextPanelOpenByMode: { ...DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE },
 
   sidebarTab: 'chat',
@@ -308,7 +316,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   taskMode: false,
   activeTaskId: null,
   crmMode: false,
-  activeCRMPage: 'leads',
+  activeCRMPage: 'clients',
   activeFormsPage: 'list',
   activeTaskPage: 'list',
   activeView: 'document',
@@ -390,6 +398,19 @@ export const useUIStore = create<UIStore>((set, get) => ({
     if (persist) {
       persistLayoutKeys({ contextPanelWidth: clamped });
     }
+  },
+
+  setNavigationWidth: (width, options) => {
+    const navigationWidth = clampNavigationWidth(width);
+    set({ navigationWidth });
+    if (options?.persist !== false) {
+      void db.settings.put({ key: 'navigationWidth', value: navigationWidth });
+    }
+  },
+
+  setNavigationCollapsed: (collapsed) => {
+    set({ navigationCollapsed: collapsed });
+    void db.settings.put({ key: 'navigationCollapsed', value: collapsed });
   },
 
   // ── Remaining store ────────────────────────────────────────────────
@@ -493,6 +514,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
   },
 
   setActiveTaskPage: (p) => {
+    if (p === 'projects') {
+      get().setActiveCRMPage('projects');
+      get().setCrmMode(true);
+      return;
+    }
     set({ activeTaskPage: p });
     void db.settings.put({ key: 'activeTaskPage', value: p });
   },
@@ -609,6 +635,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
       assistantWrapperWidthSetting,
       contextPanelWidthSetting,
       contextPanelOpenByModeSetting,
+      navigationWidthSetting,
+      navigationCollapsedSetting,
     ] = await Promise.all([
       db.settings.get('sidebarTab'),
       db.settings.get('fileExplorerOpen'),
@@ -638,6 +666,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
       db.settings.get('assistantWrapperWidth'),
       db.settings.get('contextPanelWidth'),
       db.settings.get('contextPanelOpenByMode'),
+      db.settings.get('navigationWidth'),
+      db.settings.get('navigationCollapsed'),
     ]);
 
     const lang = (language?.value === 'tr' ? 'tr' : 'en') as 'en' | 'tr';
@@ -659,7 +689,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
     // Drop obsolete workspace-mode key from older installs (ignored if absent).
     void db.settings.delete('chatMode');
 
-    const CRM_PAGES: CRMPage[] = ['dashboard', 'leads', 'contacts', 'companies', 'pipeline', 'activities', 'forms', 'settings'];
+    const CRM_PAGES: CRMPage[] = ['clients', 'projects', 'dashboard', 'leads', 'contacts', 'companies', 'pipeline', 'activities', 'forms', 'settings'];
     const FORMS_PAGES: FormsPage[] = ['dashboard', 'list', 'builder', 'submissions', 'templates', 'settings'];
     const storedCRMPage = activeCRMPageSetting?.value as CRMPage | undefined;
     const migratedFromForms = formsModeStored && !crmModeStored;
@@ -667,7 +697,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       ? 'forms'
       : storedCRMPage && CRM_PAGES.includes(storedCRMPage) && storedCRMPage !== 'dashboard'
         ? storedCRMPage
-        : 'leads';
+        : 'clients';
     const legacyCRMPage = new Set<CRMPage>(['contacts', 'companies', 'activities']);
     const activeCRMPage: CRMPage = legacyCRMPage.has(rawCRMPage) ? 'leads' : rawCRMPage;
     if (legacyCRMPage.has(rawCRMPage)) {
@@ -683,8 +713,9 @@ export const useUIStore = create<UIStore>((set, get) => ({
         ? migratedFormsPage
         : 'list';
 
-    const TASK_PAGES: TaskPage[] = ['list', 'calendar', 'projects'];
+    const TASK_PAGES: TaskPage[] = ['list', 'calendar'];
     const storedTaskPage = activeTaskPageSetting?.value as TaskPage | undefined;
+    const restoreProjects = taskModeValue && storedTaskPage === 'projects';
     const activeTaskPage: TaskPage =
       storedTaskPage && TASK_PAGES.includes(storedTaskPage) ? storedTaskPage : 'list';
 
@@ -712,6 +743,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
       wrappersSwapped: layout.wrappersSwapped,
       assistantWrapperWidth: layout.assistantWrapperWidth,
       contextPanelWidth: layout.contextPanelWidth,
+      navigationWidth: clampNavigationWidth(Number(navigationWidthSetting?.value ?? NAVIGATION_WIDTH_DEFAULT_PX)),
+      navigationCollapsed: navigationCollapsedSetting ? Boolean(navigationCollapsedSetting.value) : false,
       contextPanelOpenByMode: layout.contextPanelOpenByMode,
 
       sidebarTab: (sidebarTab ? String(sidebarTab.value) : 'chat') as SidebarTab,
@@ -719,14 +752,14 @@ export const useUIStore = create<UIStore>((set, get) => ({
       editorFontFamily: editorFontFamily ? String(editorFontFamily.value) : 'Inter',
       editorFontSize: parseEditorFontSize(editorFontSize?.value),
       language: lang,
-      taskMode: taskModeValue,
+      taskMode: restoreProjects ? false : taskModeValue,
       activeTaskId: lastActiveTaskId ? String(lastActiveTaskId.value) : null,
       contextWindowOpen: false,
       contextWindowCollapsed: contextWindowCollapsed ? Boolean(contextWindowCollapsed.value) : true,
       terminalPanelOpen: terminalPanelOpen ? Boolean(terminalPanelOpen.value) : false,
       terminalPanelHeight: terminalPanelHeight ? Number(terminalPanelHeight.value) : 240,
-      crmMode,
-      activeCRMPage,
+      crmMode: restoreProjects || crmMode,
+      activeCRMPage: restoreProjects ? 'projects' : activeCRMPage,
       activeFormsPage,
       activeTaskPage,
     });

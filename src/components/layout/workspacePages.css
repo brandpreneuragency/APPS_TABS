@@ -1,0 +1,12 @@
+.crm-workspace,
+.forms-workspace {
+  height: 100%;
+  width: 100%;
+  background: transparent;
+}
+
+.crm-workspace-body,
+.forms-workspace-body {
+  flex: 1;
+  overflow-y: auto;
+}

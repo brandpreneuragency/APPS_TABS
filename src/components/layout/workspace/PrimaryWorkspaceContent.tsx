@@ -15,6 +15,7 @@ interface PrimaryWorkspaceContentProps {
   centerPanel: ReactNode;
   contextPanelAvailable: boolean;
   contextPanelOpen: boolean;
+  contextOnly?: boolean;
   contextPanelWidthVw: number;
   contextPanelId?: string;
   contextPanelClassName?: string;
@@ -35,6 +36,7 @@ export function PrimaryWorkspaceContent({
   centerPanel,
   contextPanelAvailable,
   contextPanelOpen,
+  contextOnly = false,
   contextPanelWidthVw,
   contextPanelId,
   contextPanelClassName,
@@ -45,7 +47,7 @@ export function PrimaryWorkspaceContent({
 }: PrimaryWorkspaceContentProps) {
   const contextRef = useRef<HTMLDivElement>(null);
   const primaryContentRef = useRef<HTMLDivElement>(null);
-  const showContext = contextPanelAvailable && contextPanelOpen && contextPanel != null;
+  const showContext = contextPanelAvailable && (contextPanelOpen || contextOnly) && contextPanel != null;
 
   const rowStyle = {
     ['--context-min-width' as string]: `${CONTEXT_MIN_PX}px`,
@@ -59,6 +61,7 @@ export function PrimaryWorkspaceContent({
       ref={primaryContentRef}
       className="primary-workspace-content"
       data-two-panel={showContext ? 'true' : 'false'}
+      data-context-only={contextOnly ? 'true' : 'false'}
       style={rowStyle}
     >
       {showContext && (

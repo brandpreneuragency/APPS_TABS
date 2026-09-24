@@ -53,7 +53,7 @@ export function HeaderDropdown({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className={cx('header-dropdown-button w-full row', buttonClassName)}
-        style={{ borderRadius: 0, background: 'transparent' }}
+        style={{ borderRadius: 'var(--radius-sm)', background: 'transparent' }}
       >
         <span className="trunc med">{selected?.label ?? ''}</span>
         <ChevronDown size={12} className="subtle shrink-0" />

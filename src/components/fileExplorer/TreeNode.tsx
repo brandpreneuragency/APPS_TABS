@@ -2,7 +2,7 @@ import type React from 'react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import {
   ChevronRight, ChevronDown, Folder, FolderOpen, File,
-  MoreHorizontal, FilePlus, FolderPlus, Pencil, Trash2,
+  MoreHorizontal, SquarePlus, SquareSlash, Pencil, Trash2,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useWorkspaceStore, type TreeNode as TreeNodeType } from '../../stores/workspaceStore';
@@ -314,22 +314,11 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
         style={{
           '--tree-depth': depth,
           ...(depth === 0 && node.kind === 'directory' ? {} : { minHeight: 32 }),
-          ...(depth === 0
-            ? {
-                borderRadius: 8,
-                paddingLeft: 0,
-                paddingRight: 0,
-                paddingTop: 0,
-                paddingBottom: 0,
-              }
-            : {
-                borderRadius: 0,
-                padding: 0,
-              }),
-          backgroundColor:
-            selectedTreePath === node.path || (node.kind === 'directory' && expanded)
-              ? 'var(--c-background-2)'
-              : 'transparent',
+          borderRadius: 'var(--radius-sm)',
+          padding: 0,
+          backgroundColor: selectedTreePath === node.path
+            ? 'var(--c-background-3)'
+            : 'transparent',
           fontSize: 'var(--fs-xs)',
           color: 'var(--c-text-1)',
           cursor: 'default',
@@ -338,8 +327,6 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
         draggable
         onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
-        onMouseEnter={() => setShowKebab(true)}
-        onMouseLeave={() => setShowKebab(false)}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -348,8 +335,11 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
         {/* Row content */}
         <div className="row-xs" style={{
           height: 32,
-          paddingLeft: 6,
+          paddingLeft: 6 + depth * 12,
+          paddingRight: 6,
         }}
+          onMouseEnter={() => setShowKebab(true)}
+          onMouseLeave={() => setShowKebab(false)}
           onClick={handleClick}
           onAuxClick={handleAuxClick}
         >
@@ -391,33 +381,9 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
             }}>{node.name}</span>
           )}
 
-          {/* Inline new-file / new-folder / kebab buttons on hover */}
+          {/* Kebab button on hover */}
           {showKebab && !inlineInput && (
             <>
-              {node.kind === 'directory' && (
-                <>
-                  <button
-                    type="button"
-                    className="btn-icon"
-                    style={{ width: 24, height: 24, minWidth: 24, minHeight: 24 }}
-                    onClick={(e) => { e.stopPropagation(); startNewFile(); }}
-                    title={t('explorer.newFile')}
-                    aria-label={t('explorer.newFile')}
-                  >
-                    <FilePlus size={11} />
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-icon"
-                    style={{ width: 24, height: 24, minWidth: 24, minHeight: 24 }}
-                    onClick={(e) => { e.stopPropagation(); startNewFolder(); }}
-                    title={t('explorer.newFolder')}
-                    aria-label={t('explorer.newFolder')}
-                  >
-                    <FolderPlus size={11} />
-                  </button>
-                </>
-              )}
               <button
                 ref={kebabRef}
                 type="button"
@@ -442,13 +408,14 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
 
         {/* Nested children container */}
         {node.kind === 'directory' && expanded && (
-          <ul className="tree-children" style={{ listStyle: 'none', paddingLeft: 6, paddingRight: 6, margin: 0 }}>
+          <ul className="tree-children" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {/* Inline new-file / new-folder input */}
             {inlineInput && inlineInput.mode !== 'rename' && (
               <li
                 className="tree-node row-xs"
                 style={{
-                  '--tree-depth': depth + 1, height: 32, fontSize: 'var(--fs-xs)',
+                  '--tree-depth': depth + 1, height: 32, paddingLeft: 6 + (depth + 1) * 12, paddingRight: 6,
+                  fontSize: 'var(--fs-xs)',
                   color: 'var(--c-text-1)',
                 } as React.CSSProperties}
               >
@@ -477,7 +444,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
         )}
       </li>
 
-      {/* Context menu (rename and delete only) */}
+      {/* Context menu */}
       {contextMenu && (
         <div
           ref={contextRef}
@@ -485,6 +452,16 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
           style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, minWidth: 160 }}
           onClick={(e) => e.stopPropagation()}
         >
+          {node.kind === 'directory' && (
+            <>
+              <button type="button" onClick={startNewFile} className="drop-item">
+                <SquarePlus size={12} /> {t('explorer.newFile')}
+              </button>
+              <button type="button" onClick={startNewFolder} className="drop-item">
+                <SquareSlash size={12} /> {t('explorer.newFolder')}
+              </button>
+            </>
+          )}
           <button type="button" onClick={startRename}
             className="drop-item">
             <Pencil size={12} /> {t('explorer.rename')}

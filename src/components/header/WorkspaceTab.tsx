@@ -7,10 +7,11 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 
 const BROWSER_ROOT_PREFIX = '__BROWSER_ROOT__:';
 
-function tabLabel(name: string): string {
-  return name.startsWith(BROWSER_ROOT_PREFIX)
+function tabLabel(name: string, index: number): string {
+  const label = name.startsWith(BROWSER_ROOT_PREFIX)
     ? name.slice(BROWSER_ROOT_PREFIX.length)
     : name;
+  return !label.trim() || /^Workspace \d+$/.test(label) ? `Doc ${index + 1}` : label;
 }
 
 interface WorkspaceTabProps {
@@ -20,6 +21,7 @@ interface WorkspaceTabProps {
   onClose: () => void;
   onRename: (newName: string) => void;
   charLimit: number;
+  index: number;
   colorIndex?: number;
   /** Drag-to-reorder (optional; wired by TabBar). */
   isDragging?: boolean;
@@ -37,6 +39,7 @@ export function WorkspaceTab({
   onClose,
   onRename,
   charLimit,
+  index,
   isDragging = false,
   dragOverSide = null,
   onDragStart,
@@ -45,7 +48,7 @@ export function WorkspaceTab({
   onDragEnd,
 }: WorkspaceTabProps) {
   const { t } = useTranslation();
-  const label = tabLabel(workspace.name ?? '');
+  const label = tabLabel(workspace.name ?? '', index);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const [confirmClose, setConfirmClose] = useState(false);
@@ -94,6 +97,14 @@ export function WorkspaceTab({
       data-ws-tab-id={workspace.id}
       role="tab"
       aria-selected={isActive}
+      tabIndex={isActive ? 0 : -1}
+      onKeyDown={(event) => {
+        if (event.target !== event.currentTarget) return;
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onSelect();
+        }
+      }}
       draggable={!isEditing}
       onClick={onSelect}
       onDoubleClick={handleDoubleClick}
@@ -153,7 +164,7 @@ export function WorkspaceTab({
                 style={{
                   width: 6,
                   height: 6,
-                  borderRadius: '50%',
+                  borderRadius: 'var(--radius-full)',
                   background: 'var(--c-accent-center-panel)',
                   marginLeft: 4,
                   flexShrink: 0,

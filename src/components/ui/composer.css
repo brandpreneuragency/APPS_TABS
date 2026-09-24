@@ -24,6 +24,11 @@
 :root .composer-attachments.composer-attachments--inline {
   padding: 0;
 }
+:root .composer-attachments.composer-attachments--task-comment .composer-attachment-thumb,
+:root .composer-attachments.composer-attachments--task-comment .composer-attachment-thumb-img {
+  width: unset;
+  height: 96px;
+}
 
 /* File / folder chips */
 .composer-chip {
@@ -31,7 +36,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 6px 4px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   border: none;
   font-size: var(--fs-xs);
@@ -69,7 +74,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--c-text-2);
   flex-shrink: 0;
@@ -96,19 +101,21 @@
   width: 32px;
   height: 34px;
   box-sizing: border-box;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   object-fit: cover;
   border: none;
   background: var(--c-background-3);
 }
 .composer-attachment-thumb-hit {
   display: block;
+  width: fit-content;
+  height: fit-content;
   padding: 0;
   margin: 0;
   border: none;
   background: transparent;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   line-height: 0;
 }
 .composer-attachment-thumb-hit:hover .composer-attachment-thumb-img {
@@ -128,7 +135,7 @@
   position: absolute;
   width: 18px;
   height: 18px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.55);
 }
 .composer-attachment-thumb-play > svg {
@@ -147,7 +154,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: var(--c-background-4);
   border: 1px solid var(--c-border-1);
   color: var(--c-text-1);

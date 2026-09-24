@@ -64,7 +64,7 @@ export function getExt(p: string): string {
 /** Returns true if native folder access is available (Tauri or File System Access API). */
 export function isNativeFsAvailable(): boolean {
   if (isTauriRuntime()) return true;
-  return 'showDirectoryPicker' in window;
+  return typeof window !== 'undefined' && 'showDirectoryPicker' in window;
 }
 
 // Dialog picks ---------------------------------------------------------

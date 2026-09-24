@@ -58,7 +58,7 @@ describe('QuickCreateInput', () => {
     const user = userEvent.setup();
     render(<QuickCreateInput />);
 
-    await user.click(screen.getByRole('button', { name: 'Set project' }));
+    await user.click(screen.getByRole('button', { name: 'No Project' }));
 
     expect(screen.queryByText('No project')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'General' })).toBeInTheDocument();
@@ -83,7 +83,7 @@ describe('QuickCreateInput', () => {
     const user = userEvent.setup();
     render(<QuickCreateInput />);
 
-    await user.click(screen.getByRole('button', { name: 'Set project' }));
+    await user.click(screen.getByRole('button', { name: 'No Project' }));
     await user.click(screen.getByRole('button', { name: 'Website' }));
     await user.type(screen.getByRole('textbox'), 'Ship site');
     await user.click(screen.getByTitle('Add task'));

@@ -235,7 +235,7 @@ function ActionAccordionItem({
             style={{
               width: 24,
               height: 24,
-              borderRadius: '50%',
+              borderRadius: 'var(--radius-full)',
               background: 'rgba(139, 92, 246, 0)',
               display: 'flex',
               alignItems: 'center',
@@ -332,7 +332,7 @@ function ActionAccordionItem({
                 color: 'var(--c-accent-center-panel)',
                 fontWeight: 500,
                 padding: '4px 8px',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--c-border-1)',
                 background: 'transparent',
                 cursor: 'pointer',
@@ -513,7 +513,7 @@ export function ActionsPanel({ scope }: ActionsPanelProps) {
               padding: '48px 16px',
               textAlign: 'center',
               border: '1px solid var(--c-border-1)',
-              borderRadius: 14,
+              borderRadius: 'var(--radius-sm)',
               background: 'var(--c-background-1)',
             }}
           >
@@ -521,7 +521,7 @@ export function ActionsPanel({ scope }: ActionsPanelProps) {
               style={{
                 width: 40,
                 height: 40,
-                borderRadius: '50%',
+                borderRadius: 'var(--radius-full)',
                 background: 'var(--c-background-4)',
                 display: 'flex',
                 alignItems: 'center',

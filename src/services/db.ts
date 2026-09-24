@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
-import type { Document, Workspace, ChatMessage, Agent, AIProviderConfig, AppSettings, QuickPrompt, ActionGroup, Task, Project, Client, TaskComment, TaskAIChangeBatch, ChatThreadMeta } from '../types';
+import type { Document, Workspace, ChatMessage, Agent, AppSettings, QuickPrompt, ActionGroup, Task, Project, Client, TaskComment, TaskAIChangeBatch, ChatThreadMeta } from '../types';
 import { migrateProjectsToClients } from '../stores/migrateProjectsToClients';
+import type { CodexSessionRecord, CodexRunRecord, CodexEventRecord, CodexPendingRecord, CodexOperationReceipt, CodexDocumentIntent } from './codex/sessionTypes';
 
 /** @deprecated Removed in v12 — folders now live inside Workspace objects. */
 export interface FileHandleRecord {
@@ -15,7 +16,8 @@ class TabsDB extends Dexie {
   workspaces!: Table<Workspace>;
   chatMessages!: Table<ChatMessage>;
   agents!: Table<Agent>;
-  providerConfigs!: Table<AIProviderConfig>;
+  /** Historic API provider rows exist only until the scoped Codex migration. */
+  providerConfigs!: Table<{ id: string; [key: string]: unknown }>;
   settings!: Table<AppSettings>;
   quickPrompts!: Table<QuickPrompt>;
   actionGroups!: Table<ActionGroup>;
@@ -27,6 +29,12 @@ class TabsDB extends Dexie {
   taskComments!: Table<TaskComment>;
   taskAIChangeBatches!: Table<TaskAIChangeBatch>;
   chatThreads!: Table<ChatThreadMeta>;
+  codexSessions!: Table<CodexSessionRecord>;
+  codexRuns!: Table<CodexRunRecord>;
+  codexEvents!: Table<CodexEventRecord>;
+  codexPendingRequests!: Table<CodexPendingRecord>;
+  codexOperationReceipts!: Table<CodexOperationReceipt>;
+  codexDocumentIntents!: Table<CodexDocumentIntent>;
 
   constructor() {
     super('ZenEditorDB');
@@ -119,7 +127,27 @@ class TabsDB extends Dexie {
       taskAIChangeBatches: 'id, taskId, createdAt, expiresAt',
       chatThreads: 'id, mode, updatedAt',
     }).upgrade(async (tx) => {
-      await tx.table('chatMessages').clear();
+      // Historic rows predate threads. Preserve message IDs and content while
+      // grouping by their original document/task binding.
+      const messages = await tx.table('chatMessages').toArray();
+      const groups = new Map<string, { mode: 'writer' | 'task'; documentId?: string; taskId?: string;
+        first: number; last: number }>();
+      for (const message of messages) {
+        const mode = message.mode === 'task' || message.taskId ? 'task' : 'writer';
+        const id = message.threadId || (message.taskId
+          ? `legacy-task:${message.taskId}`
+          : message.documentId ? `legacy-document:${message.documentId}` : 'legacy-unscoped');
+        const time = typeof message.timestamp === 'number' ? message.timestamp : Date.now();
+        await tx.table('chatMessages').update(message.id, { threadId: id, mode });
+        const group = groups.get(id);
+        groups.set(id, group ? { ...group, first: Math.min(group.first, time), last: Math.max(group.last, time) }
+          : { mode, documentId: message.documentId, taskId: message.taskId, first: time, last: time });
+      }
+      for (const [id, group] of groups) {
+        await tx.table('chatThreads').put({ id, mode: group.mode, documentId: group.documentId,
+          taskId: group.taskId, title: 'Legacy chat', createdAt: group.first,
+          updatedAt: group.last, origin: 'legacy_api' });
+      }
     });
     this.version(8).stores({
       documents: 'id, title, updatedAt, order',
@@ -188,11 +216,12 @@ class TabsDB extends Dexie {
       chatThreads: 'id, mode, updatedAt, documentId, taskId, settingsTab',
     });
     // v12: Workspace pivot — tabs become workspaces with isolated folders.
-    // Drops `documents` and `fileHandles` tables, adds `workspaces` table,
+    // Retains old documents as a readable archive, drops obsolete browser
+    // folder handles, and adds the local `workspaces` table.
     // and swaps `documentId` indexes for `workspaceId` on chat tables.
-    // Start-fresh strategy: old chat data is cleared.
+    // Keep historic messages even when an old document has no workspace.
     this.version(12).stores({
-      documents: null, // drop table
+      documents: 'id, title, updatedAt, order',
       fileHandles: null, // drop table
       workspaces: 'id, name, updatedAt, order',
       chatMessages: 'id, threadId, mode, agentId, timestamp, settingsTab, workspaceId',
@@ -206,15 +235,11 @@ class TabsDB extends Dexie {
       projects: 'id, name',
       taskComments: 'id, taskId, createdAt',
       taskAIChangeBatches: 'id, taskId, createdAt, expiresAt',
-    }).upgrade(async (tx) => {
-      // Start fresh: clear old chat data (user chose this migration strategy)
-      await tx.table('chatThreads').clear();
-      await tx.table('chatMessages').clear();
     });
     // v13: Client layer — each old project becomes a client with a General
     // project; tasks lose parentId and always have a projectId.
     this.version(13).stores({
-      documents: null, // drop table
+      documents: 'id, title, updatedAt, order',
       fileHandles: null, // drop table
       workspaces: 'id, name, updatedAt, order',
       chatMessages: 'id, threadId, mode, agentId, timestamp, settingsTab, workspaceId',
@@ -246,6 +271,51 @@ class TabsDB extends Dexie {
       await tx.table('clients').bulkAdd(clients);
       await tx.table('projects').bulkAdd(projects);
       await tx.table('tasks').bulkAdd(tasks);
+    });
+    this.version(14).stores({
+      agents: 'id, name, isDefault',
+    }).upgrade(async (tx) => {
+      await tx.table('agents').toCollection().modify((agent: Agent & { scope?: string }) => {
+        delete agent.scope;
+      });
+      const agents: Agent[] = await tx.table('agents').toArray();
+      const active = await tx.table('settings').get('activeAgentId');
+      const legacyActive = await tx.table('settings').get('activeTaskAgentId');
+      const activeAgentId = [active?.value, legacyActive?.value]
+        .find((id) => typeof id === 'string' && agents.some((agent) => agent.id === id))
+        ?? agents[0]?.id;
+      if (activeAgentId) {
+        await tx.table('settings').put({ key: 'activeAgentId', value: activeAgentId });
+      }
+      await tx.table('settings').delete('activeTaskAgentId');
+    });
+    // Additive Codex projection. Historic chat migrations are addressed separately
+    // before a live upgrade; this version never clears existing user records.
+    this.version(15).stores({
+      codexSessions: 'appThreadId, nativeThreadId, workspaceRoot, updatedAt',
+      codexRuns: 'runId, &clientCommandId, appThreadId, nativeThreadId, nativeTurnId, status, createdAt',
+      codexEvents: 'id, epoch, [epoch+sequence], runId, createdAt',
+      codexPendingRequests: 'requestId, runId, epoch, status',
+      codexOperationReceipts: 'operationId, runId, appThreadId',
+    });
+    this.version(16).stores({
+      codexDocumentIntents: 'operationId, workspaceId, status',
+    });
+    // New subtasks are explicit. Do not infer links from v13's flattened parentId.
+    this.version(17).stores({
+      tasks: 'id, title, updatedAt, order, projectId, status, parentTaskId',
+    });
+    this.version(18).stores({
+      chatThreads: 'id, mode, updatedAt, workspaceId, taskId, settingsTab, origin',
+    }).upgrade(async (tx) => {
+      const nativeIds = new Set((await tx.table('codexSessions').toArray())
+        .map((session: { appThreadId: string }) => session.appThreadId));
+      for (const run of await tx.table('codexRuns').toArray() as Array<{ appThreadId: string }>) {
+        nativeIds.add(run.appThreadId);
+      }
+      await tx.table('chatThreads').toCollection().modify((thread: ChatThreadMeta) => {
+        thread.origin = nativeIds.has(thread.id) ? 'codex' : 'legacy_api';
+      });
     });
   }
 }

@@ -317,7 +317,7 @@ export function FormRenderer({
       '--tabs-form-text': s.textColor ?? '#111827',
       '--tabs-form-label': s.labelColor ?? '#374151',
       '--tabs-form-border': s.borderColor ?? '#d1d5db',
-      '--tabs-form-radius': `${s.borderRadius ?? 8}px`,
+      '--tabs-form-radius': (s.borderRadius ?? 8) > 29 ? 'var(--radius-full)' : 'var(--radius-sm)',
       '--tabs-form-font-family': s.fontFamily ?? 'Inter, system-ui, sans-serif',
       '--tabs-form-font-size': `${s.fontSize ?? 14}px`,
       '--tabs-form-padding': `${s.padding ?? 20}px`,

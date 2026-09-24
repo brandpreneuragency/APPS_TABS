@@ -12,6 +12,29 @@
   margin: 0;
 }
 
+/* Task title wrapper: sits below the center-panel toolbar
+   (TaskTitleBar) and just above the Comments section. */
+.tdp-title-wrapper {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 10px 18px 8px;
+  background: transparent;
+}
+
+.tdp-title-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 20px;
+}
+
+.tdp-title-inner > .subtasks-title-input {
+  flex: 1;
+  min-width: 0;
+}
+
 .tdp-meta-bar-content {
   height: fit-content;
 }
@@ -36,6 +59,58 @@
   position: relative;
 }
 
+.tdp-parent-link {
+  align-self: flex-start;
+  margin: 8px 18px 0;
+  color: var(--c-accent-2);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.tdp-subtasks {
+  flex: 0 1 auto;
+  min-height: 0;
+  max-height: 40%;
+  overflow-y: auto;
+  padding: 0 18px 12px;
+}
+
+.tdp-subtasks h2 {
+  margin: 0 0 8px;
+  font-size: var(--fs-sm);
+}
+
+.tdp-subtasks ul {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.tdp-subtasks li,
+.tdp-subtasks form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.tdp-subtasks li button {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.tdp-subtasks form input {
+  flex: 1;
+  min-width: 0;
+}
+
 .composer-mode-toggle {
   width: 32px;
   height: 32px;
@@ -48,7 +123,7 @@
 .composer-mode-toggle[data-active='true'] {
   color: var(--c-accent-2);
   background: transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 .composer-mode-toggle:hover,
@@ -81,7 +156,7 @@
   left: 8px;
   right: 8px;
   height: 2px;
-  border-radius: 2px;
+  border-radius: var(--radius-sm);
   background: var(--c-accent-2);
   pointer-events: none;
 }
@@ -106,7 +181,7 @@
   margin: 0;
   background: transparent;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   cursor: grab;
   color: var(--c-text-3);
   transition: color 0.15s ease, background-color 0.15s ease;
@@ -160,7 +235,7 @@
   background: unset;
   padding: 6px 0;
   margin: 6px 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .tdp-meta-controls {
@@ -194,7 +269,7 @@
   align-items: center;
   height: 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background-color: transparent;
   text-align: left;
 }
@@ -210,7 +285,7 @@
   padding: 0 6px;
   background-color: transparent;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
   flex-shrink: 0;
   text-align: left;
@@ -222,14 +297,18 @@
 }
 
 .tdp-meta-field-btn svg {
-  width: 12px;
-  height: 12px;
-  color: var(--c-text-2);
+  width: var(--fs-sm);
+  height: var(--fs-sm);
+  color: var(--c-text-3);
+}
+
+.tdp-meta-field-btn:not(:first-child):hover svg {
+  color: var(--c-accent-1);
 }
 
 .tdp-meta-field-label {
-  font-size: var(--fs-base);
-  color: var(--c-text-2);
+  font-size: var(--fs-sm);
+  color: var(--c-text-3);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -281,7 +360,7 @@
   font-family: inherit;
   font-size: var(--fs-base);
   cursor: text;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   transition: background-color 0.15s;
   color: var(--c-text-1);
 }
@@ -350,7 +429,8 @@
   position: fixed;
   min-width: 140px;
   margin-top: 0;
-  background: var(--c-background-3) !important;
+  padding: 0;
+  background: var(--c-background-1) !important;
   border: none !important;
 }
 #tdc-subtasks-toggle {
@@ -378,7 +458,7 @@
   margin-bottom: auto;
   margin-left: 0;
   margin-right: 5px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 1px solid var(--c-accent-center-panel);
   color: var(--c-accent-center-panel);
   display: flex;
@@ -397,7 +477,7 @@
   min-height: 0;
   height: fit-content;
   width: 100%;
-  padding: 0 12px 12px 18px;
+  padding: 0 12px 12px;
   background: transparent;
   border-bottom: none;
   z-index: 2;
@@ -407,11 +487,11 @@
   padding: 0px 0 0 0;
   height: fit-content;
   background-color: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 #task-comment-card {
   background-color: var(--c-background-3);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   padding-left: 0px;
   padding-right: 0px;
@@ -423,7 +503,7 @@
 #task-comment-card .composer-input {
   border: none;
   background-color: rgba(255, 255, 255, 0);
-  padding: 14px 18px 0;
+  padding: 18px 18px 0;
   min-height: 42px;
   line-height: var(--line-normal);
   /* Native resize handle is replaced by a custom top-right handle. */
@@ -505,9 +585,16 @@
   height: 24px;
   min-width: 24px;
   min-height: 24px;
-  border-radius: 100px;
+  border-radius: var(--radius-full);
   padding-left: 0;
   padding-right: 0;
+  background-color: var(--c-accent-2);
+  color: var(--c-text-2);
+}
+#task-comment-card .btn-send:not(:disabled):hover {
+  background: var(--c-accent-1);
+  background-color: var(--c-accent-1);
+  color: var(--c-text-1);
 }
 #task-comment-card .task-quick-create-dropup-btn {
   display: flex;
@@ -551,7 +638,7 @@
   background-color: rgba(26, 26, 26, 0);
   padding: 6px 0;
   margin: 6px 0;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 #task-comment-thread {
@@ -570,7 +657,7 @@
   display: grid;
   gap: 0;
   background: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   margin-top: 3px;
   margin-bottom: 3px;
@@ -589,6 +676,7 @@
   width: fit-content;
   line-height: var(--line-normal);
   padding: 12px;
+  background-color: var(--c-background-1);
   vertical-align: middle;
 }
 .comment-thread {
@@ -633,7 +721,7 @@
   display: block;
   width: fit-content;
   height: fit-content;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   border: none;
   background: var(--c-background-3);
@@ -703,7 +791,7 @@
 }
 :root #tdc-title {
   padding: 0 14px !important;
-  border-radius: 0 !important;
+  border-radius: var(--radius-sm) !important;
   margin-bottom: 0;
   background: transparent !important;
   border: none !important;
@@ -721,7 +809,7 @@
   border-bottom: none;
 }
 :root #tdc-subtasks {
-  border-radius: 0 !important;
+  border-radius: var(--radius-sm) !important;
   padding: 0 14px !important;
   margin-bottom: 0 !important;
   background: transparent !important;
@@ -783,7 +871,7 @@
   margin-bottom: auto;
   margin-left: 0;
   margin-right: 5px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   border: 1px solid var(--c-accent-center-panel);
   color: var(--c-accent-center-panel);
   display: flex;
@@ -802,7 +890,7 @@
   min-height: 0;
   height: fit-content;
   width: 100%;
-  padding: 0 12px 12px 18px;
+  padding: 0 12px 12px;
   background: transparent;
   border-bottom: none;
   z-index: 2;
@@ -812,7 +900,7 @@
   padding: 0;
   height: fit-content;
   background-color: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 :root #task-comment-thread {
   background: transparent;
@@ -837,7 +925,7 @@
   display: grid;
   gap: 0;
   background: var(--c-background-2);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   margin-top: 3px;
   margin-bottom: 3px;
   padding: 0;
@@ -856,6 +944,7 @@
   width: fit-content;
   line-height: var(--line-normal);
   padding: 12px;
+  background-color: var(--c-background-1);
   vertical-align: middle;
 }
 :root .comment-thread {
@@ -897,7 +986,7 @@
   display: block;
   width: fit-content;
   height: fit-content;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   border: none;
   background: var(--c-background-3);

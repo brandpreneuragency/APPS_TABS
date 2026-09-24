@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
-import { Search, Undo2, Redo2, ChevronUp, ChevronDown, Replace, ReplaceAll, Save, Rainbow } from 'lucide-react';
+import { Search, Undo2, Redo2, ChevronUp, ChevronDown, Replace, ReplaceAll, Save, Rainbow, Ellipsis } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { AssistantToggle, ContextPanelToggle } from '../layout/workspace';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useUIStore } from '../../stores/uiStore';
+import './editorTopBar.css';
 
 interface EditorTopBarProps {
   editor: Editor | null;
@@ -25,6 +27,19 @@ interface DocSearchState {
 }
 
 export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: EditorTopBarProps) {
+  const { t } = useTranslation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLButtonElement>('[role^="menuitem"]')?.focus();
+    const dismiss = (event: MouseEvent) => {
+      if (!menuRef.current?.contains(event.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', dismiss);
+    return () => document.removeEventListener('mousedown', dismiss);
+  }, [menuOpen]);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [replaceText, setReplaceText] = useState('');
@@ -248,28 +263,67 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
         </div>
       </div>
       <div className="editor-topbar-col editor-topbar-col--right">
+        <div className="relative" ref={menuRef} onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setMenuOpen(false);
+        }}>
+        <button
+          id="editor-topbar-more"
+          ref={menuButtonRef}
+          type="button"
+          className="tbar-btn"
+          title={t('navigation.more')}
+          aria-label={t('navigation.more')}
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          aria-controls="editor-topbar-menu"
+          onClick={() => { setSearchOpen(false); setMenuOpen((open) => !open); }}
+        ><Ellipsis size={14} /></button>
+        {menuOpen && <div id="editor-topbar-menu" role="menu" aria-label={t('navigation.more')}
+          className="drop header-dropdown-menu header-dropdown-menu--right"
+          onKeyDown={(event) => {
+            const items = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+            const index = items.indexOf(document.activeElement as HTMLButtonElement);
+            if (event.key === 'Escape') {
+              event.preventDefault();
+              setMenuOpen(false);
+              menuButtonRef.current?.focus();
+            } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+              event.preventDefault();
+              const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1
+                : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length;
+              items[next]?.focus();
+            }
+          }}>
         <button
           id="editor-topbar-rainbow"
           type="button"
-          className={`tbar-btn${rainbowMode ? ' tbar-btn--on' : ''}`}
-          onClick={toggleRainbowMode}
-          title={rainbowMode ? 'Rainbow mode on' : 'Rainbow mode'}
-          aria-label="Rainbow mode"
-          aria-pressed={rainbowMode}
+          className="drop-item"
+          role="menuitemcheckbox"
+          aria-checked={rainbowMode}
+          onClick={() => { toggleRainbowMode(); setMenuOpen(false); menuButtonRef.current?.focus(); }}
+          title={t('editorMenu.rainbow')}
         >
-          <Rainbow size={14} />
+          <Rainbow size={14} /> {t('editorMenu.rainbow')}
         </button>
-        <div className="relative" ref={searchRef}>
           <button
             id="editor-topbar-find"
             type="button"
-            className={`tbar-btn${searchOpen ? ' tbar-btn--on' : ''}`}
-            onClick={() => setSearchOpen((v) => !v)}
-            title="Find & Replace"
+            className="drop-item"
+            role="menuitem"
+            onClick={() => { setMenuOpen(false); setSearchOpen(true); }}
+            title={t('editorMenu.find')}
           >
-            <Search size={14} />
+            <Search size={14} /> {t('editorMenu.find')}
           </button>
-
+          <button id="editor-topbar-undo" type="button" className="drop-item" role="menuitem"
+            onClick={() => { setMenuOpen(false); handleUndo(); }} disabled={!editor || !editor.can().undo()}
+            title={`${t('editorMenu.undo')} (Ctrl+Z)`}><Undo2 size={13} /> {t('editorMenu.undo')}</button>
+          <button id="editor-topbar-redo" type="button" className="drop-item" role="menuitem"
+            onClick={() => { setMenuOpen(false); handleRedo(); }} disabled={!editor || !editor.can().redo()}
+            title={`${t('editorMenu.redo')} (Ctrl+Y)`}><Redo2 size={13} /> {t('editorMenu.redo')}</button>
+        </div>}
+        </div>
+        <div className="relative" ref={searchRef}>
           {searchOpen && (
             <div className="editor-topbar-search">
               <input
@@ -351,26 +405,6 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
             </div>
           )}
         </div>
-        <button
-          id="editor-topbar-undo"
-          type="button"
-          className="tbar-btn"
-          onClick={handleUndo}
-          disabled={!editor || !editor.can().undo()}
-          title="Undo (Ctrl+Z)"
-        >
-          <Undo2 size={13} />
-        </button>
-        <button
-          id="editor-topbar-redo"
-          type="button"
-          className="tbar-btn"
-          onClick={handleRedo}
-          disabled={!editor || !editor.can().redo()}
-          title="Redo (Ctrl+Y)"
-        >
-          <Redo2 size={13} />
-        </button>
         <AssistantToggle id="editor-topbar-assistant" iconSize={14} />
       </div>
     </div>

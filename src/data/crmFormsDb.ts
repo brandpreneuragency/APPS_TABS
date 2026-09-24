@@ -23,6 +23,7 @@ import type {
   FormTemplate,
   WebhookConfig,
 } from '../types/forms';
+import type { CodexOperationReceipt } from '../services/codex/sessionTypes';
 
 export interface CRMSettingsRecord {
   key: string;
@@ -47,6 +48,7 @@ class TabsCRMFormsDB extends Dexie {
   formWebhooks!: Table<WebhookConfig, string>;
 
   crmSettings!: Table<CRMSettingsRecord, string>;
+  codexOperationReceipts!: Table<CodexOperationReceipt, string>;
 
   constructor() {
     super('ZenEditorCRMFormsDB');
@@ -67,6 +69,10 @@ class TabsCRMFormsDB extends Dexie {
       formWebhooks: 'id, formId, enabled, createdAt, updatedAt',
 
       crmSettings: 'key',
+    });
+    // Additive receipt store: CRM and Forms effects share this transaction boundary.
+    this.version(2).stores({
+      codexOperationReceipts: 'operationId, runId, appThreadId',
     });
   }
 }

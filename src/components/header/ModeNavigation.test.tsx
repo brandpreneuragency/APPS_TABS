@@ -1,0 +1,57 @@
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { useUIStore } from '../../stores/uiStore';
+import { ModeNavigation } from './ModeNavigation';
+
+vi.mock('../../services/db', () => ({ db: { settings: { put: vi.fn().mockResolvedValue(undefined) } } }));
+vi.mock('../../stores/crmStore', () => ({ useCrmStore: { getState: () => ({ setLeadsCenterView: vi.fn() }) } }));
+vi.mock('react-i18next', async (importOriginal) => ({
+  ...await importOriginal<typeof import('react-i18next')>(),
+  useTranslation: () => ({ t: (key: string) => key }),
+}));
+
+beforeEach(() => useUIStore.setState(useUIStore.getInitialState()));
+afterEach(cleanup);
+
+describe('ModeNavigation', () => {
+  it('keeps all controls visible in the requested order across view changes', () => {
+    render(<ModeNavigation />);
+    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'tasks', 'calendar', 'projects'];
+    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs']) {
+      fireEvent.click(screen.getByRole('button', { name }));
+      expect(screen.getAllByRole('button').map((button) => button.id)).toEqual(expected.map((id) => `nav-btn-${id}`));
+      expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
+      expect(document.querySelectorAll('.header-mode[aria-pressed="true"]')).toHaveLength(1);
+    }
+    expect(screen.queryByRole('button', { name: 'navigation.clients' })).not.toBeInTheDocument();
+  });
+
+  it('toggles the left navbar while preserving its resized width', () => {
+    useUIStore.setState({ navigationWidth: 245, navigationCollapsed: false });
+    render(<ModeNavigation />);
+
+    const toggle = screen.getByRole('button', { name: 'navigation.collapseNavbar' });
+    fireEvent.click(toggle);
+    expect(useUIStore.getState().navigationCollapsed).toBe(true);
+    expect(useUIStore.getState().navigationWidth).toBe(245);
+
+    fireEvent.click(screen.getByRole('button', { name: 'navigation.openNavbar' }));
+    expect(useUIStore.getState().navigationCollapsed).toBe(false);
+    expect(useUIStore.getState().navigationWidth).toBe(245);
+  });
+
+  it('opens the exact page when moving between workspaces', () => {
+    render(<ModeNavigation />);
+    for (const [name, mode, page] of [
+      ['navigation.calendar', 'tasks', 'calendar'],
+      ['navigation.projects', 'crm', 'projects'],
+      ['navigation.taskList', 'tasks', 'list'],
+    ]) {
+      fireEvent.click(screen.getByRole('button', { name }));
+      const state = useUIStore.getState();
+      expect(state.taskMode).toBe(mode === 'tasks');
+      expect(state.crmMode).toBe(mode === 'crm');
+      expect(mode === 'tasks' ? state.activeTaskPage : state.activeCRMPage).toBe(page);
+    }
+  });
+});

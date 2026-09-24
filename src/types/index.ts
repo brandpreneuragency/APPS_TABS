@@ -71,8 +71,18 @@ export interface Attachment {
   displayPath?: string;
 }
 
+/** Providers that can own a new local CLI chat thread. */
+export type ChatProviderId = 'codex' | 'grok' | 'commandCode' | 'openCode';
+
+/** A transcript never changes provider after its first message. */
+export type ChatThreadOrigin = 'legacy_api' | ChatProviderId;
+
 export interface ChatThreadMeta {
   id: string;
+  /** Historical direct-API transcript. It remains readable and needs explicit handoff. */
+  origin?: ChatThreadOrigin;
+  /** Explicit new Codex thread seeded from selected readable history. */
+  handoffFrom?: string;
   mode: 'writer' | 'task';
   /** @deprecated Use workspaceId instead. */
   documentId?: string;
@@ -179,6 +189,8 @@ export interface Task {
   importance: TaskImportance;
   date: string; // ISO date, e.g. "2026-04-28"
   projectId: string;
+  /** New one-level relationship; historic v13 parentId values stay flattened. */
+  parentTaskId?: string;
   assignees: string[];
   createdAt: number;
   updatedAt: number;
@@ -216,88 +228,6 @@ export interface Agent {
   avatarUrl: string;
   systemPrompt: string;
   isDefault: boolean;
-  scope: 'writer' | 'task';
-}
-
-export type AIProviderType = string;
-
-export type ProviderStatus =
-  | 'connected'
-  | 'not_connected'
-  | 'needs_key'
-  | 'connection_failed'
-  | 'sync_needed'
-  | 'needs_setup';
-
-export interface ModelCapability {
-  vision: boolean;
-  toolCalling: boolean;
-  contextLength: string;
-  speed: 'Slow' | 'Medium' | 'Fast' | 'Unknown';
-  cost: 'Free' | 'Limited' | 'Paid' | 'External' | 'Unknown';
-  reasoning: 'Low' | 'Medium' | 'High' | 'Unknown';
-  endpointType: 'Native' | 'OpenRouter' | 'Custom' | 'Unknown';
-  lastSynced?: string;
-}
-
-export interface ModelItem {
-  id: string;
-  name: string;
-  enabled: boolean;
-  description?: string;
-  capabilities: ModelCapability;
-  custom?: boolean;
-  inputPricePerMillion?: number;
-  outputPricePerMillion?: number;
-  currency?: 'USD';
-  /** Manual reasoning override; catalog resolution is used when absent. */
-  reasoning?: ModelReasoning;
-  /** Current picked reasoning value for this model (an option's `value`). */
-  selectedReasoning?: string;
-  /**
-   * Whether this model supports the OpenAI-compatible `tools` / `tool_calls`
-   * function-calling surface used by the embedded AI tools feature.
-   * Defaults to `true` when unset.
-   */
-  supportsTools?: boolean;
-}
-
-export interface ReasoningOption {
-  /** Shown in the dropup, e.g. "High". */
-  label: string;
-  /** Literal value sent to the API, e.g. "high". Empty string = off/omit. */
-  value: string;
-  /** Token budget for budget-based providers (Anthropic/Gemini). */
-  budgetTokens?: number;
-}
-
-export interface ModelReasoning {
-  /** How the value is injected into the request. */
-  param: 'reasoning_effort' | 'reasoning' | 'thinking' | 'reasoning_enabled';
-  /** Ordered options; options[0] is the off/none state. */
-  options: ReasoningOption[];
-  /** Set only when the user manually overrides. */
-  source?: 'manual';
-}
-
-export interface AIProviderConfig {
-  id: string;
-  name: string;
-  provider: string;
-  apiKey: string;
-  selectedModel: string;
-  isActive: boolean;
-  baseUrl: string;
-  customModels: string[];
-  status?: ProviderStatus;
-  models?: ModelItem[];
-  lastImportedAt?: number;
-}
-
-/** Connection-form draft kept per provider inside the model management modal. */
-export interface ProviderConnectionDraft {
-  baseUrl: string;
-  apiKey: string;
 }
 
 export interface AppSettings {
@@ -332,16 +262,6 @@ export interface ActionGroup {
   createdAt: number;
 }
 
-export interface StreamChunk {
-  content: string;
-  done: boolean;
-}
-
-export interface ChatPayload {
-  messages: { role: 'user' | 'assistant' | 'system'; content: string }[];
-  config: AIProviderConfig;
-}
-
 export interface FileViewerItem {
   name: string;
   dataUrl?: string;
@@ -351,23 +271,6 @@ export interface FileViewerItem {
   source: 'task-comment' | 'filesystem' | 'chat-attachment';
   /** Stable identity within the source, used when viewer actions need exact-item matching. */
   sourceId?: string;
-}
-
-export interface SearchResult {
-  title: string;
-  url: string;
-  snippet: string;
-}
-
-export type SearchProvider = 'tavily' | 'firecrawl' | 'brave' | 'exa';
-
-export interface SearchConfig {
-  exaKey: string;
-  tavilyKey: string;
-  firecrawlKey: string;
-  braveKey: string;
-  enabled: boolean;
-  searchProvider: SearchProvider;
 }
 
 export type TaskAIContextScope = 'active_task';
@@ -444,35 +347,9 @@ export interface TaskAIChangeBatch {
   expiresAt: number;
   undoneAt?: number;
   appliedByMessageId?: string;
-}
-
-// ---------------------------------------------------------------------------
-// Task-specific model defaults
-// ---------------------------------------------------------------------------
-
-export type TaskModelDefaultKey =
-  | 'general_chat'
-  | 'writing'
-  | 'task_management'
-  | 'app_management'
-  | 'coding'
-  | 'deep_reasoning'
-  | 'fast_cheap'
-  | 'long_context'
-  | 'vision'
-  | 'structured_output'
-  | 'tool_use'
-  | 'fallback';
-
-export interface TaskModelDefault {
-  taskKey: TaskModelDefaultKey;
-  providerId: string;
-  modelId: string;
-}
-
-// Pricing metadata (optional, only when available)
-export interface ModelPricing {
-  inputPricePerMillion?: number;
-  outputPricePerMillion?: number;
-  currency?: 'USD';
+  /** Exact database effects for revision-checked undo. Absent on historic unsafe batches. */
+  taskEffects?: Array<{ id: string; before: Task | null; after: Task | null }>;
+  commentEffects?: Array<{ id: string; before: TaskComment | null; after: TaskComment | null }>;
+  projectionState?: 'pending' | 'complete';
+  undoProjectionState?: 'pending' | 'complete';
 }

@@ -178,7 +178,7 @@ function CommentAttachmentPreview({
   const src = fileItem.dataUrl || fileItem.path || '';
 
   return (
-    <AttachmentPreviewList className="composer-attachments--inline">
+    <AttachmentPreviewList className="composer-attachments--inline composer-attachments--task-comment">
       <AttachmentPreviewItem
         item={{
           name: fileItem.name,
@@ -234,7 +234,7 @@ function CommentBubble({
               alignItems: 'stretch',
               gap: 6,
               background: 'var(--c-background-4)',
-              borderRadius: 6,
+              borderRadius: 'var(--radius-sm)',
               padding: '4px 8px',
               fontSize: 'var(--fs-sm)',
               marginBottom: 4,
@@ -242,7 +242,7 @@ function CommentBubble({
               cursor: 'pointer',
             }}
           >
-            <div style={{ width: 2, borderRadius: 1, background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
+            <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
               <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-center-panel)', marginBottom: 1 }}>
                 {comment.replyTo.sender}

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Check, AlertTriangle, Undo2 } from 'lucide-react';
-import type { TaskAIDraft, TaskAIOperation } from '../../types';
+import type { TaskAIChangeBatch, TaskAIDraft, TaskAIOperation } from '../../types';
+import { db } from '../../services/db';
 import { useTaskStore } from '../../stores/taskStore';
 import { useTaskAIStore } from '../../stores/taskAIStore';
 import { useChatStore } from '../../stores/chatStore';
@@ -59,7 +60,29 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
   const updateMessage = useChatStore((state) => state.updateMessage);
   const { showToast, showToastWithAction } = useUIStore();
   const [isApplying, setIsApplying] = useState(false);
+  const [isUndoing, setIsUndoing] = useState(false);
   const [confirmRisk, setConfirmRisk] = useState(false);
+  const [savedBatch, setSavedBatch] = useState<TaskAIChangeBatch | null>(null);
+  const [undoExpired, setUndoExpired] = useState(false);
+
+  useEffect(() => {
+    if (status !== 'applied') return;
+    let current = true;
+    void db.taskAIChangeBatches.get(draft.id).then((batch) => {
+      if (current) {
+        setSavedBatch(batch ?? null);
+        setUndoExpired(!batch || batch.expiresAt <= Date.now());
+      }
+    });
+    return () => { current = false; };
+  }, [draft.id, status]);
+
+  useEffect(() => {
+    if (!savedBatch || savedBatch.undoneAt) return;
+    const delay = Math.max(0, Math.min(2_147_483_647, savedBatch.expiresAt - Date.now()));
+    const timer = window.setTimeout(() => setUndoExpired(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [savedBatch]);
 
   const taskTitleById = useMemo(() => {
     const map: Record<string, string> = {};
@@ -78,6 +101,22 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
 
   const highRisk = isHighRiskDraft(draft);
   const canApply = draft.operations.length > 0 && draft.validation.errors.length === 0 && status === 'draft';
+  const canUndo = status === 'applied' && savedBatch && !savedBatch.undoneAt
+    && !undoExpired && savedBatch.taskEffects && savedBatch.commentEffects;
+
+  const handleUndo = async (batchId: string) => {
+    if (isUndoing) return;
+    setIsUndoing(true);
+    try {
+      await undoBatch(batchId);
+      setSavedBatch((await db.taskAIChangeBatches.get(batchId)) ?? null);
+    } catch (error) {
+      setSavedBatch((await db.taskAIChangeBatches.get(batchId)) ?? null);
+      showToast(error instanceof Error ? error.message : 'Undo failed.', 'error');
+    } finally {
+      setIsUndoing(false);
+    }
+  };
 
   const handleApply = async () => {
     if (!canApply || isApplying) return;
@@ -86,24 +125,32 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
       return;
     }
     setIsApplying(true);
-    const result = await applyDraft(messageId, draft);
-    if (!result.batch) {
-      showToast(result.error ?? 'Failed to apply draft.', 'error');
+    try {
+      const result = await applyDraft(messageId, draft);
+      if (!result.batch) {
+        showToast(result.error ?? 'Failed to apply draft.', 'error');
+        return;
+      }
+      setSavedBatch(result.batch);
+      setUndoExpired(false);
+      let followUp = result.error;
+      try {
+        await updateMessage(messageId, { taskDraftStatus: 'applied' });
+      } catch {
+        followUp = [followUp, 'Chat status could not be updated.'].filter(Boolean).join(' ');
+      }
+      const batchId = result.batch.id;
+      showToastWithAction(
+        followUp ? `Task changes were saved, but need attention: ${followUp}` : 'Task AI changes applied.',
+        'Undo',
+        () => { void handleUndo(batchId); },
+        followUp ? 'error' : 'info'
+      );
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Failed to apply draft.', 'error');
+    } finally {
       setIsApplying(false);
-      return;
     }
-    await updateMessage(messageId, { taskDraftStatus: 'applied' });
-    showToastWithAction(
-      'Task AI changes applied.',
-      'Undo',
-      () => {
-        undoBatch(result.batch!.id).catch((error) => {
-          showToast(error instanceof Error ? error.message : 'Undo failed.', 'error');
-        });
-      },
-      'info'
-    );
-    setIsApplying(false);
   };
 
   const handleReject = async () => {
@@ -115,7 +162,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
       style={{
         marginTop: 10,
         border: '1px solid var(--c-border-1)',
-        borderRadius: 10,
+        borderRadius: 'var(--radius-sm)',
         background: 'var(--c-background-4)',
         padding: 10,
       }}
@@ -157,7 +204,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
               style={{
                 fontSize: 'var(--fs-xs)',
                 border: '1px solid var(--c-border-1)',
-                borderRadius: 8,
+                borderRadius: 'var(--radius-sm)',
                 padding: '6px 8px',
                 background: 'var(--c-background-3)',
               }}
@@ -171,7 +218,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
       {status === 'applied' && (
         <div className="row-xs" style={{ fontSize: 'var(--fs-sm)', color: '#15803d' }}>
           <Check size={12} />
-          Applied
+          {savedBatch?.undoneAt ? 'Undone' : 'Applied'}
         </div>
       )}
 
@@ -214,11 +261,21 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
         </div>
       )}
 
-      {status === 'applied' && (
-        <div className="row-xs subtle" style={{ marginTop: 8, fontSize: 'var(--fs-sm)' }}>
-          <Undo2 size={12} />
-          Undo is available from the toast or history panel.
+      {status === 'applied' && savedBatch && savedBatch.projectionState !== 'complete' && !savedBatch.undoneAt && (
+        <div role="status" style={{ marginTop: 8, fontSize: 'var(--fs-sm)', color: '#b45309' }}>
+          Task data was saved, but its file mirror needs attention.
         </div>
+      )}
+      {status === 'applied' && savedBatch?.undoneAt && savedBatch.undoProjectionState !== 'complete' && (
+        <div role="status" style={{ marginTop: 8, fontSize: 'var(--fs-sm)', color: '#b45309' }}>
+          Task data was undone, but its file mirror needs attention.
+        </div>
+      )}
+      {canUndo && (
+        <button type="button" className="btn" disabled={isUndoing} onClick={() => { void handleUndo(savedBatch.id); }}
+          style={{ marginTop: 8, fontSize: 'var(--fs-xs)' }}>
+          <Undo2 size={12} /> Undo
+        </button>
       )}
     </div>
   );

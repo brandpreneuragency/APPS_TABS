@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TaskListPanel } from './TaskListPanel';
+import en from '../../i18n/en';
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -60,12 +59,15 @@ let selectedProjectId: string | null = null;
 let activeTaskPage: 'list' | 'calendar' | 'projects' = 'list';
 const openTaskInActiveTab = vi.fn();
 
-vi.mock('./ClientProjectTree', () => ({
-  ClientProjectTree: () => <div data-testid="client-project-tree" />,
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => en.tasks[key.replace('tasks.', '') as keyof typeof en.tasks] ?? key,
+    i18n: { language: 'en' },
+  }),
 }));
 
 vi.mock('./QuickCreateInput', () => ({
-  QuickCreateInput: () => <div data-testid="quick-create" />,
+  QuickCreateInput: () => <textarea aria-label="Add a task" data-testid="quick-create" />,
 }));
 
 vi.mock('./TaskCalendarView', () => ({
@@ -77,8 +79,8 @@ vi.mock('./TaskProjectView', () => ({
 }));
 
 vi.mock('./TaskListItem', () => ({
-  TaskListItem: ({ task }: { task: { id: string; title: string } }) => (
-    <div data-testid={`task-${task.id}`}>{task.title}</div>
+  TaskListItem: ({ task, onClick }: { task: { id: string; title: string }; onClick: () => void }) => (
+    <button data-testid={`task-${task.id}`} onClick={onClick}>{task.title}</button>
   ),
 }));
 
@@ -123,48 +125,71 @@ describe('TaskListPanel', () => {
     openTaskInActiveTab.mockReset();
   });
 
-  it('always renders the client/project tree and quick create', () => {
+  it('shows the scoped task list immediately without another client tab', async () => {
+    const user = userEvent.setup();
     render(<TaskListPanel />);
-    expect(screen.getByTestId('client-project-tree')).toBeInTheDocument();
-    expect(screen.getByTestId('quick-create')).toBeInTheDocument();
-  });
-
-  it('filters the date-grouped list to the selected client', () => {
-    render(<TaskListPanel />);
-    expect(screen.getByTestId('task-t1')).toBeInTheDocument();
-    expect(screen.getByTestId('task-t2')).toBeInTheDocument();
+    expect(screen.queryByRole('tab', { name: 'Clients' })).not.toBeInTheDocument();
+    expect(screen.getByTestId('task-t1')).toBeVisible();
+    expect(screen.getByTestId('task-t2')).toBeVisible();
     expect(screen.queryByTestId('task-t3')).not.toBeInTheDocument();
+    await user.click(screen.getByTestId('task-t1'));
+    expect(openTaskInActiveTab).toHaveBeenCalledWith('t1');
   });
 
-  it('filters the date-grouped list to the selected project', () => {
+  it('filters to a project selected in the second column', () => {
     selectedProjectId = 'p-web';
     render(<TaskListPanel />);
-    expect(screen.getByTestId('task-t2')).toBeInTheDocument();
+    expect(screen.getByTestId('task-t2')).toBeVisible();
     expect(screen.queryByTestId('task-t1')).not.toBeInTheDocument();
     expect(screen.queryByTestId('task-t3')).not.toBeInTheDocument();
   });
 
-  it('keeps the tree above the calendar view', () => {
-    activeTaskPage = 'calendar';
+  it('shows every client when Everything is selected', () => {
+    selectedClientId = null;
     render(<TaskListPanel />);
-    expect(screen.getByTestId('client-project-tree')).toBeInTheDocument();
-    expect(screen.getByTestId('task-calendar-view')).toBeInTheDocument();
-    expect(screen.getByTestId('quick-create')).toBeInTheDocument();
+    expect(screen.getByTestId('task-t1')).toBeVisible();
+    expect(screen.getByTestId('task-t3')).toBeVisible();
   });
 
-  it('keeps a bounded tree panel above the compact list', () => {
-    const { container } = render(<TaskListPanel />);
-    const tree = container.querySelector('.client-tree-panel');
-    const list = container.querySelector('#task-list-content');
-    expect(tree).toBeTruthy();
-    expect(list).toBeTruthy();
-    expect(tree && list && tree.compareDocumentPosition(list) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  it('hides the composer on Calendar and preserves its draft between views', async () => {
+    const user = userEvent.setup();
+    const view = render(<TaskListPanel />);
+    const composer = screen.getByRole('textbox', { name: 'Add a task' });
+    const calendar = screen.getByTestId('task-calendar-view');
+    expect(composer).toBeVisible();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    await user.type(composer, 'Keep this draft');
+    activeTaskPage = 'calendar';
+    view.rerender(<TaskListPanel />);
+    expect(calendar).toBeVisible();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+    expect(screen.getByTestId('task-t1')).not.toBeVisible();
+    expect(screen.getByTestId('quick-create')).toBe(composer);
+    expect(composer).not.toBeVisible();
+    expect(composer.closest('#task-quick-create-footer')).not.toBeVisible();
+    expect(composer).toHaveValue('Keep this draft');
+    activeTaskPage = 'list';
+    view.rerender(<TaskListPanel />);
+    expect(calendar).not.toBeVisible();
+    expect(composer).toBeVisible();
+    expect(composer).toHaveValue('Keep this draft');
   });
 
-  it('caps .client-tree-panel so a tall tree cannot collapse the list', () => {
-    const css = readFileSync(join(dirname(fileURLToPath(import.meta.url)), 'taskList.css'), 'utf8');
-    const block = css.match(/\.client-tree-panel\s*\{[^}]+\}/)?.[0];
-    expect(block).toMatch(/max-height:\s*50%/);
-    expect(block).toMatch(/overflow-y:\s*auto/);
+  it('shows the live clock on Task List and removes it on Calendar', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 15, 23, 59, 58));
+    try {
+      const view = render(<TaskListPanel />);
+      expect(screen.getByText('Sep 15. Tue. 23:59:58')).toBeInTheDocument();
+
+      act(() => vi.advanceTimersByTime(2000));
+      expect(screen.getByText('Sep 16. Wed. 00:00:00')).toBeInTheDocument();
+
+      activeTaskPage = 'calendar';
+      view.rerender(<TaskListPanel />);
+      expect(screen.queryByText('Sep 16. Wed. 00:00:00')).not.toBeInTheDocument();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

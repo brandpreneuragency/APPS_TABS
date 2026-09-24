@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useClientStore } from '../../stores/clientStore';
 import { useUIStore } from '../../stores/uiStore';
 import { NAME_MAX } from '../../stores/taskTreeNames';
 import { resolveCreateProjectName } from './createProjectName';
+import './addNewClientButton.css';
 
-export function AddNewClientButton() {
+export function AddNewClientButton({ showLabel = false }: { showLabel?: boolean }) {
   const { t } = useTranslation();
   const createClient = useClientStore((s) => s.createClient);
   const clients = useClientStore((s) => s.clients);
@@ -84,6 +85,7 @@ export function AddNewClientButton() {
         }}
       >
         <Plus size={14} strokeWidth={2.25} />
+        {showLabel && <span>{t('tasks.addNewClient')}</span>}
       </button>
       {open && (
         <form
@@ -97,24 +99,28 @@ export function AddNewClientButton() {
           }}
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <input
-            ref={inputRef}
-            type="text"
-            className="task-list-add-project-input"
-            value={name}
-            maxLength={NAME_MAX}
-            placeholder={t('tasks.clientNamePlaceholder')}
-            aria-label={t('tasks.clientNamePlaceholder')}
-            disabled={submitting}
-            onChange={(event) => setName(event.target.value)}
-          />
-          <button
-            type="submit"
-            className="task-list-add-project-submit"
-            disabled={submitting || !name.trim()}
-          >
-            {t('tasks.addClient')}
-          </button>
+          <div className="task-client-name-field">
+            <input
+              ref={inputRef}
+              type="text"
+              className="task-list-add-project-input"
+              value={name}
+              maxLength={NAME_MAX}
+              placeholder={t('tasks.clientNamePlaceholder')}
+              aria-label={t('tasks.clientNamePlaceholder')}
+              disabled={submitting}
+              onChange={(event) => setName(event.target.value)}
+            />
+            <button
+              type="submit"
+              className="task-client-name-save"
+              aria-label={t('tasks.addClient')}
+              title={t('tasks.addClient')}
+              disabled={submitting || !name.trim()}
+            >
+              <Check size={14} aria-hidden="true" />
+            </button>
+          </div>
         </form>
       )}
     </div>

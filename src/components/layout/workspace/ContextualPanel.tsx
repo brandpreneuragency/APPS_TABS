@@ -27,7 +27,7 @@ export const ContextualPanel = forwardRef<HTMLDivElement, ContextualPanelProps>(
       <div
         ref={ref}
         id={panelId}
-        className={`contextual-panel task-list-panel relative overflow-h flex-col h-full min-w-0 ${className}`.trim()}
+        className={`contextual-panel task-list-panel ${className}`.trim()}
         data-workspace-mode={mode}
         data-context-panel=""
         style={{

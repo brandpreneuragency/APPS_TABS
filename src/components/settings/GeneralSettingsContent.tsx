@@ -56,13 +56,13 @@ export function SettingsContent() {
           <div style={{ marginBottom: 12 }}>
             <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
               <label className="subtle" style={{ fontSize: 'var(--fs-base)' }}>{t('settings.textSize')}</label>
-              <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 9999, padding: '2px 4px' }}>
+              <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
                 <button
                   type="button"
                   disabled={!canDecreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, -1))}
                   className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 9999, fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canDecreaseFont ? 1 : 0.3, cursor: canDecreaseFont ? 'pointer' : 'not-allowed' }}
+                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canDecreaseFont ? 1 : 0.3, cursor: canDecreaseFont ? 'pointer' : 'not-allowed' }}
                 >
                   −
                 </button>
@@ -72,7 +72,7 @@ export function SettingsContent() {
                   disabled={!canIncreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, 1))}
                   className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 9999, fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canIncreaseFont ? 1 : 0.3, cursor: canIncreaseFont ? 'pointer' : 'not-allowed' }}
+                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canIncreaseFont ? 1 : 0.3, cursor: canIncreaseFont ? 'pointer' : 'not-allowed' }}
                 >
                   +
                 </button>
@@ -88,7 +88,7 @@ export function SettingsContent() {
                 type="button"
                 onClick={() => setFontOpen((v) => !v)}
                 className="btn w-full"
-                style={{ padding: 10, borderRadius: 12, fontSize: 'var(--fs-base)', justifyContent: 'space-between' }}
+                style={{ padding: 10, borderRadius: 'var(--radius-sm)', fontSize: 'var(--fs-base)', justifyContent: 'space-between' }}
               >
                 <span style={{ fontFamily: editorFontFamily }}>{editorFontFamily}</span>
                 <ChevronDown size={14} className="subtle" style={{ transform: fontOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
@@ -172,7 +172,7 @@ export function SettingsContent() {
           {/* Language */}
           <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
             <label className="subtle" style={{ fontSize: 'var(--fs-base)' }}>{t('settings.language')}</label>
-            <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 9999, padding: '2px 4px' }}>
+            <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
               {(['en', 'tr'] as const).map((lang) => (
                 <button
                   key={lang}
@@ -181,7 +181,7 @@ export function SettingsContent() {
                   className="semibold"
                   style={{
                     padding: '2px 10px',
-                    borderRadius: 9999,
+                    borderRadius: 'var(--radius-full)',
                     fontSize: 'var(--fs-base)',
                     border: 'none',
                     cursor: 'pointer',

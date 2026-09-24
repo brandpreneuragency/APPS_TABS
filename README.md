@@ -1,33 +1,31 @@
 # TABS
 
-Local-first writing, tasks, and CRM with an integrated AI assistant. Built with React, TipTap, and Tauri.
+Local-first writing, tasks, CRM, forms, and an integrated assistant. Built with React, TipTap, and Tauri.
 
-**Primary runtime:** Windows desktop via Tauri. User documents, tasks, CRM data, settings, agents, and AI-provider credentials stay on the machine. There is no hosted TABS web app, VPS backend, Hermes gateway, or remote filesystem.
+**Primary runtime:** Windows desktop via Tauri. User documents, tasks, CRM data, settings, and personas stay on the machine. The assistant uses the locally installed Codex CLI with ChatGPT sign-in. There is no hosted TABS web app, VPS backend, Hermes gateway, or remote filesystem.
 
-Vite/browser mode is a **development preview only** — not a supported production runtime.
+Vite/browser mode is a development preview only, not a supported production runtime.
 
 ## Features
 
-- **Chrome-style tabs** — Multiple documents open simultaneously, auto-saved to IndexedDB
-- **Rich text editor** — Full formatting toolbar (bold, italic, headings, alignment, lists, links, images, color)
-- **Local folders** — Open folders and files via Tauri filesystem commands
-- **Auto-save** — Debounced saves to IndexedDB; sessions restore as left
-- **AI Assistant sidebar** — Resizable panel with streaming chat (OpenAI, Gemini, OpenRouter, Anthropic)
-- **Custom agents & quick prompts** — Local agents with system prompts; reusable prompts
-- **Tasks & CRM** — Task manager, projects, CRM, and forms alongside documents
-- **Local terminal** — Embedded terminal panel in the desktop shell
-- **Export** — DOCX, PDF, and TXT via the hamburger menu
-- **i18n** — English and Turkish
-- **Updater** — Tauri desktop updater
+- Document workspaces with rich text editing and local folder access
+- Task manager, subtasks, projects, CRM, and forms
+- Codex assistant sidebar with captured workspace context and approved business actions
+- Local personas, instructions, reusable prompts, and chat history
+- Local terminal, DOCX/PDF/TXT export, English and Turkish UI, and Tauri updater
 
-## Getting Started
+## Getting started
 
-### Desktop (primary)
+### Windows desktop
 
 ```bash
 npm install
 npm run tauri:dev
 ```
+
+Install the Codex CLI and sign in to it with your ChatGPT account. Open **Settings > Tools** in TABS to see the CLI connection, available models, and reasoning choices. TABS does not ask for an API key. Documents, tasks, CRM, forms, and the terminal remain usable when Codex is unavailable.
+
+Older direct-API chats remain readable. Start a new Codex chat and use the explicit handoff action to carry selected history forward.
 
 ### Browser development preview
 
@@ -35,7 +33,7 @@ npm run tauri:dev
 npm run dev
 ```
 
-Open [http://localhost:1421](http://localhost:1421). Folder access uses the browser File System Access API where available; native terminal and full desktop features require Tauri.
+Open [http://localhost:1421](http://localhost:1421). Folder access uses the browser File System Access API where available. Codex chat, the native terminal, and full desktop features require Tauri.
 
 ### Production package
 
@@ -43,48 +41,11 @@ Open [http://localhost:1421](http://localhost:1421). Folder access uses the brow
 npm run tauri:build
 ```
 
-## Architecture notes
+## Architecture
 
-- React UI must not import `@tauri-apps/*` directly in feature components. Use `src/services/runtime.ts`, `fs-adapter.ts`, and the `FolderConnector` adapters.
-- Tauri runtime → `TauriFolderConnector`; browser preview → `BrowserFolderConnector`. No remote connector.
-- Persistence: Dexie (IndexedDB) for app state; local disk for documents opened from folders.
+- React feature components use `src/services/runtime.ts`, `fs-adapter.ts`, and folder connectors instead of importing Tauri directly.
+- Tauri uses `TauriFolderConnector`; the browser preview uses `BrowserFolderConnector`.
+- Dexie stores application state. Local disk stores documents opened from folders.
+- Rust owns the launched Codex process. The app-lifetime session service owns chat queueing, recovery, and approved business requests.
 
-## Adding an AI Provider
-
-1. Open **Settings** → **Tools**
-2. Select a provider, paste your API key, choose a model, and save
-3. The provider is ready to use in the AI sidebar
-
-### Provider Notes
-
-| Provider | CORS | Notes |
-|----------|------|-------|
-| OpenAI | ✅ Direct | Works in browser preview |
-| Google Gemini | ✅ Direct | Works in browser preview |
-| OpenRouter | ✅ Direct | Access to 100+ models with one key |
-| Anthropic | ❌ Requires proxy | Run `node proxy.mjs` first (browser preview) |
-
-### Anthropic Proxy
-
-Anthropic's API does not allow direct browser requests. For the Vite preview:
-
-```bash
-node proxy.mjs
-```
-
-Then in Settings, set the Anthropic base URL to `http://localhost:3001/anthropic`.
-
-Alternatively, use **OpenRouter** with an Anthropic Claude model.
-
-## Tech Stack
-
-- **React 19 + Vite + TypeScript 5**
-- **TipTap** — ProseMirror-based rich text editor
-- **Tauri 2** — desktop shell (primary product)
-- **Dexie.js** — IndexedDB wrapper for persistence
-- **Zustand** — Lightweight state management
-- **Lucide React** — Icon library
-
-## Agent / contributor guide
-
-See [AGENTS.md](./AGENTS.md) for runtime rules, repository map, and verification gates.
+See [AGENTS.md](./AGENTS.md) for repository rules and verification commands.

@@ -48,9 +48,7 @@ export function kanbanColumnsForClient(
   tasks: readonly { id: string; projectId: string; deletedAt?: number }[],
   selectedClientId: string | null,
 ): { id: string; name: string; color: string; taskIds: string[] }[] {
-  if (!selectedClientId) return [];
-
-  const clientProjects = projectsForClient(projects, selectedClientId);
+  const clientProjects = selectedClientId ? projectsForClient(projects, selectedClientId) : projects;
   return clientProjects.map((p) => ({
     id: p.id,
     name: p.name,

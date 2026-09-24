@@ -1,0 +1,13 @@
+#editor-topbar-menu {
+  min-width: 190px;
+}
+
+#editor-topbar-menu .drop-item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+#editor-topbar-menu [aria-checked='true'] {
+  color: var(--c-accent-1);
+  background: var(--c-background-2);
+}

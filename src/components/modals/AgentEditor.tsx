@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { X, Trash2 } from 'lucide-react';
 import { useUIStore } from '../../stores/uiStore';
 import { useAIStore } from '../../stores/aiStore';
@@ -10,6 +11,7 @@ function shortId() {
 
 export function AgentEditor() {
   const { activeModal, editingAgentId, setActiveModal, setEditingAgentId } = useUIStore();
+  const { t } = useTranslation();
   const { agents, saveAgent, deleteAgent, setActiveAgent } = useAIStore();
 
   const isOpen = activeModal === 'agentEditor' || activeModal === 'editAgent';
@@ -27,7 +29,7 @@ export function AgentEditor() {
     } else {
       setName('');
       setAvatarUrl('');
-      setSystemPrompt('You are a helpful writing assistant.');
+      setSystemPrompt('You are a helpful assistant.');
     }
   }, [editingAgent, isOpen]);
 
@@ -41,10 +43,9 @@ export function AgentEditor() {
       avatarUrl: avatarUrl.trim(),
       systemPrompt: systemPrompt.trim(),
       isDefault: editingAgent?.isDefault ?? false,
-      scope: editingAgent?.scope ?? 'writer',
     };
     await saveAgent(agent);
-    setActiveAgent(agent.id, agent.scope);
+    setActiveAgent(agent.id);
     setActiveModal(null);
     setEditingAgentId(null);
   };
@@ -85,7 +86,7 @@ export function AgentEditor() {
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Aaron the Script Writer"
+              placeholder={t('sidebar.agentNamePlaceholder')}
               className="ctrl w-full"
               style={{ fontSize: 'var(--fs-sm)' }}
             />
@@ -134,7 +135,7 @@ export function AgentEditor() {
                 style={{
                   width: 40,
                   border: '1px solid rgba(239,68,68,0.3)',
-                  borderRadius: 8,
+                  borderRadius: 'var(--radius-sm)',
                   color: 'var(--c-danger)',
                   transition: 'background-color 0.15s, color 0.15s',
                 }}

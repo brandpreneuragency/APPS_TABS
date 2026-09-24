@@ -1,6 +1,6 @@
 .tool-call-bubble {
   border: 1px solid var(--c-border-1);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: var(--c-background-2);
   padding: 10px 12px;
   margin: 4px 0;
@@ -45,7 +45,7 @@
   font-size: var(--fs-xs);
   color: var(--c-text-1);
   background: var(--c-background-4);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 8px;
   max-height: 160px;
   overflow-y: auto;
@@ -81,7 +81,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 4px 10px;
   cursor: pointer;
   font-size: 12px;

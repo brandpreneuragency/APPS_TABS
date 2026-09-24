@@ -28,9 +28,18 @@ export const ASSISTANT_WRAPPER_WIDTH_MIN_VW = 15;
 export const ASSISTANT_WRAPPER_WIDTH_MAX_VW = 75;
 export const ASSISTANT_WRAPPER_WIDTH_DEFAULT_VW = 33;
 
-export const CONTEXT_PANEL_WIDTH_MIN_VW = 15;
+export const CONTEXT_PANEL_WIDTH_MIN_VW = 0;
 export const CONTEXT_PANEL_WIDTH_MAX_VW = 40;
 export const CONTEXT_PANEL_WIDTH_DEFAULT_VW = 22;
+
+export const NAVIGATION_WIDTH_MIN_PX = 120;
+export const NAVIGATION_WIDTH_MAX_PX = 320;
+export const NAVIGATION_WIDTH_DEFAULT_PX = 180;
+
+export function clampNavigationWidth(width: number): number {
+  if (!Number.isFinite(width)) return NAVIGATION_WIDTH_DEFAULT_PX;
+  return Math.min(NAVIGATION_WIDTH_MAX_PX, Math.max(NAVIGATION_WIDTH_MIN_PX, width));
+}
 
 export function clampAssistantWrapperWidth(vw: number): number {
   if (!Number.isFinite(vw)) return ASSISTANT_WRAPPER_WIDTH_DEFAULT_VW;
@@ -110,13 +119,13 @@ export function selectIsContextPanelOpen(
   return state.contextPanelOpenByMode[mode];
 }
 
-/** Contextual list/tree is hidden on Task Projects and CRM Pipeline. */
+/** Contextual list/tree is hidden on Task Projects, CRM Projects, and CRM Pipeline. */
 export function selectIsContextPanelAvailable(
   state: ModeRoutingState & { activeTaskPage: string },
 ): boolean {
   const mode = selectActiveWorkspaceMode(state);
   if (mode === 'tasks') return state.activeTaskPage !== 'projects';
-  if (mode === 'crm') return state.activeCRMPage !== 'pipeline';
+  if (mode === 'crm') return state.activeCRMPage !== 'pipeline' && state.activeCRMPage !== 'projects';
   return true;
 }
 

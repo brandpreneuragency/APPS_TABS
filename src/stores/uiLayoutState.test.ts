@@ -170,12 +170,12 @@ describe('selectIsContextPanelAvailable', () => {
     ).toBe(true);
   });
 
-  it('is hidden on CRM Pipeline', () => {
+  it.each(['pipeline', 'projects'])('is hidden on CRM %s', (activeCRMPage) => {
     expect(
       selectIsContextPanelAvailable({
         ...base,
         crmMode: true,
-        activeCRMPage: 'pipeline',
+        activeCRMPage,
       }),
     ).toBe(false);
   });
@@ -199,8 +199,16 @@ describe('clamp widths', () => {
   });
 
   it('clamps context width', () => {
-    expect(clampContextPanelWidth(5)).toBe(15);
+    expect(clampContextPanelWidth(-5)).toBe(0);
+    expect(clampContextPanelWidth(5)).toBe(5);
     expect(clampContextPanelWidth(50)).toBe(40);
+  });
+
+  it('preserves a narrow panel width on a wide viewport through reload', () => {
+    const widthVw = (260 / 2560) * 100;
+    expect(clampContextPanelWidth(widthVw)).toBe(widthVw);
+    expect(migrateLayoutStateFromStored({ contextPanelWidth: widthVw }).contextPanelWidth)
+      .toBe(widthVw);
   });
 });
 

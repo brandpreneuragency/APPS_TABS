@@ -1,4 +1,6 @@
 import { useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
+import { FolderOpen } from 'lucide-react';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 
 /**
@@ -6,9 +8,9 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
  *
  * Each workspace tab has at most one attached folder (the AI agent root).
  * Empty: full-width "CONNECT FOLDER" opens the native/browser picker.
- * Selected: shows the folder path; click is a no-op (no replace/clear).
+ * Selected: shows the folder path with a separate change-folder control.
  */
-export function FileTreeTabs() {
+export function FileTreeTabs({ children }: { children?: ReactNode }) {
   const { t } = useTranslation();
   const activeWorkspaceId = useWorkspaceStore((s) => s.activeWorkspaceId);
   const loading = useWorkspaceStore((s) => s.loading);
@@ -43,35 +45,40 @@ export function FileTreeTabs() {
   return (
     <div
       id="filetree-root-row"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '32px',
-        alignItems: 'stretch',
-        gap: 0,
-        marginBottom: '0px',
-        marginLeft: '0px',
-        marginRight: '0px',
-        padding: '0px',
-        borderRadius: '8px 8px 0 0',
-        backgroundColor: 'transparent',
-        borderTop: 'none',
-        borderRight: 'none',
-        borderLeft: 'none',
-        borderBottom: 'none',
-      }}
+      className={hasFolder ? 'filetree-folder-control has-folder' : 'filetree-folder-control'}
     >
-      <button
-        type="button"
-        className={`filetree-select-folder-btn${hasFolder ? ' is-selected' : ''}`}
-        onClick={handleNativeClick}
-        disabled={!canSelect}
-        aria-disabled={!canSelect}
-        aria-label={ariaLabel}
-        title={hasFolder ? folderPath! : t('explorer.selectFolder')}
-      >
-        <span className="filetree-select-folder-label">{label}</span>
-      </button>
+      {hasFolder && (
+        <button
+          type="button"
+          className="filetree-change-folder-btn"
+          disabled={!activeWorkspaceId || loading}
+          aria-label={t('explorer.changeFolder')}
+          title={t('explorer.changeFolder')}
+          onClick={() => {
+            if (!activeWorkspaceId || loading) return;
+            void connectFolderInWorkspace(activeWorkspaceId, undefined, { replaceExisting: true });
+          }}
+        >
+          <FolderOpen size={16} aria-hidden="true" />
+        </button>
+      )}
+      {hasFolder ? (
+        <span className="filetree-select-folder-label" aria-label={ariaLabel} title={folderPath!}>
+          {label}
+        </span>
+      ) : (
+        <button
+          type="button"
+          className="filetree-select-folder-btn"
+          onClick={handleNativeClick}
+          disabled={!canSelect}
+          aria-label={ariaLabel}
+          title={t('explorer.selectFolder')}
+        >
+          <span className="filetree-select-folder-label">{label}</span>
+        </button>
+      )}
+      {hasFolder && children}
     </div>
   );
 }

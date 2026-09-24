@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { Client, Project, Task } from '../types';
 import { db } from '../services/db';
+import i18n from '../i18n';
 import { useUIStore } from './uiStore';
 import { useTaskStore } from './taskStore';
 import { useClientStore } from './clientStore';
@@ -69,7 +70,7 @@ interface ProjectStore {
 
   loadProjects: () => Promise<void>;
   createProject: (name: string, clientId: string) => Promise<Project | null>;
-  updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'color'>>) => Promise<void>;
+  updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'color' | 'clientId'>>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
   getProjectById: (id: string | null) => Project | undefined;
 }
@@ -129,11 +130,15 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       ? { ...updates, name: normalizeTreeName(updates.name) }
       : updates;
     if (next.name !== undefined && !next.name) return;
-    if (next.name !== undefined) {
+    if (next.clientId !== undefined && !useClientStore.getState().clients.some((client) => client.id === next.clientId)) return;
+    if (next.name !== undefined || next.clientId !== undefined) {
       const others = get().projects
-        .filter((p) => p.clientId === previous.clientId && p.id !== id)
+        .filter((p) => p.clientId === (next.clientId ?? previous.clientId) && p.id !== id)
         .map((p) => p.name);
-      if (isNameTaken(next.name, others)) return;
+      if (isNameTaken(next.name ?? previous.name, others)) {
+        useUIStore.getState().showToast(i18n.t('tasks.projectClientConflict'), 'error');
+        return;
+      }
     }
     set((s) => ({
       projects: s.projects.map((p) => (p.id === id ? { ...p, ...next } : p)),

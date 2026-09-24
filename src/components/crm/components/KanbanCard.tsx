@@ -55,9 +55,6 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
     >
-      <div className="crm-kanban-card-drag" title="Drag to move">
-        <GripVertical size={12} />
-      </div>
       <div className="crm-kanban-card-title-zone">
         <span className="crm-kanban-card-title">{deal.title}</span>
         {onEdit && (
@@ -75,6 +72,9 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
             <Pencil size={12} />
           </button>
         )}
+        <div className="crm-kanban-card-drag" title="Drag to move">
+          <GripVertical size={12} />
+        </div>
       </div>
       <div className="crm-kanban-card-primary">
         <div className="crm-kanban-card-value">{formatValue(deal.value, deal.currency)}</div>

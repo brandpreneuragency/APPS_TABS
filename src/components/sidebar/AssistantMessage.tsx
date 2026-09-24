@@ -84,8 +84,8 @@ const mdStyles = {
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
   blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-base)' },
-  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 8, padding: 12, overflowX: 'auto', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' },
-  inlineCode: { background: 'var(--c-background-4)', borderRadius: 4, padding: '1px 4px', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
+  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' },
+  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
   codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-base)' },
   table: { width: '100%', fontSize: 'var(--fs-base)', borderCollapse: 'collapse' as const },
   thead: { background: 'var(--c-background-4)' },
@@ -148,7 +148,7 @@ function MdContent({ children }: { children: string }) {
 function ReasoningBox({ content, streaming }: { content: string; streaming: boolean }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ marginBottom: 8, borderRadius: 12, border: '1px solid var(--c-border-1)', background: 'var(--c-background-4)', overflow: 'hidden', fontSize: 'var(--fs-base)' }}>
+    <div style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)', border: '1px solid var(--c-border-1)', background: 'var(--c-background-4)', overflow: 'hidden', fontSize: 'var(--fs-base)' }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -174,7 +174,7 @@ function ReasoningBox({ content, streaming }: { content: string; streaming: bool
 function SectionBlock({ heading, content, defaultOpen }: { heading: string; content: string; defaultOpen: boolean }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ border: '1px solid var(--c-border-1)', borderRadius: 8, marginBottom: 8, overflow: 'hidden' }}>
+    <div style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)', marginBottom: 8, overflow: 'hidden' }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -251,7 +251,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
             alignItems: 'stretch',
             gap: 8,
             background: 'var(--c-background-4)',
-            borderRadius: 8,
+            borderRadius: 'var(--radius-sm)',
             padding: '6px 10px',
             fontSize: 'var(--fs-base)',
             border: '1px solid var(--c-border-1)',
@@ -259,7 +259,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
             cursor: 'pointer',
           }}
         >
-          <div style={{ width: 3, borderRadius: 2, background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
+          <div style={{ width: 3, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
           <div style={{ overflow: 'hidden', minWidth: 0 }}>
             <div className="semibold" style={{ fontSize: 'var(--fs-base)', color: 'var(--c-accent-center-panel)', marginBottom: 2 }}>
               {message.replyTo.sender}
@@ -277,7 +277,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
       )}
 
       {/* Content */}
-      <div onContextMenu={handleContextMenu} style={{ padding: '4px 0', wordBreak: 'break-word', overflow: 'hidden', cursor: 'context-menu' }}>
+      <div onContextMenu={handleContextMenu} style={{ wordBreak: 'break-word', overflow: 'hidden', cursor: 'context-menu' }}>
         {/* Still inside the <think> block — show spinner/placeholder */}
         {isStreaming && !content && (
           <p className={thinking ? undefined : 'streaming-cursor'} style={{ fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', opacity: thinking ? 0.5 : undefined }}>
@@ -285,17 +285,10 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
           </p>
         )}
 
-        {/* Rendered answer — boxed so reasoning and output read as two
-            distinct blocks (see collapsible ReasoningBox above). */}
+        {/* Rendered answer */}
         {content && (
           <div
             className={isStreaming && !hasSections ? 'streaming-cursor' : ''}
-            style={{
-              border: '1px solid var(--c-border-1)',
-              borderRadius: 12,
-              background: 'var(--c-background-2)',
-              padding: '12px 14px',
-            }}
           >
             {hasSections ? (
               <>
@@ -320,7 +313,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
 
         {/* Action row */}
         {!isStreaming && (content || message.content) && (
-          <div className="row gap-3" style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid var(--c-border-1)' }}>
+          <div className="row gap-3" style={{ marginTop: 12, paddingTop: 8 }}>
             <button
               type="button"
               onClick={handleCopy}

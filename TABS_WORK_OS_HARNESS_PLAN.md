@@ -1,6 +1,15 @@
 # TABS Work-OS Harness Implementation Plan
 
-Status: Build-ready plan
+Status: Superseded implementation plan; retained as historical reference.
+
+Superseded on 2026-09-23 by the
+[TABS Codex CLI Implementation Plan](docs/superpowers/plans/2026-09-23-cli-runtime-restructuring-proposal.md).
+Use that plan for the current restructuring: Codex CLI only, removal of direct
+AI/search API providers and API-key setup, and preservation of chats and prompts.
+Do not execute the phase sequence, provider layer, schema-version assumptions,
+or clean-replacement migrations below. They describe the previous design.
+The new plan retains the relevant domain-safety requirements and supplies the
+replacement implementation sequence. Application implementation has not started.
 
 Date: 2026-08-19
 

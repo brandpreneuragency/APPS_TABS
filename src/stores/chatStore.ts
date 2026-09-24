@@ -2,7 +2,7 @@
 // Threads and messages stored in IndexedDB.
 
 import { create } from 'zustand';
-import type { ChatMessage, ChatThreadMeta } from '../types';
+import type { ChatMessage, ChatProviderId, ChatThreadMeta } from '../types';
 import { db } from '../services/db';
 import { nanoid } from 'nanoid';
 
@@ -18,8 +18,6 @@ interface ChatStore {
   threads: ChatThreadMeta[];
   activeThreadId: string | null;
   messagesByThread: Record<string, ChatMessage[]>;
-  streamingMessageId: string | null;
-  isStreaming: boolean;
 
   // Context tracking
   currentContext: { workspaceId?: string; taskId?: string; settingsTab?: string } | null;
@@ -27,14 +25,15 @@ interface ChatStore {
 
   loadThreadsForContext: (params: { workspaceId?: string; taskId?: string; settingsTab?: string }) => Promise<void>;
   setActiveContext: (params: { workspaceId?: string; taskId?: string; settingsTab?: string }) => void;
-  newChat: (params: { mode: 'writer' | 'task'; workspaceId?: string; taskId?: string; settingsTab?: string }) => Promise<void>;
+  newChat: (params: { mode: 'writer' | 'task'; workspaceId?: string; taskId?: string; settingsTab?: string; origin?: ChatProviderId }) => Promise<void>;
+  /** Changes an empty local thread before it receives its first message. */
+  setEmptyThreadOrigin: (threadId: string, origin: ChatProviderId) => Promise<boolean>;
   selectThread: (threadId: string) => Promise<void>;
   deleteThread: (id: string) => Promise<void>;
   addMessage: (msg: ChatMessage) => Promise<void>;
   updateMessage: (id: string, updates: Partial<ChatMessage>) => Promise<void>;
   deleteMessage: (id: string) => Promise<void>;
-  setStreamingMessageId: (id: string | null) => void;
-  setIsStreaming: (v: boolean) => void;
+  syncThreadMessages: (threadId: string) => Promise<void>;
   getActiveThreadMessages: () => ChatMessage[];
   /** Set the AI tool permission mode for a thread (persisted). */
   setPermissionMode: (threadId: string, mode: 'ask' | 'bypass') => void;
@@ -44,8 +43,6 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   threads: [],
   activeThreadId: null,
   messagesByThread: {},
-  streamingMessageId: null,
-  isStreaming: false,
   currentContext: null,
   lastViewedPerContext: {},
 
@@ -121,6 +118,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   newChat: async (params) => {
+    const savedProvider = params.origin ?? await loadActiveChatProvider();
     const id = nanoid(8);
     const nowMs = Date.now();
     const key = contextKey(params);
@@ -131,6 +129,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     const title = `${datePrefix}-chat-${String(seq).padStart(2, '0')}`;
     const optimistic: ChatThreadMeta = {
       id,
+      origin: savedProvider,
       mode: params.mode,
       workspaceId: params.workspaceId ?? undefined,
       taskId: params.taskId ?? undefined,
@@ -355,8 +354,36 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  setStreamingMessageId: (id) => set({ streamingMessageId: id }),
-  setIsStreaming: (v) => set({ isStreaming: v }),
+
+  syncThreadMessages: async (threadId) => {
+    const messages = await db.chatMessages.where('threadId').equals(threadId).toArray();
+    set((state) => ({
+      messagesByThread: { ...state.messagesByThread, [threadId]: messages },
+    }));
+  },
+
+  setEmptyThreadOrigin: async (threadId, origin) => {
+    const thread = get().threads.find((item) => item.id === threadId);
+    if (!thread || thread.origin === 'legacy_api') return false;
+    try {
+      const changed = await db.transaction('rw', db.chatThreads, db.chatMessages, async () => {
+        const persisted = await db.chatThreads.get(threadId);
+        if (!persisted || persisted.origin === 'legacy_api') return false;
+        const messageCount = await db.chatMessages.where('threadId').equals(threadId).count();
+        if (messageCount > 0) return false;
+        await db.chatThreads.update(threadId, { origin });
+        return true;
+      });
+      if (changed) {
+        set((state) => ({
+          threads: state.threads.map((item) => item.id === threadId ? { ...item, origin } : item),
+        }));
+      }
+      return changed;
+    } catch {
+      return false;
+    }
+  },
 
   getActiveThreadMessages: () => {
     const { activeThreadId, messagesByThread } = get();
@@ -383,4 +410,15 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
 function replaceOrRemoveMessage(messages: ChatMessage[], id: string): ChatMessage[] {
   return messages.filter((m) => m.id !== id);
+}
+
+const chatProviderIds: ChatProviderId[] = ['codex', 'grok', 'commandCode', 'openCode'];
+
+function isChatProviderId(value: unknown): value is ChatProviderId {
+  return typeof value === 'string' && chatProviderIds.includes(value as ChatProviderId);
+}
+
+async function loadActiveChatProvider(): Promise<ChatProviderId> {
+  const saved = await db.settings.get('activeChatProviderId');
+  return isChatProviderId(saved?.value) ? saved.value : 'codex';
 }

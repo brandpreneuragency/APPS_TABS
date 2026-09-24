@@ -32,8 +32,8 @@ const mdStyles = {
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
   blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-xs)' },
-  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 8, padding: 12, overflowX: 'auto', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' as const },
-  inlineCode: { background: 'var(--c-background-4)', borderRadius: 4, padding: '1px 4px', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
+  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' as const },
+  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
   codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-xs)' },
   table: { width: '100%', fontSize: 'var(--fs-xs)', borderCollapse: 'collapse' as const },
   thead: { background: 'var(--c-background-4)' },
@@ -132,7 +132,7 @@ function StandaloneUserMessage({ message }: { message: AiChatPanelMessage }) {
         style={{
           border: '1px solid var(--layout-border)',
           background: 'var(--right-bg)',
-          borderRadius: 0,
+          borderRadius: 'var(--radius-sm)',
           padding: '12px 16px',
           fontSize: 'var(--fs-xs)',
           wordBreak: 'break-word',
@@ -166,7 +166,7 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
       {message.error && (
         <div style={{
           padding: '8px 12px',
-          borderRadius: 8,
+          borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--c-border-1)',
           background: 'var(--c-background-4)',
           fontSize: 'var(--fs-xs)',
@@ -215,7 +215,7 @@ function StandaloneSystemMessage({ message }: { message: AiChatPanelMessage }) {
   return (
     <div style={{
       padding: '6px 12px',
-      borderRadius: 8,
+      borderRadius: 'var(--radius-sm)',
       background: 'var(--c-background-4)',
       fontSize: 'var(--fs-xs)',
       color: 'var(--c-text-2)',

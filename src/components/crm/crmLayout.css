@@ -15,14 +15,14 @@
   padding: 0;
   margin: 0;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   gap: 0;
 }
 
 #crm-list-panel .crm-list-content {
   background: transparent;
   border: none;
-  border-radius: 0;
+  border-radius: var(--radius-sm);
   min-height: 0;
 }
 
@@ -39,7 +39,7 @@
   background: transparent;
   color: var(--c-text-2);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: background-color 0.15s, color 0.15s;
 }
 
@@ -81,7 +81,7 @@
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   transition: background-color 0.15s, color 0.15s;
 }
 
