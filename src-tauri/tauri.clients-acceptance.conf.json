@@ -1,0 +1,30 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "TABS Clients Acceptance",
+  "identifier": "com.tabs.clients.acceptance",
+  "app": {
+    "windows": [{
+      "label": "main",
+      "title": "TABS Clients Acceptance",
+      "create": false,
+      "width": 1100,
+      "height": 760,
+      "minWidth": 1024,
+      "minHeight": 700,
+      "center": true,
+      "decorations": true,
+      "dragDropEnabled": false
+    }],
+    "security": {
+      "csp": "default-src 'self'; connect-src ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; object-src 'none'; frame-src 'none'",
+      "capabilities": [{
+        "identifier": "clients-acceptance",
+        "description": "Acceptance-only local window; no filesystem, updater, shell, or provider commands.",
+        "windows": ["main"],
+        "permissions": ["core:default", "clients-acceptance-bootstrap"]
+      }]
+    }
+  },
+  "plugins": { "updater": { "active": false, "endpoints": [] } },
+  "bundle": { "active": false, "createUpdaterArtifacts": false, "fileAssociations": [] }
+}

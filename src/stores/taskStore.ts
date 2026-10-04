@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import type { Task, TaskStatus } from '../types';
 import { TASK_TITLE_MAX_LENGTH } from '../types';
 import { db, getSetting, setSetting } from '../services/db';
+import { recordTaskDeletion } from '../services/taskAuthority/cache';
 import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
 import { assertSubtaskParent, assertTaskProjectChange, assertTaskSoftDelete } from '../services/taskRelations';
@@ -497,10 +498,11 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
   permanentlyDeleteTask: async (id) => {
     try {
-      const taskToDelete = await db.transaction('rw', db.tasks, async () => {
+      const taskToDelete = await db.transaction('rw', db.tasks, db.settings, async () => {
         const task = await db.tasks.get(id);
         if (!task) throw new Error('Task is unavailable');
         assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(id).count());
+        await recordTaskDeletion(db, [{ table: 'tasks', id }]);
         await db.tasks.delete(id);
         return task;
       });

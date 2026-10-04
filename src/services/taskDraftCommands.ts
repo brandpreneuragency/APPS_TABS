@@ -1,4 +1,5 @@
 import { db } from './db';
+import { recordTaskDeletion } from './taskAuthority/cache';
 import { assertSubtaskParent, assertTaskSoftDelete } from './taskRelations';
 import { syncCodexTaskProjection } from '../stores/taskStore';
 import { TASK_TITLE_MAX_LENGTH } from '../types';
@@ -86,7 +87,7 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
   if (draft.validation.errors.length || draft.needsScopeConfirmation || !draft.operations.length) {
     throw new Error('This task draft is not ready to apply');
   }
-  const batch = await db.transaction('rw', db.tasks, db.taskComments, db.taskAIChangeBatches, db.projects, async () => {
+  const batch = await db.transaction('rw', [db.tasks, db.taskComments, db.taskAIChangeBatches, db.projects, db.settings], async () => {
     const existing = await db.taskAIChangeBatches.get(draft.id);
     if (existing) {
       if (existing.appliedByMessageId !== messageId || !same(existing.operations, draft.operations)) {
@@ -154,6 +155,7 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
         const task = await db.tasks.get(comment.taskId);
         if (!task) throw new Error('Comment task is unavailable');
         inDraftScope(task, root);
+        await recordTaskDeletion(db, [{ table: 'taskComments', id: comment.id }]);
         await db.taskComments.delete(comment.id);
         markComment(comment.id, comment, null);
       } else {
@@ -199,7 +201,7 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
 
 /** Undo only while every affected row still matches the recorded result. */
 export async function undoTaskDraft(batchId: string): Promise<TaskAIChangeBatch> {
-  const batch = await db.transaction('rw', db.tasks, db.taskComments, db.taskAIChangeBatches, async () => {
+  const batch = await db.transaction('rw', db.tasks, db.taskComments, db.taskAIChangeBatches, db.settings, async () => {
     const current = await db.taskAIChangeBatches.get(batchId);
     if (!current) throw new Error('Task draft history is missing');
     if (!current.taskEffects || !current.commentEffects) {
@@ -218,10 +220,12 @@ export async function undoTaskDraft(batchId: string): Promise<TaskAIChangeBatch>
       }
     }
     for (const effect of [...current.commentEffects].reverse()) {
+      if (!effect.before) await recordTaskDeletion(db, [{ table: 'taskComments', id: effect.id }]);
       if (effect.before) await db.taskComments.put(effect.before);
       else await db.taskComments.delete(effect.id);
     }
     for (const effect of [...current.taskEffects].reverse()) {
+      if (!effect.before) await recordTaskDeletion(db, [{ table: 'tasks', id: effect.id }]);
       if (effect.before) {
         await db.tasks.put({ ...effect.before, updatedAt: revision(effect.after?.updatedAt ?? effect.before.updatedAt) });
       } else await db.tasks.delete(effect.id);

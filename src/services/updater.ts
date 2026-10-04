@@ -20,6 +20,7 @@ import { isTauri } from '@tauri-apps/api/core';
 import { check, type Update } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { useUIStore } from '../stores/uiStore';
+import { isClientsAcceptanceRuntime } from './runtime';
 
 export interface UpdateCheckResult {
   available: boolean;
@@ -37,7 +38,7 @@ let lastCheck: UpdateCheckResult | null = null;
 export async function checkForUpdate(
   options: { force?: boolean } = {},
 ): Promise<UpdateCheckResult> {
-  if (!isTauri()) {
+  if (!isTauri() || isClientsAcceptanceRuntime()) {
     return { available: false, currentVersion: '' };
   }
   if (lastCheck && !options.force) {
@@ -67,6 +68,7 @@ export async function checkForUpdate(
  * installer UI can take focus.
  */
 export async function applyUpdate(update: Update): Promise<void> {
+  if (isClientsAcceptanceRuntime()) return;
   // downloadAndInstall shows the native progress dialog when
   // `dialog: true` is set in tauri.conf.json.
   await update.downloadAndInstall();
@@ -80,7 +82,7 @@ export async function applyUpdate(update: Update): Promise<void> {
  * startup.
  */
 export async function runStartupUpdateCheck(): Promise<void> {
-  if (!isTauri()) return;
+  if (!isTauri() || isClientsAcceptanceRuntime()) return;
   try {
     const result = await checkForUpdate();
     if (!result.available) return;

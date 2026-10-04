@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { X, Folder } from 'lucide-react';
+import { X, FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Workspace } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
@@ -7,7 +7,13 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 
 const BROWSER_ROOT_PREFIX = '__BROWSER_ROOT__:';
 
-function tabLabel(name: string, index: number): string {
+function tabLabel(name: string, index: number, fileName?: string): string {
+  // Prefer the document (file) name when a file is open.
+  if (fileName) {
+    // Strip the extension for a cleaner tab label.
+    const dot = fileName.lastIndexOf('.');
+    return dot > 0 ? fileName.slice(0, dot) : fileName;
+  }
   const label = name.startsWith(BROWSER_ROOT_PREFIX)
     ? name.slice(BROWSER_ROOT_PREFIX.length)
     : name;
@@ -48,7 +54,7 @@ export function WorkspaceTab({
   onDragEnd,
 }: WorkspaceTabProps) {
   const { t } = useTranslation();
-  const label = tabLabel(workspace.name ?? '', index);
+  const label = tabLabel(workspace.name ?? '', index, workspace.currentFile?.name);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const [confirmClose, setConfirmClose] = useState(false);
@@ -154,7 +160,7 @@ export function WorkspaceTab({
           />
         ) : (
           <>
-            <Folder size={12} className="mr-1 flex-shrink-0" />
+            <FileText size={12} className="mr-1 flex-shrink-0" />
             <span className="txt-xs med trunc">
               {label.slice(0, charLimit)}{label.length > charLimit ? '…' : ''}
             </span>

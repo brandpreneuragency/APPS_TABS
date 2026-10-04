@@ -34,6 +34,7 @@ fix_fs.py
 
 # Tauri
 src-tauri/target/
+src-tauri/target-task-authority/
 src-tauri/gen/schemas/
 # Local task markdown sync (runtime data, not source)
 src-tauri/TASKS/

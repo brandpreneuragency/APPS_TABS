@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "tasks-acceptance-only"
+description = "Fixed SSH task fixture, local migration backup and acceptance result."
+commands.allow = ["task_authority_rpc", "task_authority_backup", "tasks_acceptance_report"]

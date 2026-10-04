@@ -23,6 +23,8 @@ const {
 
 vi.mock('../services/db', () => ({
   db: {
+    settings: {},
+    table: () => ({ get: async () => undefined }),
     transaction: (...args: unknown[]) => transaction(...args),
     clients: {
       toArray: (...args: unknown[]) => clientsToArray(...args),

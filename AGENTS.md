@@ -13,12 +13,40 @@ Follow instructions in this order:
 
 Do not revive deleted Hermes, VPS, `server/`, `deploy/`, or hosted-web requirements from git history unless the user explicitly asks to restore them.
 
+## Workspace and delivery
+
+Verified on 27 September 2026:
+
+- Active local checkout: `C:\Users\burak\MOTHER\DEV\TABS-local`, branch `main`.
+- Source remote: `https://github.com/brandpreneuragency/APPS_TABS.git` (`origin`).
+- A current VPS source checkout has not been verified. The scoped lookup of
+  TABS-named folders under the resolved ATLAS project root found no candidate;
+  do not assume a second checkout or a local/VPS source synchronization job.
+- Source transfer uses explicitly authorized, scoped Git commits/pushes. No
+  general project mirror or automatic deployment is configured by these rules.
+- Delivery is a Windows Tauri build/installer, separately verified from source
+  changes. The updater retains the older `brandpreneuragency/TABS` URL, which
+  GitHub resolved to the same `APPS_TABS` repository on 28 September 2026.
+  No hosted application deployment is implied.
+- Burak requested VPS task authority on 27 September 2026. The task-only
+  implementation is under `tools/task-authority`, `src/services/taskAuthority`
+  and `src-tauri/src/task_authority.rs`. Installed-app migration was verified
+  on 28 September 2026: 58 tasks, 17 task clients, 17 projects and 11 comments
+  match the original backup and VPS, including all attachments. The VPS
+  checkpoint was restored and compared separately. Consult live
+  `ATLAS_TASKS/AGENTS.md` and the VPS status receipt for subsequent changes.
+  Preserve the local cache and original migration backups. Never
+  expose Codex session tools as a remote API or import Markdown projections.
+
 ## Product source of truth
 
 TABS is a **local desktop application** built with Tauri.
 
-- User data, documents, tasks, CRM data, settings, agents, and AI-provider credentials are handled locally.
-- There is **no** hosted TABS web application, VPS filesystem, Hermes Gateway, remote session service, Docker deployment, Caddy configuration, or server-side TABS API.
+- Documents, CRM data, settings, agents, and AI-provider credentials are handled locally.
+- The explicit task-authority exception uses VPS SQLite over existing SSH for
+  task clients, projects, tasks and comments. After migration, Dexie is the
+  offline cache. No task existence/status dispatches a Hermes execution job.
+- There is **no** hosted TABS web application, Hermes Gateway, remote session service, Docker deployment or Caddy configuration. The task-only SSH authority above is the explicit VPS exception; other application data remains local.
 - **Vite/browser mode** (`npm run dev`) is a development preview only — not a supported production runtime.
 - Production packaging and day-to-day use target the Windows Tauri desktop app.
 
@@ -128,3 +156,30 @@ End implementation work with:
 - Behavior and migration notes
 - Commands run and exact results
 - Remaining risks or unverified paths
+
+<!-- verified-project-workflow:2026-09-28 -->
+## Source copies and current Git workflow
+
+Verified 28 September 2026, Europe/Istanbul.
+
+- Primary source: `C:/Users/burak/MOTHER/DEV/TABS-local`, main tracking
+  origin/main. Both local and GitHub main resolved to
+  `c4efee27a8a12ee0d3862289fbca44c60b0b2b8d`; existing uncommitted changes
+  are separate and were preserved.
+- Canonical source repository: `https://github.com/brandpreneuragency/APPS_TABS`.
+  GitHub currently redirects the older brandpreneuragency/TABS name to this
+  same repository. Different URL spellings do not prove separate repositories.
+- Clients v2 execution copy: `C:/Users/burak/MOTHER/DEV/TABS-Clients-v2-run`.
+  This is a separate clone, not a linked worktree; its origin is the local
+  TABS-local path. It was on a detached HEAD during active execution.
+  Do not switch its branch, rewrite its origin or add unrelated edits while
+  that run is working. Its latest phase commit is a changing runtime fact.
+- The Clients run has its own existing source-commit authorization. This
+  inventory does not expand that permission to pushes, installer or production.
+  Integration into the primary dirty checkout requires reviewing the selected
+  candidate and existing changes; copying files wholesale is not a merge.
+- No VPS TABS source checkout was found under the resolved ATLAS project root.
+  The task-only VPS data service is separate from source-code synchronization.
+- Source `.github/workflows/release.yml` declares draft desktop release builds
+  for v* tag pushes. Updater configuration retains the old TABS URL alias.
+  Verify the actual release target and packaging/signing state before publishing.

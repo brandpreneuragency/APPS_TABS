@@ -10,6 +10,10 @@ rust-version = "1.77"
 name = "tabs_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[features]
+tasks-acceptance = []
+clients-acceptance = ["dep:reqwest", "dep:url", "dep:getrandom", "windows-sys/Win32_UI_Shell", "windows-sys/Win32_UI_WindowsAndMessaging"]
+
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
@@ -29,4 +33,7 @@ portable-pty = "0.8"
 base64 = "0.22"
 sha2 = "0.10"
 tempfile = "3"
+reqwest = { version = "=0.12.28", optional = true, default-features = false, features = ["blocking", "json", "rustls-tls"] }
+url = { version = "=2.5.8", optional = true }
+getrandom = { version = "=0.2.17", optional = true }
 windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading"] }

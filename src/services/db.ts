@@ -1,7 +1,9 @@
 import Dexie, { type Table } from 'dexie';
 import type { Document, Workspace, ChatMessage, Agent, AppSettings, QuickPrompt, ActionGroup, Task, Project, Client, TaskComment, TaskAIChangeBatch, ChatThreadMeta } from '../types';
+import type { ClientAttachment, ClientContact, ClientDraft, ClientNote, ClientProfile } from '../types/clients';
 import { migrateProjectsToClients } from '../stores/migrateProjectsToClients';
 import type { CodexSessionRecord, CodexRunRecord, CodexEventRecord, CodexPendingRecord, CodexOperationReceipt, CodexDocumentIntent } from './codex/sessionTypes';
+import { CLIENTS_V1_STORES } from './clients/schema';
 
 /** @deprecated Removed in v12 — folders now live inside Workspace objects. */
 export interface FileHandleRecord {
@@ -10,7 +12,7 @@ export interface FileHandleRecord {
 }
 
 /** Primary app DB. IndexedDB name stays `ZenEditorDB` for existing installs. */
-class TabsDB extends Dexie {
+export class TabsDB extends Dexie {
   /** @deprecated Replaced by workspaces in v12. */
   documents!: Table<Document>;
   workspaces!: Table<Workspace>;
@@ -25,6 +27,11 @@ class TabsDB extends Dexie {
   fileHandles!: Table<FileHandleRecord>;
   tasks!: Table<Task>;
   clients!: Table<Client>;
+  clientProfiles!: Table<ClientProfile>;
+  clientContacts!: Table<ClientContact>;
+  clientNotes!: Table<ClientNote>;
+  clientDrafts!: Table<ClientDraft>;
+  clientAttachments!: Table<ClientAttachment>;
   projects!: Table<Project>;
   taskComments!: Table<TaskComment>;
   taskAIChangeBatches!: Table<TaskAIChangeBatch>;
@@ -36,8 +43,8 @@ class TabsDB extends Dexie {
   codexOperationReceipts!: Table<CodexOperationReceipt>;
   codexDocumentIntents!: Table<CodexDocumentIntent>;
 
-  constructor() {
-    super('ZenEditorDB');
+  constructor(name = 'ZenEditorDB') {
+    super(name);
     this.version(1).stores({
       documents: 'id, title, updatedAt, order',
       chatMessages: 'id, documentId, agentId, timestamp',
@@ -317,6 +324,7 @@ class TabsDB extends Dexie {
         thread.origin = nativeIds.has(thread.id) ? 'codex' : 'legacy_api';
       });
     });
+    this.version(19).stores(CLIENTS_V1_STORES);
   }
 }
 

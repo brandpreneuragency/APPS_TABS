@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { TaskComment } from '../types';
 import { db } from '../services/db';
+import { recordTaskDeletion } from '../services/taskAuthority/cache';
 import { useUIStore } from './uiStore';
 import { getFileCategory, inferMimeTypeFromDataUrl } from '../utils/fileType';
 import { generateVideoThumbnailDataUrl } from '../utils/fileData';
@@ -187,7 +188,10 @@ export const useTaskCommentStore = create<TaskCommentStore>((set, get) => ({
       },
     }));
     try {
-      await db.taskComments.delete(id);
+      await db.transaction('rw', db.taskComments, db.settings, async () => {
+        await recordTaskDeletion(db, [{ table: 'taskComments', id }]);
+        await db.taskComments.delete(id);
+      });
     } catch (err) {
       set((s) => ({
         commentsByTask: {
@@ -203,10 +207,11 @@ export const useTaskCommentStore = create<TaskCommentStore>((set, get) => ({
     // Bulk-delete is not part of the v1 comment API; we leave this as a
     // client-side clear so callers that used it (e.g. bulk resets) keep
     // working. The actual rows are deleted from Dexie.
-    const comments = get().commentsByTask[taskId] ?? [];
-    for (const comment of comments) {
-      await db.taskComments.delete(comment.id).catch(() => undefined);
-    }
+    await db.transaction('rw', db.taskComments, db.settings, async () => {
+      const comments = await db.taskComments.where('taskId').equals(taskId).toArray();
+      await recordTaskDeletion(db, comments.map(comment => ({ table: 'taskComments', id: comment.id })));
+      await db.taskComments.bulkDelete(comments.map(comment => comment.id));
+    });
     set((s) => ({ commentsByTask: { ...s.commentsByTask, [taskId]: [] } }));
   },
 

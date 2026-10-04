@@ -8,23 +8,45 @@
 //   * File open: argv is scanned for an existing file path (Open With / double-
 //     click). Path is stored as pending state and emitted as `tabs://open-file`
 //     so the frontend can open it even if the listener attaches late.
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 use std::sync::Mutex;
 
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 use tauri::{Emitter, Manager, WindowEvent};
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod cli_providers;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod codex;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod commands;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod terminal;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod tray;
+
+#[cfg(feature = "tasks-acceptance")]
+mod task_acceptance;
+#[cfg(not(feature = "clients-acceptance"))]
+mod task_authority;
+#[cfg(all(feature = "tasks-acceptance", feature = "clients-acceptance"))]
+compile_error!("Choose exactly one acceptance runtime");
+
+#[cfg(feature = "clients-acceptance")]
+mod acceptance;
+#[cfg(feature = "clients-acceptance")]
+mod gmail;
 
 /// Path from OS "Open With" / file association that the frontend has not yet
 /// consumed. Survives the race where setup emits before the webview listens.
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 struct PendingOpenFile(Mutex<Option<String>>);
 
 /// Pick the first argv entry that looks like a real file to open.
 /// Skips flags (`-…`) and the executable path itself.
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 fn extract_open_file_path(args: impl IntoIterator<Item = String>) -> Option<String> {
     for arg in args {
         let trimmed = arg.trim();
@@ -40,6 +62,7 @@ fn extract_open_file_path(args: impl IntoIterator<Item = String>) -> Option<Stri
     None
 }
 
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 fn focus_main_window(app: &tauri::AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
@@ -47,6 +70,7 @@ fn focus_main_window(app: &tauri::AppHandle) {
     }
 }
 
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 fn queue_open_file(app: &tauri::AppHandle, path: String) {
     if let Some(state) = app.try_state::<PendingOpenFile>() {
         if let Ok(mut guard) = state.0.lock() {
@@ -60,6 +84,7 @@ fn queue_open_file(app: &tauri::AppHandle, path: String) {
 // devtools console:
 //   await window.__TAURI__.core.invoke('test_notification')
 #[tauri::command]
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 fn test_notification(app: tauri::AppHandle) -> Result<(), String> {
     use tauri_plugin_notification::NotificationExt;
     app.notification()
@@ -73,12 +98,31 @@ fn test_notification(app: tauri::AppHandle) -> Result<(), String> {
 /// Frontend calls this on mount to recover a cold-start Open With path that
 /// may have been emitted before the event listener was registered.
 #[tauri::command]
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 fn take_pending_open_file(state: tauri::State<'_, PendingOpenFile>) -> Option<String> {
     state.0.lock().ok().and_then(|mut g| g.take())
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    #[cfg(feature = "tasks-acceptance")]
+    task_acceptance::run();
+    #[cfg(feature = "clients-acceptance")]
+    {
+        acceptance::run();
+    }
+    #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
+    run_production();
+}
+
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
+fn run_production() {
+    let context = tauri::generate_context!();
+    assert_eq!(
+        context.config().identifier,
+        "com.tabs.app",
+        "Production build requires the production application identity"
+    );
     // Single-instance is release-only. If it is also enabled in debug, an
     // already-running installed TABS (often hidden in the tray after close)
     // causes `npm run tauri:dev` to start and immediately exit — looking
@@ -119,6 +163,8 @@ pub fn run() {
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
+            task_authority::task_authority_rpc,
+            task_authority::task_authority_backup,
             test_notification,
             take_pending_open_file,
             commands::secrets::legacy_ai_preference,
@@ -225,6 +271,6 @@ pub fn run() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }

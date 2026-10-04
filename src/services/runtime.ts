@@ -12,6 +12,18 @@ import { BrowserFolderConnector } from './browser-folder-connector';
 
 let _connector: FolderConnector | null = null;
 
+export function tasksAcceptanceFixture(): string | null {
+  if (!isTauriRuntime() || !('__TABS_TASKS_ACCEPTANCE__' in window)) return null;
+  const value = window.__TABS_TASKS_ACCEPTANCE__;
+  return typeof value === 'string' && /^task-authority-acceptance-[a-z0-9-]+$/.test(value) ? value : null;
+}
+
+/** Set only by the separate native acceptance startup before any frontend code loads. */
+export function isClientsAcceptanceRuntime(): boolean {
+  return isTauriRuntime() && '__TABS_CLIENTS_ACCEPTANCE__' in window
+    && window.__TABS_CLIENTS_ACCEPTANCE__ === true;
+}
+
 /** True if currently running inside a Tauri webview. */
 export function isTauriRuntime(): boolean {
   // The Tauri runtime injects `window.__TAURI_INTERNALS__` (or the

@@ -93,13 +93,14 @@
 
 :root #chat-input-card .chat-model-popover {
   right: 0;
-  left: auto;
+  left: 0;
   width: min(420px, calc(100cqw - 12px));
   gap: 6px;
 }
 
 :root #chat-input-card .chat-reasoning-popover {
   right: 0;
+  left: 0;
   width: min(216px, calc(100cqw - 12px));
   gap: 2px;
 }
@@ -227,6 +228,7 @@
 :root #chat-input-card .chat-model-footer[role='alert'] { color: var(--c-danger); }
 
 :root #chat-input-card .chat-model-footer button {
+  width: fit-content;
   padding: 4px 6px;
   border: 0;
   border-radius: var(--radius-sm);

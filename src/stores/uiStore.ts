@@ -117,6 +117,7 @@ interface UIStore {
   activeFormsPage: FormsPage;
   /** Active view within the Task module list panel. */
   activeTaskPage: TaskPage;
+  subtaskSectionCollapsed: boolean;
 
   /** Which doc-mode tab is active (normal document vs the special Settings doc). */
   activeView: DocActiveView;
@@ -178,6 +179,7 @@ interface UIStore {
   setActiveCRMPage: (p: CRMPage) => void;
   setActiveFormsPage: (p: FormsPage) => void;
   setActiveTaskPage: (p: TaskPage) => void;
+  toggleSubtaskSection: () => void;
   setActiveView: (v: DocActiveView) => void;
   setActiveSettingsSubTab: (tab: SettingsSubTab | LegacySettingsSubTab) => void;
   /** Switch to the Settings document tab, optionally targeting a sub-tab. */
@@ -319,6 +321,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   activeCRMPage: 'clients',
   activeFormsPage: 'list',
   activeTaskPage: 'list',
+  subtaskSectionCollapsed: false,
   activeView: 'document',
   activeSettingsSubTab: 'tools',
 
@@ -522,6 +525,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
     set({ activeTaskPage: p });
     void db.settings.put({ key: 'activeTaskPage', value: p });
   },
+
+  toggleSubtaskSection: () => set((state) => ({ subtaskSectionCollapsed: !state.subtaskSectionCollapsed })),
 
   setActiveView: (v) => {
     // Entering documents or settings in doc mode ensures primary open.

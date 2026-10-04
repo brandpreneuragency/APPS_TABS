@@ -1,10 +1,11 @@
 // Project store. Local-first using Dexie (Tauri desktop).
-// No server backend - all data lives in the local IndexedDB.
+// IndexedDB is the offline cache when VPS task authority is connected.
 
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { Client, Project, Task } from '../types';
 import { db } from '../services/db';
+import { readMetadata, recordTaskDeletion } from '../services/taskAuthority/cache';
 import i18n from '../i18n';
 import { useUIStore } from './uiStore';
 import { useTaskStore } from './taskStore';
@@ -26,6 +27,7 @@ function showError(err: unknown, fallback: string): void {
 }
 
 export async function repairClientsLayerIfNeeded(): Promise<void> {
+  if (await readMetadata(db)) return;
   const clients = await db.clients.toArray();
   const projects = await db.projects.toArray();
   if (!shouldRepairClientsLayer(clients, projects)) return;
@@ -85,7 +87,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       let projects = await db.projects.toArray();
       const clients = await db.clients.toArray();
       const tasks = await db.tasks.toArray();
-      if (shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
+      if (!await readMetadata(db) && shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
         const seeded = await seedGeneralClientAndProject();
         projects = [seeded.project];
       }
@@ -160,7 +162,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
     if (!project) return;
     try {
       let createdGeneral: Project | null = null;
-      await db.transaction('rw', db.projects, db.tasks, async () => {
+      await db.transaction('rw', db.projects, db.tasks, db.settings, async () => {
         const isGeneral = nameKey(project.name) === 'general';
         if (isGeneral) {
           const now = Date.now();
@@ -179,6 +181,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
           }
           await db.tasks.where('projectId').equals(id).modify({ projectId: general.id });
         }
+        await recordTaskDeletion(db, [{ table: 'projects', id }]);
         await db.projects.delete(id);
       });
       set((s) => ({

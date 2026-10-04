@@ -30,6 +30,7 @@ import { useThemeStore } from './stores/themeStore';
 import { runStartupUpdateCheck } from './services/updater';
 import { subscribeToDesktopFileOpen } from './services/desktopFileOpen';
 import { codexSessionService } from './services/codex/sessionService';
+import { startTaskAuthority } from './services/taskAuthority/service';
 
 export default function App() {
   useEffect(() => { void codexSessionService.start(); }, []);
@@ -65,6 +66,9 @@ export default function App() {
   const { loadClients, isLoaded: clientsLoaded } = useClientStore();
 
   const isLoaded = uiSettingsLoaded && docsLoaded && tasksLoaded && projectsLoaded && clientsLoaded;
+  useEffect(() => {
+    if (tasksLoaded && projectsLoaded && clientsLoaded) return startTaskAuthority();
+  }, [tasksLoaded, projectsLoaded, clientsLoaded]);
 
   useEffect(() => {
     void Promise.all([

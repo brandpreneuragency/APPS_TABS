@@ -46,6 +46,11 @@ const tasks = [
     updatedAt: 1,
     order: 2,
   },
+  {
+    id: 'child', title: 'Child brief', parentTaskId: 't1', projectId: 'p-gen', date: today,
+    status: 'pending' as const, importance: 'medium' as const, content: '', assignees: [] as string[],
+    createdAt: 1, updatedAt: 1, order: 3,
+  },
 ];
 
 const projects = [
@@ -79,8 +84,13 @@ vi.mock('./TaskProjectView', () => ({
 }));
 
 vi.mock('./TaskListItem', () => ({
-  TaskListItem: ({ task, onClick }: { task: { id: string; title: string }; onClick: () => void }) => (
-    <button data-testid={`task-${task.id}`} onClick={onClick}>{task.title}</button>
+  TaskListItem: ({ task, onClick, subtasks }: {
+    task: { id: string; title: string }; onClick: () => void; subtasks: { id: string; title: string }[];
+  }) => (
+    <div>
+      <button data-testid={`task-${task.id}`} onClick={onClick}>{task.title}</button>
+      {subtasks.map((subtask) => <span key={subtask.id} data-testid={`child-of-${task.id}`}>{subtask.title}</span>)}
+    </div>
   ),
 }));
 
@@ -123,6 +133,12 @@ describe('TaskListPanel', () => {
     selectedProjectId = null;
     activeTaskPage = 'list';
     openTaskInActiveTab.mockReset();
+  });
+
+  it('passes subtasks to their parent instead of rendering standalone task cards', () => {
+    render(<TaskListPanel />);
+    expect(screen.queryByTestId('task-child')).not.toBeInTheDocument();
+    expect(screen.getByTestId('child-of-t1')).toHaveTextContent('Child brief');
   });
 
   it('shows the scoped task list immediately without another client tab', async () => {

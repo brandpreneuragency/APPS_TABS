@@ -1,6 +1,7 @@
 import { ArrowLeftRight, Minus, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ModeNavigation } from './ModeNavigation';
+import { TaskAuthorityStatus } from '../taskManager/TaskAuthorityStatus';
 import { AssistantToggle, ContextPanelToggle } from '../layout/workspace';
 import { canStepEditorFontSize, stepEditorFontSize } from '../../stores/editorFontSize';
 import { selectCanSwapWrappers, useUIStore } from '../../stores/uiStore';
@@ -20,6 +21,7 @@ export function Header() {
     <div id="header-bar" className="header-bar">
       <ModeNavigation />
       <div className="ai-toggle-col">
+        <TaskAuthorityStatus />
         <button id="nav-btn-font-decrease" type="button" className="ai-toggle-btn" title={t('settings.decreaseTextSize')} aria-label={t('settings.decreaseTextSize')}
           disabled={!canStepEditorFontSize(fontSize, -1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, -1))}><Minus size={15} /></button>
         <button id="nav-btn-font-increase" type="button" className="ai-toggle-btn" title={t('settings.increaseTextSize')} aria-label={t('settings.increaseTextSize')}

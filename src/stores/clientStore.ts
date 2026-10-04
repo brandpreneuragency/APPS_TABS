@@ -5,6 +5,7 @@ import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { Client } from '../types';
 import { db } from '../services/db';
+import { readMetadata, recordTaskDeletion } from '../services/taskAuthority/cache';
 import { useUIStore } from './uiStore';
 import { useProjectStore, repairClientsLayerIfNeeded, seedGeneralClientAndProject } from './projectStore';
 import { useTaskStore } from './taskStore';
@@ -41,7 +42,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       let clients = await db.clients.toArray();
       const projects = await db.projects.toArray();
       const tasks = await db.tasks.toArray();
-      if (shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
+      if (!await readMetadata(db) && shouldSeedEmptyClientsLayer(clients, projects, tasks)) {
         const seeded = await seedGeneralClientAndProject();
         clients = [seeded.client];
       }
@@ -70,13 +71,19 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       await db.clients.add(client);
       const general = await useProjectStore.getState().createProject('General', client.id);
       if (!general) {
-        await db.clients.delete(id);
+        await db.transaction('rw', db.clients, db.settings, async () => {
+          await recordTaskDeletion(db, [{ table: 'clients', id }]);
+          await db.clients.delete(id);
+        });
         return null;
       }
       set((s) => ({ clients: [...s.clients, client] }));
       return client;
     } catch (err) {
-      await db.clients.delete(id);
+      await db.transaction('rw', db.clients, db.settings, async () => {
+        await recordTaskDeletion(db, [{ table: 'clients', id }]);
+        await db.clients.delete(id);
+      });
       showError(err, 'Failed to create client.');
       return null;
     }
@@ -109,7 +116,7 @@ export const useClientStore = create<ClientStore>((set, get) => ({
   deleteClient: async (id) => {
     if (!get().clients.some((c) => c.id === id)) return;
     try {
-      await db.transaction('rw', db.clients, db.projects, db.tasks, async () => {
+      await db.transaction('rw', db.clients, db.projects, db.tasks, db.settings, async () => {
         const projects = await db.projects.where('clientId').equals(id).toArray();
         const now = Date.now();
         for (const project of projects) {
@@ -118,6 +125,8 @@ export const useClientStore = create<ClientStore>((set, get) => ({
           });
         }
         const projectIds = projects.map((p) => p.id);
+        await recordTaskDeletion(db, [{ table: 'clients', id },
+          ...projectIds.map(projectId => ({ table: 'projects' as const, id: projectId }))]);
         if (projectIds.length > 0) {
           await db.projects.bulkDelete(projectIds);
         }

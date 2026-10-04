@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "clients-acceptance-bootstrap"
+description = "Local acceptance diagnostics, Gmail authentication and bounded list-access check. No message content or sends."
+commands.allow = ["clients_acceptance_diagnostics", "clients_acceptance_quit", "gmail_connect", "gmail_cancel", "gmail_status", "gmail_refresh", "gmail_disconnect", "gmail_check_read_access"]

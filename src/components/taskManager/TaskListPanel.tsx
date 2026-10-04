@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import './taskList.css';
 import { useTaskStore } from '../../stores/taskStore';
@@ -43,13 +43,27 @@ export function TaskListPanel() {
     () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
     [tasks, projects, selectedClientId, selectedProjectId],
   );
+  const topLevelTasks = useMemo(
+    () => filteredTasks.filter((task) => !task.parentTaskId),
+    [filteredTasks],
+  );
+  const subtasksByParent = useMemo(() => {
+    const map = new Map<string, typeof filteredTasks>();
+    for (const task of filteredTasks) {
+      if (!task.parentTaskId) continue;
+      const list = map.get(task.parentTaskId) ?? [];
+      list.push(task);
+      map.set(task.parentTaskId, list);
+    }
+    return map;
+  }, [filteredTasks]);
   const groupedTasks = useMemo(() => {
-    const groups: Record<DateCategory, typeof filteredTasks> = { today: [], thisWeek: [], notYet: [], completed: [] };
-    for (const task of filteredTasks) groups[task.status === 'completed' ? 'completed' : getDateCategory(task.date)].push(task);
+    const groups: Record<DateCategory, typeof topLevelTasks> = { today: [], thisWeek: [], notYet: [], completed: [] };
+    for (const task of topLevelTasks) groups[task.status === 'completed' ? 'completed' : getDateCategory(task.date)].push(task);
     for (const category of ['today', 'thisWeek', 'notYet'] as const) groups[category].sort((left, right) => left.date.localeCompare(right.date));
     groups.completed.sort((left, right) => right.updatedAt - left.updatedAt);
     return groups;
-  }, [filteredTasks]);
+  }, [topLevelTasks]);
 
   return (
     <div id="task-list-panel" className="panel flex-col h-full overflow-hidden">
@@ -63,15 +77,11 @@ export function TaskListPanel() {
         )}
         <div id="task-list-content" className="task-scope-content ai-scroll">
           <div hidden={activeTab !== 'list'}>
-            {filteredTasks.length === 0 && <p className="task-scope-empty">{t('navigation.noTasks')}</p>}
-            {(['today', 'thisWeek', 'notYet', 'completed'] as const).filter((category) => groupedTasks[category].length).map((category) => (
-              <React.Fragment key={category}>
-                <div className="task-list-category-header">{t(`navigation.${category}`)}</div>
-                {groupedTasks[category].map((task) => (
-                  <TaskListItem key={task.id} task={task} isActive={task.id === activeTaskId}
-                    onClick={() => useTaskStore.getState().openTaskInActiveTab(task.id)} />
-                ))}
-              </React.Fragment>
+            {topLevelTasks.length === 0 && <p className="task-scope-empty">{t('navigation.noTasks')}</p>}
+            {(['today', 'thisWeek', 'notYet', 'completed'] as const).flatMap((category) => groupedTasks[category]).map((task) => (
+              <TaskListItem key={task.id} task={task} isActive={task.id === activeTaskId}
+                subtasks={subtasksByParent.get(task.id) ?? []}
+                onClick={() => useTaskStore.getState().openTaskInActiveTab(task.id)} />
             ))}
           </div>
           <div hidden={activeTab !== 'calendar'}>

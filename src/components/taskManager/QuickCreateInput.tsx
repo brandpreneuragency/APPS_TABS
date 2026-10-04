@@ -309,10 +309,8 @@ export function QuickCreateInput({
                   aria-haspopup="menu"
                   aria-expanded={showProjectPicker}
                 >
-                  {hasProjectValue ? (
+                  {hasProjectValue && (
                     <Folder size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
-                  ) : (
-                    <span className="task-quick-create-dropup-bar" aria-hidden="true" />
                   )}
                   <span className="trunc med task-quick-create-dropup-label">{projectButtonLabel}</span>
                   <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
@@ -331,10 +329,8 @@ export function QuickCreateInput({
                   aria-haspopup="menu"
                   aria-expanded={showDatePicker}
                 >
-                  {hasDateValue ? (
+                  {hasDateValue && (
                     <Calendar size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
-                  ) : (
-                    <span className="task-quick-create-dropup-bar" aria-hidden="true" />
                   )}
                   <span className="trunc med task-quick-create-dropup-label">{dateButtonLabel}</span>
                   <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
