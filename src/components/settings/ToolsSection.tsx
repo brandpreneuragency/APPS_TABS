@@ -30,6 +30,7 @@ export function ToolsSection() {
   const { connection, models } = useCodexService();
   const desktop = isTauriRuntime();
   const [provider, setProvider] = useState<ProviderId>('codex');
+  const isCliSettingsProvider = (id: ProviderId): id is CliProviderId => id === 'grok' || id === 'commandCode' || id === 'openCode';
   const [probeState, setProbeState] = useState<Partial<Record<CliProviderId, CliProviderState>>>({});
   const inFlight = useRef(new Map<CliProviderId, Promise<void>>());
 
@@ -48,13 +49,13 @@ export function ToolsSection() {
     return request;
   }, []);
 
-  const selectedCliState = provider === 'codex' ? undefined : probeState[provider];
+  const selectedCliState = isCliSettingsProvider(provider) ? probeState[provider] : undefined;
   useEffect(() => {
-    if (provider !== 'codex' && desktop && !selectedCliState) void refreshProvider(provider);
+    if (isCliSettingsProvider(provider) && desktop && !selectedCliState) void refreshProvider(provider);
   }, [provider, desktop, selectedCliState, refreshProvider]);
 
   const selectedModels = provider === 'codex' ? (connection ? models : [])
-    : probeState[provider]?.probe?.installed ? probeState[provider].probe.models : [];
+    : isCliSettingsProvider(provider) && probeState[provider]?.probe?.installed ? probeState[provider].probe?.models ?? [] : [];
 
   const providerList = (
     <nav className="codex-provider-nav" aria-label={t('codex.providers')}>
@@ -91,11 +92,11 @@ export function ToolsSection() {
     </nav>
   );
 
-  const centerMain = provider === 'codex' ? <CodexSettings /> : <CliProviderSettings
+  const centerMain = provider === 'codex' ? <CodexSettings /> : isCliSettingsProvider(provider) ? <CliProviderSettings
     key={provider} providerId={provider} name={cliProviders[provider].name}
     loginCommand={cliProviders[provider].loginCommand} desktop={desktop}
     state={probeState[provider]} onRefresh={refreshProvider}
-  />;
+  /> : <CodexSettings />;
 
   return <SettingsPanels leftMain={providerList} centerMain={centerMain} />;
 }

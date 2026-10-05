@@ -78,7 +78,7 @@ describe('TaskCalendarView', () => {
 
   it('navigates weeks across year boundaries and returns to today', () => {
     setup();
-    chooseDate(3, 'Thursday, December 31, 2026');
+    chooseDate(3, '31 Aralık 2026 Perşembe');
     expect(screen.getByRole('region', { name: '2027-01-03' })).toBeInTheDocument();
     fireEvent.click(screen.getByLabelText('calendar.nextWeek'));
     expect(screen.getByRole('region', { name: '2027-01-04' })).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe('TaskCalendarView', () => {
 
   it('shows complete month weeks including leap day and moves one month from month end', () => {
     setup();
-    chooseDate(16, 'Monday, January 31, 2028');
+    chooseDate(16, '31 Ocak 2028 Pazartesi');
     fireEvent.click(screen.getByText('calendar.month'));
     fireEvent.click(screen.getByLabelText('calendar.nextMonth'));
     expect(screen.getByRole('region', { name: '2028-02-29' })).toBeInTheDocument();
@@ -109,13 +109,13 @@ describe('TaskCalendarView', () => {
     vi.setSystemTime(new Date(2026, 8, 15, 23, 59, 58));
     setup();
     expect(screen.getByRole('button', { name: 'navigation.today' })).toBeInTheDocument();
-    expect(within(screen.getByRole('button', { name: 'navigation.today' })).getByText('Sep 15. Tue. 23:59:58')).toHaveAttribute('datetime', new Date().toISOString());
+    expect(within(screen.getByRole('button', { name: 'navigation.today' })).getByText('15 EYLÜL, SALI - 23:59:58')).toHaveAttribute('datetime', new Date().toISOString());
 
     act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByText('Sep 15. Tue. 23:59:59')).toBeInTheDocument();
+    expect(screen.getByText('15 EYLÜL, SALI - 23:59:59')).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByText('Sep 16. Wed. 00:00:00')).toBeInTheDocument();
+    expect(screen.getByText('16 EYLÜL, ÇŞMBA - 00:00:00')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: '2026-09-15' })).not.toHaveClass('task-calendar-day--today');
     expect(screen.getByRole('region', { name: '2026-09-16' })).toHaveClass('task-calendar-day--today');
 
@@ -124,7 +124,7 @@ describe('TaskCalendarView', () => {
     expect(screen.queryByRole('region', { name: '2026-09-16' })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'navigation.today' }));
     fireEvent.click(screen.getByRole('button', { name: 'calendar.chooseDate' }));
-    expect(screen.getByRole('button', { name: 'Wednesday, September 16, 2026' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByRole('button', { name: '16 Eylül 2026 Çarşamba' })).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('reschedules only recognized live tasks and changes only their date', () => {

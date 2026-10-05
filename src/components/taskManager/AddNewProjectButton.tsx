@@ -1,5 +1,5 @@
-import { useEffect, useId, useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { Check, Folder, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../stores/projectStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -11,9 +11,11 @@ interface AddNewProjectButtonProps {
   clientId: string;
   label?: string;
   onCreated?: (project: Project) => void;
+  inlineGroupLabel?: string;
+  children?: ReactNode;
 }
 
-export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjectButtonProps) {
+export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLabel, children }: AddNewProjectButtonProps) {
   const { t } = useTranslation();
   const resolvedLabel = label ?? t('tasks.addNewProject');
   const createProject = useProjectStore((s) => s.createProject);
@@ -26,6 +28,8 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
 
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const dialogId = useId();
 
   useEffect(() => {
@@ -34,7 +38,7 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
     const onPointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
-      if (!rootRef.current?.contains(target)) {
+      if (!formRef.current?.contains(target) && !triggerRef.current?.contains(target)) {
         setOpen(false);
       }
     };
@@ -55,6 +59,7 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
   };
 
   const submit = async () => {
+    if (submitting) return;
     const existing = projects.filter((p) => p.clientId === clientId).map((p) => p.name);
     const result = resolveCreateProjectName(name, existing);
     if (result.status === 'empty') return;
@@ -76,14 +81,17 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
   };
 
   return (
-    <div className="task-list-add-project" ref={rootRef}>
+    <div className={inlineGroupLabel !== undefined ? 'scope-project-content' : 'task-list-add-project'} ref={rootRef}>
+      <div className={inlineGroupLabel !== undefined ? 'scope-project-heading' : undefined}>
+      {inlineGroupLabel !== undefined && <span title={inlineGroupLabel}>{inlineGroupLabel}</span>}
       <button
+        ref={triggerRef}
         type="button"
         className="task-list-add-project-btn"
         title={resolvedLabel}
         aria-label={resolvedLabel}
         aria-expanded={open}
-        aria-haspopup="dialog"
+        aria-haspopup={inlineGroupLabel !== undefined ? undefined : 'dialog'}
         aria-controls={open ? dialogId : undefined}
         onClick={(event) => {
           event.stopPropagation();
@@ -96,11 +104,14 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
       >
         <Plus size={14} strokeWidth={2.25} />
       </button>
+      </div>
+      {children}
       {open && (
         <form
+          ref={formRef}
           id={dialogId}
-          className="drop task-list-add-project-popover"
-          role="dialog"
+          className={inlineGroupLabel !== undefined ? 'scope-project-create' : 'drop task-list-add-project-popover'}
+          role={inlineGroupLabel !== undefined ? undefined : 'dialog'}
           aria-label={resolvedLabel}
           onSubmit={(event) => {
             event.preventDefault();
@@ -109,6 +120,7 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
         >
+          {inlineGroupLabel !== undefined && <Folder size={14} />}
           <input
             ref={inputRef}
             type="text"
@@ -123,9 +135,11 @@ export function AddNewProjectButton({ clientId, label, onCreated }: AddNewProjec
           <button
             type="submit"
             className="task-list-add-project-submit"
+            aria-label={t('tasks.addProject')}
+            title={t('tasks.addProject')}
             disabled={submitting || !name.trim()}
           >
-            {t('tasks.addProject')}
+            {inlineGroupLabel !== undefined ? <Check size={14} /> : t('tasks.addProject')}
           </button>
         </form>
       )}

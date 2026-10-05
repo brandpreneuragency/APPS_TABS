@@ -38,17 +38,22 @@
 
 .tdp-parent-link {
   align-self: flex-start;
-  margin: 8px 38px 0;
-  width: auto;
-  min-width: max-content;
-  height: auto;
-  padding: 0;
-  color: var(--c-text-2);
-  background: transparent;
-  border: 0;
+  flex: 0 0 auto;
+  margin: 8px 18px 12px;
+  width: calc(100% - 36px);
+  min-width: 0;
   cursor: pointer;
-  font-size: var(--fs-xs);
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tdp-parent-link:hover,
+.tdp-parent-link:focus-visible {
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+  border-color: var(--c-accent-1);
 }
 
 .tdp-subtasks {
@@ -87,6 +92,11 @@
 .tdp-subtasks form input {
   flex: 1;
   min-width: 0;
+  outline: none;
+}
+
+.tdp-parent-link,
+.tdp-subtasks form input {
   height: var(--control-height-sm);
   padding: 0 8px;
   border: 1px solid var(--c-border-1);
@@ -94,7 +104,6 @@
   background: var(--c-background-2);
   color: var(--c-text-1);
   font-size: var(--fs-sm);
-  outline: none;
 }
 
 .tdp-subtasks form input:focus {
@@ -267,6 +276,12 @@
   border-left: 1px solid var(--c-border-1);
 }
 
+.tdp-meta-controls--plain {
+  border-left: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* tdp-meta-controls lives on the same inline row as the task title. */
 
 .tdp-meta-field {
@@ -303,6 +318,10 @@
 .tdp-meta-field-btn:disabled {
   cursor: default;
   opacity: 0.6;
+}
+
+.tdp-meta-field-btn.tdp-meta-display {
+  cursor: default;
 }
 
 .tdp-meta-field-btn svg {
@@ -367,7 +386,7 @@
   padding: 0;
   margin: 0;
   font-family: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   cursor: text;
   border-radius: var(--radius-sm);
   transition: background-color 0.15s;
@@ -631,24 +650,6 @@
 #task-comment-card .task-quick-create-dropup-btn[data-active='true'] .task-quick-create-dropup-chevron {
   color: inherit;
 }
-.tdp-comments-header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  vertical-align: middle;
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  color: var(--c-text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  text-align: center;
-  height: 20px;
-  background-color: rgba(26, 26, 26, 0);
-  padding: 6px 0;
-  margin: 6px 0;
-  border-radius: var(--radius-sm);
-}
 
 #task-comment-thread {
   background: transparent;
@@ -683,9 +684,20 @@
 .comment-bubble p.txt-xs {
   margin: 0;
   width: fit-content;
+  height: 32px;
   line-height: var(--line-normal);
-  padding: 12px;
+  padding-top: 0px;
+  padding-right: 10px;
+  padding-bottom: 0;
+  padding-left: 10px;
   background-color: var(--c-background-1);
+  border-width: 0px;
+  border-style: solid;
+  border-color: var(--c-border-1);
+  border-radius: 6px;
+  display: grid;
+  justify-items: center;
+  align-items: center;
   vertical-align: middle;
 }
 .comment-thread {
@@ -951,9 +963,20 @@
 :root .comment-bubble p.txt-xs {
   margin: 0;
   width: fit-content;
+  height: 32px;
   line-height: var(--line-normal);
-  padding: 12px;
+  padding-top: 0px;
+  padding-right: 10px;
+  padding-bottom: 0;
+  padding-left: 10px;
   background-color: var(--c-background-1);
+  border-width: 0px;
+  border-style: solid;
+  border-color: var(--c-border-1);
+  border-radius: 6px;
+  display: grid;
+  justify-items: center;
+  align-items: center;
   vertical-align: middle;
 }
 :root .comment-thread {

@@ -21,21 +21,21 @@ import type {
 /* -------------------------------------------------------------------------- */
 
 const mdStyles = {
-  p: { marginBottom: 12, fontSize: 'var(--fs-xs)', color: 'var(--c-text-1)', lineHeight: 1.625 },
-  h1: { fontSize: 'var(--fs-sm)', fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)' },
-  h2: { fontSize: 'var(--fs-xs)', fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)' },
-  h3: { fontSize: 'var(--fs-xs)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)' },
-  h4: { fontSize: 'var(--fs-xs)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
-  ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-xs)', color: 'var(--c-text-1)' },
-  ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-xs)', color: 'var(--c-text-1)' },
+  p: { marginBottom: 12, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)', lineHeight: 1.625 },
+  h1: { fontSize: 26, fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)', lineHeight: 1.2 },
+  h2: { fontSize: 22, fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)', lineHeight: 1.3 },
+  h3: { fontSize: 18, fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)', lineHeight: 1.35 },
+  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
+  ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
+  ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   li: { lineHeight: 1.625 },
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
-  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-xs)' },
-  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' as const },
-  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-xs)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
-  codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-xs)' },
-  table: { width: '100%', fontSize: 'var(--fs-xs)', borderCollapse: 'collapse' as const },
+  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
+  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' as const },
+  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
+  codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)' },
+  table: { width: '100%', fontSize: 'var(--fs-sm)', borderCollapse: 'collapse' as const },
   thead: { background: 'var(--c-background-4)' },
   th: { border: '1px solid var(--c-border-1)', padding: '6px 12px', textAlign: 'left' as const, fontWeight: 600, color: 'var(--c-text-1)' },
   td: { border: '1px solid var(--c-border-1)', padding: '6px 12px', color: 'var(--c-text-1)' },
@@ -134,7 +134,7 @@ function StandaloneUserMessage({ message }: { message: AiChatPanelMessage }) {
           background: 'var(--right-bg)',
           borderRadius: 'var(--radius-sm)',
           padding: '12px 16px',
-          fontSize: 'var(--fs-xs)',
+          fontSize: 'var(--fs-sm)',
           wordBreak: 'break-word',
           overflow: 'hidden',
           alignSelf: 'flex-end',
@@ -144,7 +144,7 @@ function StandaloneUserMessage({ message }: { message: AiChatPanelMessage }) {
         {message.content}
       </div>
       {message.createdAt && (
-        <div className="subtle" style={{ fontSize: 'var(--fs-xs)', textAlign: 'right', paddingRight: 4 }}>
+        <div className="subtle" style={{ fontSize: 'var(--fs-sm)', textAlign: 'right', paddingRight: 4 }}>
           {formatCreatedAt(message.createdAt)}
         </div>
       )}
@@ -169,7 +169,7 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
           borderRadius: 'var(--radius-sm)',
           border: '1px solid var(--c-border-1)',
           background: 'var(--c-background-4)',
-          fontSize: 'var(--fs-xs)',
+          fontSize: 'var(--fs-sm)',
           color: '#e53e3e',
         }}>
           {message.error}
@@ -178,7 +178,7 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
 
       <div style={{ padding: '4px 0', wordBreak: 'break-word', overflow: 'hidden' }}>
         {isStreaming && !message.content && (
-          <p className="streaming-cursor" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-2)' }}>
+          <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)' }}>
             {'\u200B'}
           </p>
         )}
@@ -203,7 +203,7 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
       )}
 
       {message.createdAt && (
-        <div className="subtle" style={{ fontSize: 'var(--fs-xs)', paddingLeft: 4 }}>
+        <div className="subtle" style={{ fontSize: 'var(--fs-sm)', paddingLeft: 4 }}>
           {formatCreatedAt(message.createdAt)}
         </div>
       )}
@@ -217,7 +217,7 @@ function StandaloneSystemMessage({ message }: { message: AiChatPanelMessage }) {
       padding: '6px 12px',
       borderRadius: 'var(--radius-sm)',
       background: 'var(--c-background-4)',
-      fontSize: 'var(--fs-xs)',
+      fontSize: 'var(--fs-sm)',
       color: 'var(--c-text-2)',
       textAlign: 'center',
       maxWidth: '80%',
@@ -231,7 +231,7 @@ function StandaloneSystemMessage({ message }: { message: AiChatPanelMessage }) {
 function PendingMessage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <p className="streaming-cursor" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-2)' }}>
+      <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)' }}>
         {'\u200B'}
       </p>
     </div>
@@ -321,7 +321,7 @@ export function StandaloneAiChatPanel({
         minHeight: 40,
       }}>
         <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0, flex: 1 }}>
-          <span className="semibold" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {title}
           </span>
           {subtitle && (
@@ -383,7 +383,7 @@ export function StandaloneAiChatPanel({
       {error && (
         <div style={{
           padding: '6px 12px',
-          fontSize: 'var(--fs-xs)',
+          fontSize: 'var(--fs-sm)',
           color: '#e53e3e',
           background: 'var(--c-background-4)',
           borderTop: '1px solid var(--c-border-1)',

@@ -1,20 +1,8 @@
 import { useProjectStore } from '../../stores/projectStore';
 import { HeaderDropdown } from '../ui/HeaderDropdown';
 import type { Task } from '../../types';
-
-function dateOptions() {
-  const days: { label: string; value: string }[] = [{ label: 'No date', value: '' }];
-  const today = new Date();
-  const labels = ['Today', 'Tomorrow'];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(d.getDate() + i);
-    const val = d.toISOString().slice(0, 10);
-    const label = i < 2 ? labels[i] : d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-    days.push({ label: `${label}`, value: val });
-  }
-  return days;
-}
+import { TaskDueDatePicker } from './TaskCalendarDatePicker';
+import { formatShortDate } from './taskMetadataUtils';
 
 interface TaskMetadataBarProps {
   task: Task;
@@ -27,12 +15,15 @@ export function TaskMetadataBar({ task, onUpdate }: TaskMetadataBarProps) {
 
   return (
     <div id="task-metadata-bar" className="flex items-center gap-2 px-3 py-2.5" style={{borderBottom:'1px solid var(--c-border-1)'}}>
-      <HeaderDropdown
+      <TaskDueDatePicker
         value={task.date}
         onChange={(next) => onUpdate({ date: next })}
-        wrapperClassName="flex-1 min-w-0"
-        options={dateOptions()}
-      />
+        buttonClassName="header-dropdown-button w-full row"
+        ariaLabel={task.date ? `Due: ${task.date}` : 'Set due date'}
+        title={task.date ? `Due: ${task.date}` : 'Set due date'}
+      >
+        <span className="trunc med">{task.date ? formatShortDate(task.date) : 'No date'}</span>
+      </TaskDueDatePicker>
       <HeaderDropdown
         value={projectValue}
         onChange={(next) => { if (next) onUpdate({ projectId: next }); }}

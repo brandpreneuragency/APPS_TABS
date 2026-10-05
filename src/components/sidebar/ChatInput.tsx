@@ -12,6 +12,8 @@ import { useUIStore } from '../../stores/uiStore';
 import { useActionsStore } from '../../stores/actionsStore';
 import { useChatStore } from '../../stores/chatStore';
 import { useAIStore } from '../../stores/aiStore';
+import { isMockProviderId } from '../../services/providers/mockProviders';
+import { useMockProviderService } from '../../services/providers/useMockProviderService';
 import { useStreamingChat } from '../../hooks/useStreamingChat';
 import { useWorkspaceStore, flattenTree, findNodeByFullPath } from '../../stores/workspaceStore';
 import type { TreeNode } from '../../stores/workspaceStore';
@@ -57,7 +59,8 @@ const IMAGE_MIME_TYPES = new Set([
 ]);
 
 function isChatProviderId(value: unknown): value is ChatProviderId {
-  return value === 'codex' || value === 'grok' || value === 'commandCode' || value === 'openCode';
+  return value === 'codex' || value === 'grok' || value === 'commandCode' || value === 'openCode'
+    || value === 'mockEcho' || value === 'mockTools';
 }
 
 /** Convert raw bytes to a base64 string (chunked to avoid call-stack limits). */
@@ -184,10 +187,11 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     }
   }, [workspaceId, taskId]);
 
-  const { selectedText } = useUIStore();
+  const { selectedText, setSelectedText } = useUIStore();
   const desktop = isTauriRuntime();
   const codex = useCodexService();
   const cliRun = useCliProviderService();
+  const mockRun = useMockProviderService();
   const threads = useChatStore((state) => state.threads);
   const newChat = useChatStore((state) => state.newChat);
   const setEmptyThreadOrigin = useChatStore((state) => state.setEmptyThreadOrigin);
@@ -196,10 +200,13 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const threadOrigin = activeThread?.origin;
   const providerLocked = threadOrigin === 'legacy_api';
   const selectedProvider = isChatProviderId(threadOrigin) ? threadOrigin : preferredProvider;
-  const cliSelected = selectedProvider !== 'codex' && !providerLocked;
-  const ownRun = desktop && (selectedProvider === 'codex'
+  const mockSelected = isMockProviderId(selectedProvider) && !providerLocked;
+  const cliSelected = selectedProvider !== 'codex' && !mockSelected && !providerLocked;
+  const ownRun = (desktop || mockSelected) && (selectedProvider === 'codex'
     ? Boolean(codex.activeRunId && codex.activeAppThreadId === (useChatStore.getState().activeThreadId ?? threadId))
-    : Boolean(cliRun && cliRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)));
+    : mockSelected
+      ? Boolean(mockRun && mockRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId))
+      : Boolean(cliRun && cliRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)));
   const getActiveAgent = useAIStore((state) => state.getActiveAgent);
   const { openSettings } = useUIStore();
   const { sendMessage, stopStreaming } = useStreamingChat(threadId, mode, workspaceId ?? undefined, taskId ?? undefined, settingsTab ?? undefined, editor);
@@ -273,7 +280,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
   const handleSend = useCallback(async () => {
     const trimmed = value.trim();
-    if ((!trimmed && attachments.length === 0) || !desktop || sendLockRef.current) return;
+    if ((!trimmed && attachments.length === 0) || (!desktop && !mockSelected) || sendLockRef.current) return;
     sendLockRef.current = true;
     setSendError('');
     const toSend = attachments.slice();
@@ -309,7 +316,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     } finally {
       sendLockRef.current = false;
     }
-  }, [value, attachments, desktop, sendMessage, selectedText, replyToMessage, onClearReply, t]);
+  }, [value, attachments, desktop, mockSelected, sendMessage, selectedText, replyToMessage, onClearReply, t]);
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionOpen) {
@@ -629,18 +636,28 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     };
   }, [mentionOpen, activeFolderId, indexedFolderId, rootNode, ensureSubtreeLoaded, activeWorkspaceId]);
 
-  const canSend = desktop && !ownRun && (value.trim().length > 0 || attachments.length > 0);
+  const canSend = (desktop || mockSelected) && !ownRun && (value.trim().length > 0 || attachments.length > 0);
   const promptOptions: PromptOption[] = mode === 'task' ? [...TASK_BUILT_INS, ...quickPrompts] : quickPrompts;
 
   return (
     <div style={{ flexShrink: 0, padding: 0, height: 'fit-content' }}>
       {sendError && <p role="alert" style={{ padding: '4px 12px' }}>{sendError}</p>}
       {selectedText && (
-        <div style={{ marginBottom: 8, fontSize: 'var(--fs-xs)', color: accentColor, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div style={{ marginBottom: 8, fontSize: 'var(--fs-sm)', color: accentColor, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="med">{t('chat.context')}</span>
-          <span className="trunc italic subtle">
+          <span className="trunc italic subtle" style={{ flex: 1, minWidth: 0 }}>
             {selectedText.text.slice(0, 60)}{selectedText.text.length > 60 ? '...' : ''}
           </span>
+          <button
+            type="button"
+            onClick={() => setSelectedText(null)}
+            className="btn-icon shrink-0"
+            title={t('chat.clearContext')}
+            aria-label={t('chat.clearContext')}
+            style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', color: 'var(--c-red, #df1c1c)', flexShrink: 0 }}
+          >
+            <X size={12} />
+          </button>
         </div>
       )}
 
@@ -719,11 +736,11 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
         />
 
         {mentionOpen && (
-          <div ref={mentionRef} className="drop chat-mention-dropup" style={{ left: 12, right: 12, bottom: '100%', marginBottom: 4, maxHeight: 240, overflowY: 'auto' }}>
+          <div ref={mentionRef} className="drop chat-mention-dropup" style={{ left: 12, right: 12, bottom: '100%', marginBottom: 0, maxHeight: 240, overflowY: 'auto' }}>
             {indexing ? (
-              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>{t('chat.indexing')}</div>
+              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-sm)' }}>{t('chat.indexing')}</div>
             ) : filtered.length === 0 ? (
-              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>{t('chat.noMatches')}</div>
+              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-sm)' }}>{t('chat.noMatches')}</div>
             ) : (
               filtered.map((node, idx) => (
                 <button
@@ -731,7 +748,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                   key={node.fullPath}
                   onClick={() => selectMention(node)}
                   className={`drop-item${idx === mentionIndex ? ' header-dropdown-item--active' : ''}`}
-                  style={{ fontSize: 'var(--fs-base)' }}
+                  style={{ fontSize: 'var(--fs-sm)' }}
                   onMouseEnter={() => setMentionIndex(idx)}
                 >
                   {node.kind === 'directory' ? (
@@ -757,13 +774,22 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                 style={{ display: 'none' }}
                 onChange={handleFileChange}
               />
-              {!cliSelected && <ComposerIconButton
-                onClick={() => fileInputRef.current?.click()}
+              <ComposerIconButton
+                onClick={() => {
+                  if (cliSelected) {
+                    useUIStore.getState().showToast(t('cliChat.attachmentsUnavailable'), 'error');
+                    return;
+                  }
+                  fileInputRef.current?.click();
+                }}
                 className="composer-attach-button"
-                title={t('chat.attachFile')}
+                title={cliSelected ? t('cliChat.attachmentsUnavailable') : t('chat.attachFile')}
+                aria-label={cliSelected ? t('cliChat.attachmentsUnavailable') : t('chat.attachFile')}
+                aria-disabled={cliSelected}
+                style={cliSelected ? { opacity: 0.4 } : undefined}
               >
                 <Plus size={14} />
-              </ComposerIconButton>}
+              </ComposerIconButton>
 
               <div ref={actionsRef} className="relative">
                 <ComposerIconButton
@@ -777,9 +803,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                   <Zap size={14} className="chat-input-dropup-icon" />
                 </ComposerIconButton>
                 {actionsDropdownOpen && (
-                  <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 4, minWidth: 192 }}>
+                  <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 0, minWidth: 192 }}>
                     {promptOptions.length === 0 ? (
-                      <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>{t('chat.noActions')}</div>
+                      <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-sm)' }}>{t('chat.noActions')}</div>
                     ) : (
                       promptOptions.map((qp) => (
                         <button
@@ -796,7 +822,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                         </button>
                       ))
                     )}
-                    <div style={{ borderTop: '1px solid var(--c-border-1)', marginTop: 0, paddingTop: 0 }}>
+                    <div style={{ borderTop: '1px solid var(--c-border-1)', marginTop: 4, paddingTop: 4 }}>
                       <button
                         type="button"
                         onClick={() => {

@@ -4,18 +4,28 @@
 
 This file applies to the entire repository. It defines the default working rules for coding agents; a more specific `AGENTS.md` in a subdirectory overrides it for that subtree.
 
-Follow instructions in this order:
+Higher-priority platform/system/developer instructions remain binding. Within
+them, follow the current user request and explicit approvals, applicable project
+rules and existing conventions. A named plan/spec describes the selected work;
+it cannot grant execution, remote-access or publication authority. A task record
+or status change also grants none of those permissions.
 
-1. The user's current request and explicit approvals.
-2. Named plans or specs the user points to for the current task.
-3. This file.
-4. Existing repository conventions.
+This root is sufficient for ordinary local work by any coding agent, including
+Hermes. Product integration restrictions below do not ban Hermes as a coding
+agent. Resolve routine choices within the requested scope; review-only means
+no edits. Preserve unrelated work and application data. Destructive/system-wide
+actions, installations and external sharing require explicit task-specific scope.
+BRAIN is read-only through tools/delegates; VAULT is excluded. Only when work
+involves cross-project outputs, plans, owner context, ATLAS or system operations,
+read `../../AGENTS.md` and relevant destination rules. Local outputs use
+MOTHER/WORKSPACE; durable context/inbox/Work use ATLAS_MEMORY, not BRAIN
+(systems/methods/patterns). Self-contained local work needs no VPS connection.
 
 Do not revive deleted Hermes, VPS, `server/`, `deploy/`, or hosted-web requirements from git history unless the user explicitly asks to restore them.
 
 ## Workspace and delivery
 
-Verified on 27 September 2026:
+Location/workflow notes; dated operational observations below are historical:
 
 - Active local checkout: `C:\Users\burak\MOTHER\DEV\TABS-local`, branch `main`.
 - Source remote: `https://github.com/brandpreneuragency/APPS_TABS.git` (`origin`).
@@ -30,7 +40,7 @@ Verified on 27 September 2026:
   No hosted application deployment is implied.
 - Burak requested VPS task authority on 27 September 2026. The task-only
   implementation is under `tools/task-authority`, `src/services/taskAuthority`
-  and `src-tauri/src/task_authority.rs`. Installed-app migration was verified
+  and `src-tauri/src/task_authority.rs`. Historical installed-app migration was verified
   on 28 September 2026: 58 tasks, 17 task clients, 17 projects and 11 comments
   match the original backup and VPS, including all attachments. The VPS
   checkpoint was restored and compared separately. Consult live
@@ -51,6 +61,25 @@ TABS is a **local desktop application** built with Tauri.
 - Production packaging and day-to-day use target the Windows Tauri desktop app.
 
 Keep the React UI separate from Tauri service adapters. Feature code should go through `src/services/` (runtime, folder connectors, FS adapter, HTTP helpers) rather than importing `@tauri-apps/*` directly in components.
+
+### Current task-authority contract
+
+Source rechecked on 5 October 2026; this is not a live VPS/installed-app check.
+See [the task-authority guide](tools/task-authority/README.md) only when that
+subsystem is relevant. `src-tauri/src/task_authority.rs` fixes transport to
+`admin@atlas-vps`, resolves atlas-map and calls the task-only JSON RPC; it does
+not expose arbitrary SSH commands. Keep that account; do not invent a new one.
+`tools/task-authority/tasks.py` and `src/services/taskAuthority/model.ts` agree
+on `clients`, `projects`, `tasks`, `taskComments` (Task clients, not CRM).
+Preserve compare-and-set revisions, idempotent operation receipts, explicit
+deletion intents/tombstones, authority identity/generation guards, durable
+pending requests and visible conflicts. Missing cache rows are not deletions.
+Active task-to-project and project-to-client relations are checked; do not
+restore old parent/subtask assumptions from earlier reviews or history.
+Markdown is a secondary projection, never import authority or permission to run
+a plan. Projection retries must preserve manual edits. Real data, migration,
+acceptance SSH and restoration require the matching task scope; prefer isolated
+fixtures and do not connect to production merely to verify local source edits.
 
 ## Required start-up checks
 
@@ -133,7 +162,13 @@ Shell workspace modes are local only: Documents, Tasks, CRM (including Forms), S
 
 ## Verification
 
-Frontend/full code gate:
+Choose verification by changed target: documentation gets link/script and diff
+checks; frontend logic gets relevant tests (`npm run test -- <test-file>`),
+touched-file lint and applicable typecheck. `npm run typecheck` is project-wide;
+state that scope rather than presenting it as a single-file check.
+
+The full gate below runs typecheck, lint, all tests **and build**, not just a
+frontend smoke check. Use it when acceptance or integration scope warrants it:
 
 ```powershell
 npm run check
@@ -158,9 +193,10 @@ End implementation work with:
 - Remaining risks or unverified paths
 
 <!-- verified-project-workflow:2026-09-28 -->
-## Source copies and current Git workflow
+## Source copies and historical Git checkpoint
 
-Verified 28 September 2026, Europe/Istanbul.
+Recorded 28 September 2026, Europe/Istanbul; remote redirects/HEAD equality are
+historical observations, not current online verification.
 
 - Primary source: `C:/Users/burak/MOTHER/DEV/TABS-local`, main tracking
   origin/main. Both local and GitHub main resolved to
@@ -170,12 +206,15 @@ Verified 28 September 2026, Europe/Istanbul.
   GitHub currently redirects the older brandpreneuragency/TABS name to this
   same repository. Different URL spellings do not prove separate repositories.
 - Clients v2 execution copy: `C:/Users/burak/MOTHER/DEV/TABS-Clients-v2-run`.
-  This is a separate clone, not a linked worktree; its origin is the local
-  TABS-local path. It was on a detached HEAD during active execution.
+  This is a separate clone, not a linked worktree. Local inspection on 5 October
+  2026 still found detached HEAD and origin pointing at the nonexistent historical
+  `C:/Users/burak/MOTHER/PROJECTS/TABS-local`, not this active DEV checkout.
+  That is an unresolved transfer blocker, not permission to fix the remote.
   Do not switch its branch, rewrite its origin or add unrelated edits while
   that run is working. Its latest phase commit is a changing runtime fact.
-- The Clients run has its own existing source-commit authorization. This
-  inventory does not expand that permission to pushes, installer or production.
+- Any Clients source-commit authorization belongs only to its selected run;
+  confirm the current request/receipt rather than inferring it from this inventory.
+  It never expands to pushes, installer or production.
   Integration into the primary dirty checkout requires reviewing the selected
   candidate and existing changes; copying files wholesale is not a merge.
 - No VPS TABS source checkout was found under the resolved ATLAS project root.

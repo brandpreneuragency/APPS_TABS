@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { liveQuery } from 'dexie';
-import { Brain, Check, ChevronDown, SlidersHorizontal } from 'lucide-react';
+import { Check, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { ChatProviderId } from '../../types';
 import type { CodexModel } from '../../services/codex/types';
@@ -9,6 +9,7 @@ import { useCodexModelVisibility, visibleCodexModels } from '../../services/code
 import { probeCliProvider, type CliProviderId, type CliProviderModel, type CliProviderProbe } from '../../services/providers/desktopClient';
 import { useProviderModelVisibility, visibleProviderModels } from '../../services/providers/modelVisibility';
 import { cliReasoningEffortSettingKey } from '../../services/providers/reasoningEffort';
+import { mockProviderModels, type MockProviderId } from '../../services/providers/mockProviders';
 import { isTauriRuntime } from '../../services/runtime';
 import { db } from '../../services/db';
 import { useUIStore } from '../../stores/uiStore';
@@ -20,11 +21,17 @@ const providers: Array<{ id: ChatProviderId; name: string }> = [
   { id: 'grok', name: 'Grok' },
   { id: 'commandCode', name: 'Command Code' },
   { id: 'openCode', name: 'OpenCode' },
+  { id: 'mockEcho', name: 'Mock Echo' },
+  { id: 'mockTools', name: 'Mock Tools' },
 ];
 const cliProviderIds: CliProviderId[] = ['grok', 'commandCode', 'openCode'];
 
 function isCliProviderId(id: ChatProviderId): id is CliProviderId {
-  return id !== 'codex';
+  return id === 'grok' || id === 'commandCode' || id === 'openCode';
+}
+
+function isMockProviderId(id: ChatProviderId): id is MockProviderId {
+  return id === 'mockEcho' || id === 'mockTools';
 }
 
 type ChatModel = CodexModel | CliProviderModel;
@@ -53,11 +60,13 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
   const grokVisibility = useProviderModelVisibility('grok');
   const commandCodeVisibility = useProviderModelVisibility('commandCode');
   const openCodeVisibility = useProviderModelVisibility('openCode');
+  const mockEchoVisibility = useProviderModelVisibility('mockEcho');
+  const mockToolsVisibility = useProviderModelVisibility('mockTools');
   const openSettings = useUIStore((state) => state.openSettings);
   const hasConnectedFolder = useWorkspaceStore((state) => Boolean(state.workspaces
     .find((workspace) => workspace.id === workspaceId)?.connectedFolders[0]?.path));
 
-  const [modelIds, setModelIds] = useState<Record<ChatProviderId, string>>({ codex: '', grok: '', commandCode: '', openCode: '' });
+  const [modelIds, setModelIds] = useState<Record<ChatProviderId, string>>({ codex: '', grok: '', commandCode: '', openCode: '', mockEcho: '', mockTools: '' });
   const [effort, setEffort] = useState('');
   const [cliEffortPreference, setCliEffortPreference] = useState<{ key: string; value: string }>({ key: '', value: '' });
   const [access, setAccess] = useState<'readOnly' | 'workspaceWrite'>('readOnly');
@@ -89,6 +98,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
       const rows = await Promise.all([
         db.settings.get('codexModelId'), db.settings.get('providerModelId:grok'),
         db.settings.get('providerModelId:commandCode'), db.settings.get('providerModelId:openCode'),
+        db.settings.get('providerModelId:mockEcho'), db.settings.get('providerModelId:mockTools'),
         db.settings.get('codexEffort'),
       ]);
       return {
@@ -97,8 +107,10 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
           grok: typeof rows[1]?.value === 'string' ? rows[1].value : '',
           commandCode: typeof rows[2]?.value === 'string' ? rows[2].value : '',
           openCode: typeof rows[3]?.value === 'string' ? rows[3].value : '',
+          mockEcho: typeof rows[4]?.value === 'string' ? rows[4].value : '',
+          mockTools: typeof rows[5]?.value === 'string' ? rows[5].value : '',
         },
-        effort: typeof rows[4]?.value === 'string' ? rows[4].value : '',
+        effort: typeof rows[6]?.value === 'string' ? rows[6].value : '',
       };
     }).subscribe({
       next: (preferences) => { setModelIds(preferences.modelIds); setEffort(preferences.effort); },
@@ -142,14 +154,13 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
   }, [desktop]);
 
   useEffect(() => {
-    if (providerId !== 'codex') void probeOne(providerId);
+    if (isCliProviderId(providerId)) void probeOne(providerId);
   }, [providerId, probeOne]);
 
   useEffect(() => {
     if (openPanel !== 'models') return;
     let active = true;
-    const order = providerId === 'codex' ? cliProviderIds
-      : [providerId, ...cliProviderIds.filter((id) => id !== providerId)];
+    const order = isCliProviderId(providerId) ? [providerId, ...cliProviderIds.filter((id) => id !== providerId)] : cliProviderIds;
     void (async () => {
       for (const id of order) {
         if (!active) break;
@@ -180,11 +191,14 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
     setOpenPanel(null);
   };
 
-  const visibilityByProvider = { grok: grokVisibility, commandCode: commandCodeVisibility, openCode: openCodeVisibility };
+  const visibilityByProvider = { grok: grokVisibility, commandCode: commandCodeVisibility, openCode: openCodeVisibility, mockEcho: mockEchoVisibility, mockTools: mockToolsVisibility };
   const catalogue = providers.map((provider) => {
     let models: ChatModel[] = [];
     if (provider.id === 'codex') {
       if (connection && codexVisibility) models = visibleCodexModels(codexModels, codexVisibility);
+    } else if (isMockProviderId(provider.id)) {
+      const visibility = visibilityByProvider[provider.id];
+      if (visibility) models = visibleProviderModels(mockProviderModels[provider.id], visibility);
     } else if (isCliProviderId(provider.id)) {
       const probe = probes[provider.id];
       const visibility = visibilityByProvider[provider.id];
@@ -262,7 +276,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
         aria-expanded={openPanel === 'reasoning'} aria-controls="chat-composer-reasoning"
         title={t('codex.reasoning')} disabled={switchingLocked}
         onClick={() => setOpenPanel(openPanel === 'reasoning' ? null : 'reasoning')}>
-        <Brain size={14} aria-hidden="true" /><span>{selectedEffort || t('codex.reasoning')}</span>
+        <span>{selectedEffort || t('codex.reasoning')}</span>
         <ChevronDown size={12} aria-hidden="true" />
       </button>
       {openPanel === 'reasoning' && <div id="chat-composer-reasoning" className="chat-reasoning-popover"
@@ -305,11 +319,12 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
       <div className="chat-model-list">
         {filtered.map((provider) => {
           if (query && provider.models.length === 0) return null;
-          const cliId = provider.id === 'codex' ? null : provider.id;
+          const cliId = isCliProviderId(provider.id) ? provider.id : null;
           const probe = cliId ? probes[cliId] : null;
           const status = provider.models.length ? '' : provider.id === 'codex'
             ? !connection ? t('codex.connectForModels')
               : codexModels.length === 0 ? t('codex.noModels') : t('codex.noVisibleModels')
+            : isMockProviderId(provider.id) ? t('cliProviders.noVisibleModels')
             : !desktop ? t('cliProviders.status.desktopOnly')
               : loading[cliId!] ? t('cliProviders.status.checking')
                 : probeErrors[cliId!] ? t('cliProviders.status.checkFailed')

@@ -31,6 +31,8 @@ export interface Workspace {
   id: string;
   /** Tab label (folder name or custom name). */
   name: string;
+  /** Explicit label intent; absent on legacy records, which use name heuristics. */
+  nameIsCustom?: boolean;
   /** Per-workspace connected folders (max one; isolated from other workspaces). */
   connectedFolders: ConnectedFolderRef[];
   /** Which folder's tree is currently shown (the single attached folder). */
@@ -71,8 +73,8 @@ export interface Attachment {
   displayPath?: string;
 }
 
-/** Providers that can own a new local CLI chat thread. */
-export type ChatProviderId = 'codex' | 'grok' | 'commandCode' | 'openCode';
+/** Providers that can own a new local CLI chat thread. Mock ids run locally without Tauri for UI testing. */
+export type ChatProviderId = 'codex' | 'grok' | 'commandCode' | 'openCode' | 'mockEcho' | 'mockTools';
 
 /** A transcript never changes provider after its first message. */
 export type ChatThreadOrigin = 'legacy_api' | ChatProviderId;

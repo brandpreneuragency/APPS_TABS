@@ -94,6 +94,17 @@ describe('QuickCreateInput', () => {
     );
   });
 
+  it('uses the newly selected navigation project even with an older composer project', async () => {
+    const user = userEvent.setup();
+    const view = render(<QuickCreateInput assignedProject="Website" />);
+    selectedProjectId = 'p-gen';
+    view.rerender(<QuickCreateInput assignedProject="Website" />);
+    expect(screen.getByRole('button', { name: 'Project: General' })).toBeDisabled();
+    await user.type(screen.getByRole('textbox'), 'New brief');
+    await user.click(screen.getByTitle('Add task'));
+    expect(createTask).toHaveBeenCalledWith('New brief', expect.objectContaining({ projectId: 'p-gen' }));
+  });
+
   it('toasts when no project can be resolved', async () => {
     selectedClientId = null;
     selectedProjectId = null;

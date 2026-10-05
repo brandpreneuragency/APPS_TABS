@@ -9,6 +9,7 @@ import { filterTasksForSelection } from '../../stores/taskSelection';
 import { TaskKanbanCard } from './TaskProjectsKanban';
 import { TaskCalendarDatePicker } from './TaskCalendarDatePicker';
 import { TaskQuickCreate } from './TaskQuickCreate';
+import { formatTurkishClock } from './formatTurkishClock';
 import { AssistantToggle } from '../layout/workspace/AssistantToggle';
 import './taskCalendar.css';
 
@@ -24,7 +25,7 @@ function dateKey(date: Date) {
 }
 
 export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const activeTaskId = useTaskStore((state) => state.activeTaskId);
   const selectedClientId = useTaskStore((state) => state.selectedClientId);
   const selectedProjectId = useTaskStore((state) => state.selectedProjectId);
@@ -60,8 +61,8 @@ export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
   const monthLength = new Date(anchor.getFullYear(), anchor.getMonth() + 1, 0).getDate();
   const count = view === 'week' ? 7 : Math.ceil(((monthStart.getDay() + 6) % 7 + monthLength) / 7) * 7;
   const days = Array.from({ length: count }, (_, index) => new Date(first.getFullYear(), first.getMonth(), first.getDate() + index));
-  const format = (date: Date, options: Intl.DateTimeFormatOptions) => date.toLocaleDateString(i18n.language, options);
-  const clockLabel = `${format(today, { month: 'short', day: 'numeric' })}. ${format(today, { weekday: 'short' }).replace(/\.$/, '')}. ${today.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })}`;
+  const format = (date: Date, options: Intl.DateTimeFormatOptions) => date.toLocaleDateString('tr', options);
+  const clockLabel = formatTurkishClock(today);
   const label = view === 'month' ? format(anchor, { month: 'long', year: 'numeric' }) : `${format(days[0], { day: 'numeric', month: 'short', year: 'numeric' })} - ${format(days[6], { day: 'numeric', month: 'short', year: 'numeric' })}`;
   const move = (direction: number) => setAnchor(view === 'week'
     ? new Date(anchor.getFullYear(), anchor.getMonth(), anchor.getDate() + direction * 7)

@@ -10,6 +10,7 @@ import CRMActivitiesPage from '../crm/pages/CRMActivitiesPage';
 import CRMSettingsPage from '../crm/pages/CRMSettingsPage';
 import { FormsWorkspace } from './FormsWorkspace';
 import { TaskProjectsKanban } from '../taskManager/TaskProjectsKanban';
+import { ClientsWorkspace } from '../clients/ClientsWorkspace';
 
 function renderCRMPage(page: CRMPage) {
   switch (page) {
@@ -38,6 +39,7 @@ export function CRMWorkspace() {
   const { activeCRMPage } = useUIStore();
 
   if (activeCRMPage === 'projects') return <TaskProjectsKanban />;
+  if (activeCRMPage === 'clients') return <ClientsWorkspace />;
 
   return (
     <div id="crm-workspace" className="crm-workspace panel">

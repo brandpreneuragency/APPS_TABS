@@ -64,36 +64,36 @@ export function AgentEditorForm({ agentId, onDone }: AgentEditorFormProps) {
     <div className="settings-agent-editor flex-col h-full w-full" style={{ display: 'flex', overflow: 'hidden' }}>
       <div className="settings-detail-body">
         <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Agent Name</label>
+          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Agent Name</label>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('sidebar.agentNamePlaceholder')}
             className="ctrl w-full"
-            style={{ fontSize: 'var(--fs-base)' }}
+            style={{ fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
         <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Avatar URL (optional)</label>
+          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Avatar URL (optional)</label>
           <input
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
             placeholder="https://..."
             className="ctrl w-full"
-            style={{ fontSize: 'var(--fs-base)' }}
+            style={{ fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
         <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>System Prompt</label>
+          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>System Prompt</label>
           <textarea
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
             rows={8}
             placeholder="Describe how this agent should behave..."
             className="ctrl w-full"
-            style={{ fontSize: 'var(--fs-base)', resize: 'vertical', lineHeight: 1.625, minHeight: 160 }}
+            style={{ fontSize: 'var(--fs-sm)', resize: 'vertical', lineHeight: 1.625, minHeight: 160 }}
           />
         </div>
 
@@ -102,7 +102,7 @@ export function AgentEditorForm({ agentId, onDone }: AgentEditorFormProps) {
             onClick={handleSave}
             disabled={!name.trim()}
             className="btn-brand flex-1"
-            style={{ fontSize: 'var(--fs-base)', padding: '8px 12px', opacity: !name.trim() ? 0.4 : 1 }}
+            style={{ fontSize: 'var(--fs-sm)', padding: '8px 12px', opacity: !name.trim() ? 0.4 : 1 }}
           >
             {editingAgent ? 'Save Changes' : 'Create Agent'}
           </button>

@@ -1,7 +1,7 @@
-import type { CliProviderId, CliProviderModel } from './desktopClient';
+import type { CliProviderModel } from './desktopClient';
 
 /** Keep CLI effort choices with the model that advertised them. */
-export function cliReasoningEffortSettingKey(providerId: CliProviderId, modelId: string): string {
+export function cliReasoningEffortSettingKey(providerId: string, modelId: string): string {
   return `providerReasoningEffort:${providerId}:${modelId}`;
 }
 

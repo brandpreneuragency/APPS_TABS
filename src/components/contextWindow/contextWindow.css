@@ -74,10 +74,11 @@
 
 .context-window-summary-tooltip {
   width: min(260px, calc(100vw - 32px));
-  padding: 10px 12px;
+  padding: 4px;
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--c-background-1) 94%, white 6%);
+  background: var(--c-background-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -116,9 +117,14 @@
 
 .context-window-popover-card {
   width: fit-content;
-  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
-  background: var(--c-background-0);
+  background: var(--c-background-2);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
   overflow: hidden;
 }
 
@@ -126,9 +132,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   width: 100%;
-  padding: 14px 16px 12px;
+  padding: 6px 8px;
   border-bottom: none;
   background: transparent;
 }
@@ -182,10 +188,10 @@
 .context-window-body {
   width: 100%;
   max-height: min(420px, calc(100vh - 180px));
-  padding: 16px;
+  padding: 4px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 4px;
   overflow-y: auto;
   overflow-x: hidden;
 }
@@ -194,13 +200,13 @@
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  column-gap: 14px;
-  row-gap: 14px;
+  column-gap: 4px;
+  row-gap: 4px;
 }
 
 .context-window-secondary-grid {
   display: grid;
-  gap: 12px;
+  gap: 4px;
 }
 
 .context-window-stat {
@@ -224,7 +230,7 @@
 .context-window-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .context-window-section-title {

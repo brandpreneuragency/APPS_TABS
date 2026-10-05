@@ -9,7 +9,6 @@ import { db, getSetting, setSetting } from '../services/db';
 import { recordTaskDeletion } from '../services/taskAuthority/cache';
 import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
-import { assertSubtaskParent, assertTaskProjectChange, assertTaskSoftDelete } from '../services/taskRelations';
 import { useUIStore } from './uiStore';
 import { useProjectStore } from './projectStore';
 import { formatProjectIndex, nameKey, projectMirrorDir, sanitizeFsName, taskMirrorDir } from './taskTreeNames';
@@ -325,7 +324,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       importance: opts.importance ?? 'medium',
       date: opts.date ?? todayIso(),
       projectId,
-      parentTaskId: opts.parentTaskId,
       assignees: opts.assignees ?? [],
       createdAt: now,
       updatedAt: now,
@@ -336,9 +334,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     try {
       await db.transaction('rw', db.tasks, db.projects, async () => {
         if (!await db.projects.get(projectId)) throw new Error('Task project is missing');
-        if (task.parentTaskId) {
-          assertSubtaskParent(await db.tasks.get(task.parentTaskId), projectId);
-        }
         await db.tasks.add(task);
       });
       try {
@@ -397,14 +392,12 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         if (!current || current.deletedAt) throw new Error('Task is unavailable');
         const projectId = enforcedUpdates.projectId ?? current.projectId;
         if (projectId !== current.projectId) {
-          const [source, target, childCount] = await Promise.all([
+          const [source, target] = await Promise.all([
             db.projects.get(current.projectId), db.projects.get(projectId),
-            db.tasks.where('parentTaskId').equals(id).filter((child) => !child.deletedAt).count(),
           ]);
           if (!source || !target || source.clientId !== target.clientId) {
             throw new Error('Project assignment is outside the task client');
           }
-          assertTaskProjectChange(current, projectId, childCount);
           if (nameKey(sanitizeFsName(source.name)) === nameKey(sanitizeFsName(target.name))) {
             throw new Error('Project assignment would overlap the existing task mirror');
           }
@@ -435,8 +428,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const change = await db.transaction('rw', db.tasks, async () => {
         const task = await db.tasks.get(id);
         if (!task || task.deletedAt) throw new Error('Task is unavailable');
-        assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(id)
-          .filter((child) => !child.deletedAt).count());
         const after: Task = { ...task, deletedAt: Date.now(),
           updatedAt: Math.max(Date.now(), task.updatedAt + 1) };
         await db.tasks.put(after);
@@ -459,9 +450,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const change = await db.transaction('rw', db.tasks, async () => {
         const task = await db.tasks.get(id);
         if (!task?.deletedAt) throw new Error('Deleted task is unavailable');
-        if (task.parentTaskId) {
-          assertSubtaskParent(await db.tasks.get(task.parentTaskId), task.projectId);
-        }
         const after: Task = { ...task, deletedAt: undefined,
           updatedAt: Math.max(Date.now(), task.updatedAt + 1) };
         await db.tasks.put(after);
@@ -501,7 +489,6 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       const taskToDelete = await db.transaction('rw', db.tasks, db.settings, async () => {
         const task = await db.tasks.get(id);
         if (!task) throw new Error('Task is unavailable');
-        assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(id).count());
         await recordTaskDeletion(db, [{ table: 'tasks', id }]);
         await db.tasks.delete(id);
         return task;

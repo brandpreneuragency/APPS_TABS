@@ -13,6 +13,15 @@ function draftJobKey(draft: ClientDraft): string {
 
 const serialQueues = new Map<string, Promise<void>>();
 const autosaveJobs = new Map<string, Promise<void>>();
+const cancelledDraftSessions = new Map<string, { attempts: Set<symbol>; succeeded: boolean }>();
+
+function draftSessionKey(id: string, editSessionId: string): string {
+  return JSON.stringify([id, editSessionId]);
+}
+
+function isDraftSessionCancelled(id: string, editSessionId: string): boolean {
+  return cancelledDraftSessions.has(draftSessionKey(id, editSessionId));
+}
 
 function enqueueSerialized<T>(id: string, operation: () => Promise<T>): Promise<T> {
   const previous = serialQueues.get(id) ?? Promise.resolve();
@@ -36,6 +45,7 @@ function markFailure(draft: ClientDraft, result: Extract<ClientRecordResult<unkn
 }
 
 async function persistAutosave(draft: ClientDraft, records: ClientRecordsAdapter): Promise<void> {
+  if (isDraftSessionCancelled(draft.id, draft.editSessionId)) return;
   const store = useClientDetailsStore.getState();
   const current = store.drafts[draft.id];
   if (!current || current.editSessionId !== draft.editSessionId || current.generation !== draft.generation) return;
@@ -51,6 +61,7 @@ async function persistAutosave(draft: ClientDraft, records: ClientRecordsAdapter
       return;
     }
     const savedDraft = durable.value;
+    if (isDraftSessionCancelled(savedDraft.id, savedDraft.editSessionId)) return;
     if (savedDraft.baseRevision !== null) {
       useClientDetailsStore.getState().rebaseDraft(savedDraft.id, savedDraft.editSessionId,
         savedDraft.generation, savedDraft.baseRevision);
@@ -65,6 +76,7 @@ async function persistAutosave(draft: ClientDraft, records: ClientRecordsAdapter
       generation: savedDraft.generation,
       editSessionId: savedDraft.editSessionId,
     };
+    if (isDraftSessionCancelled(savedDraft.id, savedDraft.editSessionId)) return;
     const result = savedDraft.kind === 'profile'
       ? await records.saveProfile({
         clientId: savedDraft.clientId,
@@ -79,6 +91,7 @@ async function persistAutosave(draft: ClientDraft, records: ClientRecordsAdapter
         value: savedDraft.value,
         draftAck: acknowledgement,
       });
+    if (isDraftSessionCancelled(savedDraft.id, savedDraft.editSessionId)) return;
     if (!result.ok) {
       markFailure(savedDraft, result);
       return;
@@ -86,6 +99,7 @@ async function persistAutosave(draft: ClientDraft, records: ClientRecordsAdapter
     useClientDetailsStore.getState().markSaved(savedDraft.id, savedDraft.editSessionId,
       savedDraft.generation, result.value.revision);
   } catch {
+    if (isDraftSessionCancelled(current.id, current.editSessionId)) return;
     useClientDetailsStore.getState().markError({
       id: current.id,
       editSessionId: current.editSessionId,
@@ -198,6 +212,7 @@ export function useClientAutosave({
   const saveNote = useCallback(async (): Promise<ClientRecordResult<ClientNote>> => {
     if (identity.kind !== 'note') return failedResult('VALIDATION', 'kind');
     return enqueueSerialized(identity.id, async () => {
+      if (isDraftSessionCancelled(identity.id, identity.editSessionId)) return failedResult('CONFLICT');
       const current = useClientDetailsStore.getState().drafts[identity.id];
       if (!current || current.editSessionId !== identity.editSessionId || current.kind !== 'note') {
         return failedResult('CONFLICT');
@@ -211,6 +226,7 @@ export function useClientAutosave({
         }
         const savedDraft = durable.value;
         if (savedDraft.kind !== 'note') return failedResult('CONFLICT');
+        if (isDraftSessionCancelled(savedDraft.id, savedDraft.editSessionId)) return failedResult('CONFLICT');
         const result = await records.saveNote({
           id: savedDraft.recordId,
           clientId: savedDraft.clientId,
@@ -220,6 +236,9 @@ export function useClientAutosave({
           generation: savedDraft.generation,
           editSessionId: savedDraft.editSessionId,
         });
+        if (isDraftSessionCancelled(savedDraft.id, savedDraft.editSessionId)) {
+          return failedResult('CONFLICT');
+        }
         if (!result.ok) {
           markFailure(savedDraft, result);
           return result;
@@ -242,18 +261,38 @@ export function useClientAutosave({
   const discardDraft = useCallback(async (): Promise<ClientRecordResult<void>> => {
     const current = useClientDetailsStore.getState().drafts[identity.id];
     if (!current || current.editSessionId !== identity.editSessionId) return failedResult('CONFLICT');
-    const result = await records.discardDraft({
-      id: current.id,
-      editSessionId: current.editSessionId,
-      generation: current.generation,
-    });
-    if (result.ok) {
-      useClientDetailsStore.getState().clearDraft(current.id, current.editSessionId, current.generation);
-    } else {
-      markFailure(current, result);
+    const cancellationKey = draftSessionKey(current.id, current.editSessionId);
+    const cancellation = cancelledDraftSessions.get(cancellationKey)
+      ?? { attempts: new Set<symbol>(), succeeded: false };
+    const attempt = Symbol();
+    cancellation.attempts.add(attempt);
+    cancelledDraftSessions.set(cancellationKey, cancellation);
+    const timer = timers.current.get(identityToken);
+    if (timer !== undefined) {
+      clearTimeout(timer);
+      timers.current.delete(identityToken);
     }
-    return result;
-  }, [identity.id, identity.editSessionId, records]);
+    try {
+      const result = await records.discardDraft({
+        id: current.id,
+        editSessionId: current.editSessionId,
+        generation: current.generation,
+      });
+      if (result.ok) {
+        cancellation.succeeded = true;
+        useClientDetailsStore.getState().clearDraft(current.id, current.editSessionId, current.generation);
+      } else {
+        markFailure(current, result);
+      }
+      return result;
+    } finally {
+      cancellation.attempts.delete(attempt);
+      if (!cancellation.succeeded && cancellation.attempts.size === 0
+        && cancelledDraftSessions.get(cancellationKey) === cancellation) {
+        cancelledDraftSessions.delete(cancellationKey);
+      }
+    }
+  }, [identity.id, identity.editSessionId, identityToken, records]);
 
   return {
     draft: currentDraft,

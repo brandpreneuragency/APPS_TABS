@@ -9,6 +9,7 @@ import { findNodeByFullPath, useWorkspaceStore, type TreeNode as TreeNodeType } 
 import { useUIStore } from '../../stores/uiStore';
 import { TreeNode } from './TreeNode';
 import { FileTreeTabs } from './FileTreeTabs';
+import { MockFileTreeShowcase } from './MockFileTreeShowcase';
 
 const POLL_INTERVAL_MS = 10_000;
 const SEARCH_RESULT_LIMIT = 50;
@@ -308,7 +309,7 @@ export function FileExplorerPanel() {
                 role="option"
                 onClick={() => { void handleSearchResultClick(node); }}
                 className="drop-item"
-                style={{ fontSize: 'var(--fs-base)' }}
+                style={{ fontSize: 'var(--fs-sm)' }}
               >
                 {node.kind === 'file'
                   ? <File size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />
@@ -317,7 +318,7 @@ export function FileExplorerPanel() {
               </button>
             ))}
             {!searchIndexing && searchActive && searchMatches.length === 0 && (
-              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-base)' }}>
+              <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-sm)' }}>
                 {t('explorer.noSearchMatches')}
               </div>
             )}
@@ -331,9 +332,15 @@ export function FileExplorerPanel() {
     <div className="panel flex-col h-full" style={{ display: 'flex', minHeight: 0 }}>
       {renderToolbar()}
       {/* Body */}
-      <div className="panel-body ai-scroll flex-1 overflow-y-a" style={{ minHeight: 0, padding: '8px 8px 8px 0' }}>
+      <div className="panel-body ai-scroll flex-1 overflow-y-a" style={{ minHeight: 0, padding: '6px 6px 6px 0' }}>
         {error && (
           <p style={{ fontSize: 'var(--fs-xs)', color: '#EF4444', marginBottom: 8, lineHeight: 1.375 }}>{error}</p>
+        )}
+
+        {!rootNode?.children && (
+          <div style={{ opacity: 0.9 }}>
+            <MockFileTreeShowcase />
+          </div>
         )}
 
         {rootNode?.children && (

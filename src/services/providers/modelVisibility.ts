@@ -2,7 +2,7 @@ import { liveQuery } from 'dexie';
 import { useEffect, useState } from 'react';
 import { db } from '../db';
 
-export const providerIds = ['codex', 'grok', 'commandCode', 'openCode'] as const;
+export const providerIds = ['codex', 'grok', 'commandCode', 'openCode', 'mockEcho', 'mockTools'] as const;
 
 export type ProviderId = typeof providerIds[number];
 
@@ -11,6 +11,8 @@ const visibilitySettingKeys: Record<ProviderId, string> = {
   grok: 'grokModelVisibility',
   commandCode: 'commandCodeModelVisibility',
   openCode: 'openCodeModelVisibility',
+  mockEcho: 'mockEchoModelVisibility',
+  mockTools: 'mockToolsModelVisibility',
 };
 
 export type ProviderModelVisibility = {

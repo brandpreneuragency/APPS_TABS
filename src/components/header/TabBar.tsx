@@ -1,5 +1,4 @@
 import { useRef, useState } from 'react';
-import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { WorkspaceTab } from './WorkspaceTab';
@@ -62,8 +61,6 @@ export function TabBar() {
           }}
         />
       ))}
-      <button id="tab-plus-button" type="button" className="scope-add" title={t('tabs.newDocument')}
-        aria-label={t('tabs.newDocument')} onClick={() => useWorkspaceStore.getState().createWorkspace()}><Plus size={14} /></button>
     </div>
   );
 }

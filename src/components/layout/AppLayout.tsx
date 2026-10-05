@@ -220,7 +220,7 @@ function resolveModeLayout(args: {
           contextPanelOpen={contextPanelOpenByMode.documents}
           contextPanelWidthVw={contextPanelWidth}
           contextPanelId="file-tree-panel"
-          contextPanelStyle={{ padding: '0 10px' }}
+          contextPanelStyle={{ padding: '0 0 0 6px' }}
         />
       ),
     };

@@ -76,4 +76,38 @@ describe('AddNewProjectButton', () => {
 
     expect(createProject).toHaveBeenCalledWith('Launch', 'c1');
   });
+
+  it.each(['enter', 'checkmark'])('creates from an inline last row using %s', async (method) => {
+    const user = userEvent.setup();
+    render(<AddNewProjectButton clientId="c1" inlineGroupLabel="Client">
+      <button>Existing project</button>
+    </AddNewProjectButton>);
+    await user.click(screen.getByRole('button', { name: 'tasks.addNewProject' }));
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveFocus();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(input.closest('form')).toBe(input.closest('.scope-project-content')?.lastElementChild);
+    await user.type(input, 'Website');
+    if (method === 'enter') await user.keyboard('{Enter}');
+    else await user.click(screen.getByRole('button', { name: 'tasks.addProject' }));
+    expect(createProject).toHaveBeenCalledExactlyOnceWith('Website', 'c1');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+  });
+
+  it('dismisses the inline draft on an outside click or Escape without saving', async () => {
+    const user = userEvent.setup();
+    render(<AddNewProjectButton clientId="c1" inlineGroupLabel="Client">
+      <button>Existing project</button>
+    </AddNewProjectButton>);
+    const trigger = screen.getByRole('button', { name: 'tasks.addNewProject' });
+    await user.click(trigger);
+    await user.type(screen.getByRole('textbox'), 'Draft');
+    await user.click(screen.getByRole('button', { name: 'Existing project' }));
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    await user.click(trigger);
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(createProject).not.toHaveBeenCalled();
+  });
 });

@@ -1,12 +1,16 @@
-import { Folder, Layers, Users, UserRoundMinus } from 'lucide-react';
+import { Folder, Layers, Plus, Trash2, Users, UserRoundMinus } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
+import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { useClientStore } from '../../stores/clientStore';
+import { useProjectStore } from '../../stores/projectStore';
 import { isNoClient } from '../../stores/clientOverview';
 import { TabBar } from '../header/TabBar';
 import { SETTINGS_HEADER_TABS } from '../header/moduleNav';
 import { AddNewClientButton } from '../taskManager/AddNewClientButton';
+import { AddNewProjectButton } from '../taskManager/AddNewProjectButton';
 
 export function LeftNarrowSidebar() {
   const { t } = useTranslation();
@@ -17,16 +21,19 @@ export function LeftNarrowSidebar() {
   const crmPage = useUIStore((state) => state.activeCRMPage);
   const formsPage = useUIStore((state) => state.activeFormsPage);
   const clients = useClientStore((state) => state.clients);
+  const projects = useProjectStore((state) => state.projects);
+  const reorderProject = useProjectStore((state) => state.reorderProject);
+  const [draggedProject, setDraggedProject] = useState<{ id: string; clientId: string } | null>(null);
+  const [dropTarget, setDropTarget] = useState<{ id: string; after: boolean } | null>(null);
+  const selectedProjectId = useTaskStore((state) => state.selectedProjectId);
   const selectedClientId = useTaskStore((state) => state.selectedClientId);
   const setSelection = useTaskStore((state) => state.setSelection);
   const noClient = clients.find(isNoClient);
   const settings = !taskMode && !crmMode && activeView === 'settings';
   const clientsPage = crmMode && crmPage === 'clients';
   const scopes = [
-    ...(!clientsPage ? [
-      { id: null, name: t('navigation.everything'), icon: Layers },
-      { id: noClient?.id ?? '__no-client__', name: t('navigation.noClient'), icon: UserRoundMinus },
-    ] : []),
+    { id: null, name: t('navigation.everything'), icon: Layers },
+    { id: noClient?.id ?? '__no-client__', name: t(clientsPage ? 'clients.noClientScope' : 'navigation.noClient'), icon: UserRoundMinus },
     ...clients.filter((client) => !isNoClient(client)).sort((left, right) => left.order - right.order)
       .map((client) => ({ id: client.id, name: client.name, icon: Users })),
   ];
@@ -48,6 +55,58 @@ export function LeftNarrowSidebar() {
               onClick={() => useUIStore.getState().setActiveSettingsSubTab(key)}><Icon size={14} /><span>{t(`navigation.${key}`)}</span></button>
           ))}
         </div>
+      ) : taskMode ? (
+        <>
+          <div className="scope-tabs scope-projects" aria-label={t('navigation.projectsList')}>
+            <button type="button" className="scope-tab"
+              aria-current={!selectedClientId && !selectedProjectId ? 'page' : undefined}
+              onClick={() => setSelection(null, null)}><Layers size={14} /><span>{t('navigation.everything')}</span></button>
+            {[...clients].sort((left, right) => left.order - right.order).map((client) => (
+              <section key={client.id} className="scope-project-group" aria-label={client.name}>
+                <AddNewProjectButton clientId={client.id} inlineGroupLabel={client.name}
+                  onCreated={(project) => setSelection(client.id, project.id)}>
+                <button type="button" className="scope-tab scope-project-all"
+                  aria-current={selectedClientId === client.id && !selectedProjectId ? 'page' : undefined}
+                  onClick={() => setSelection(client.id, null)}>
+                  <Layers size={14} /><span>{t('navigation.all')}</span>
+                </button>
+                {projects.filter((project) => project.clientId === client.id)
+                  .sort((left, right) => left.order - right.order).map((project) => (
+                    <button key={project.id} type="button" className="scope-tab"
+                      draggable
+                      data-drop-position={dropTarget?.id === project.id ? (dropTarget.after ? 'after' : 'before') : undefined}
+                      onDragStart={(event) => {
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', project.id);
+                        setDraggedProject({ id: project.id, clientId: client.id });
+                      }}
+                      onDragOver={(event) => {
+                        if (!draggedProject || draggedProject.clientId !== client.id || draggedProject.id === project.id) return;
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = 'move';
+                        const bounds = event.currentTarget.getBoundingClientRect();
+                        setDropTarget({ id: project.id, after: event.clientY > bounds.top + bounds.height / 2 });
+                      }}
+                      onDragLeave={() => setDropTarget(null)}
+                      onDragEnd={() => { setDraggedProject(null); setDropTarget(null); }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        if (draggedProject?.clientId === client.id && dropTarget?.id === project.id) {
+                          void reorderProject(draggedProject.id, project.id, dropTarget.after);
+                        }
+                        setDraggedProject(null);
+                        setDropTarget(null);
+                      }}
+                      title={project.name} aria-current={selectedProjectId === project.id ? 'page' : undefined}
+                      onClick={() => setSelection(client.id, project.id)}>
+                      <Folder size={14} /><span>{project.name}</span>
+                    </button>
+                  ))}
+                </AddNewProjectButton>
+              </section>
+            ))}
+          </div>
+        </>
       ) : (
         <>
           <div className="scope-tabs" role="tablist" aria-orientation="vertical" aria-label={t('navigation.clients')}
@@ -68,8 +127,7 @@ export function LeftNarrowSidebar() {
                 title={name} onClick={() => void selectScope(id)}><Icon size={14} /><span>{name}</span></button>
             ))}
           </div>
-          <div className="scope-navigation-footer"><AddNewClientButton showLabel /></div>
-          {crmMode && (
+          {crmMode && !clientsPage && (
             <details className="scope-more">
               <summary>{t('navigation.more')}</summary>
               {(['leads', 'pipeline', 'forms', 'submissions'] as const).map((page) => (
@@ -85,6 +143,20 @@ export function LeftNarrowSidebar() {
           )}
         </>
       )}
+      <div className="nav-bar-header nav-bar-footer">
+        <div className="nav-bar-toolbar">
+          {!taskMode && !crmMode && !settings && (
+            <button id="nav-btn-close-unedited-tabs" type="button"
+              title={t('tabs.closeUneditedTabs')} aria-label={t('tabs.closeUneditedTabs')}
+              onClick={() => void useWorkspaceStore.getState().closeUneditedWorkspaces()}><Trash2 size={14} /><span>{t('tabs.clearTabs')}</span></button>
+          )}
+          {!taskMode && !crmMode && !settings ? (
+            <button id="tab-plus-button" type="button" title={t('tabs.newDocument')}
+              aria-label={t('tabs.newDocument')}
+              onClick={() => void useWorkspaceStore.getState().createWorkspace()}><Plus size={14} /><span>{t('tabs.newDocumentShort')}</span></button>
+          ) : <AddNewClientButton showLabel />}
+        </div>
+      </div>
     </nav>
   );
 }

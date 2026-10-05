@@ -74,6 +74,7 @@ interface ProjectStore {
   createProject: (name: string, clientId: string) => Promise<Project | null>;
   updateProject: (id: string, updates: Partial<Pick<Project, 'name' | 'color' | 'clientId'>>) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  reorderProject: (id: string, targetId: string, after: boolean) => Promise<void>;
   getProjectById: (id: string | null) => Project | undefined;
 }
 
@@ -113,7 +114,7 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
       color,
       clientId,
       createdAt: now,
-      order: siblings.length,
+      order: siblings.reduce((maximum, sibling) => Math.max(maximum, sibling.order), -1) + 1,
     };
     try {
       await db.projects.add(project);
@@ -154,6 +155,29 @@ export const useProjectStore = create<ProjectStore>((set, get) => ({
         }));
       }
       showError(err, 'Failed to update project.');
+    }
+  },
+
+  reorderProject: async (id, targetId, after) => {
+    if (id === targetId) return;
+    try {
+      const orders = await db.transaction('rw', db.projects, async () => {
+        const source = await db.projects.get(id);
+        const target = await db.projects.get(targetId);
+        if (!source || !target || source.clientId !== target.clientId) return null;
+        const siblings = (await db.projects.toArray())
+          .filter((project) => project.clientId === source.clientId && project.id !== id)
+          .sort((left, right) => left.order - right.order);
+        const targetIndex = siblings.findIndex((project) => project.id === targetId);
+        siblings.splice(targetIndex + (after ? 1 : 0), 0, source);
+        const nextOrders = new Map(siblings.map((project, order) => [project.id, order]));
+        await Promise.all(siblings.map((project, order) => db.projects.update(project.id, { order })));
+        return nextOrders;
+      });
+      if (orders) set((state) => ({ projects: state.projects.map((project) =>
+        orders.has(project.id) ? { ...project, order: orders.get(project.id)! } : project) }));
+    } catch (err) {
+      showError(err, 'Failed to reorder projects.');
     }
   },
 

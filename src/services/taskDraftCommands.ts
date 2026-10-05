@@ -1,6 +1,5 @@
 import { db } from './db';
 import { recordTaskDeletion } from './taskAuthority/cache';
-import { assertSubtaskParent, assertTaskSoftDelete } from './taskRelations';
 import { syncCodexTaskProjection } from '../stores/taskStore';
 import { TASK_TITLE_MAX_LENGTH } from '../types';
 import type { Task, TaskAIChangeBatch, TaskAIDraft, TaskComment } from '../types';
@@ -22,8 +21,8 @@ function validTitle(value: string): string {
   return title;
 }
 
-function inDraftScope(task: Task, root: Task): void {
-  if (task.projectId !== root.projectId || (task.id !== root.id && task.parentTaskId !== root.id)) {
+function inDraftScope(task: Task, root: Task, createdIds: Set<string>): void {
+  if (task.projectId !== root.projectId || (task.id !== root.id && !createdIds.has(task.id))) {
     throw new Error('Task is outside this draft’s active task');
   }
 }
@@ -97,7 +96,7 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
       return existing;
     }
     const root = await db.tasks.get(draft.taskId);
-    if (!root || root.deletedAt || root.parentTaskId || !await db.projects.get(root.projectId)) {
+    if (!root || root.deletedAt || !await db.projects.get(root.projectId)) {
       throw new Error('The active task is unavailable');
     }
     for (const [id, expected] of Object.entries(draft.baselineUpdatedAt)) {
@@ -115,19 +114,19 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
       commentEffects.set(id, { id, before: first ? first.before : before, after });
     };
     const operationIds = new Set<string>();
+    const createdIds = new Set<string>();
     for (const operation of draft.operations) {
       if (operationIds.has(operation.id)) throw new Error('Duplicate draft operation ID');
       operationIds.add(operation.id);
       if (operation.type === 'create_task') {
         if (operation.projectId !== root.projectId || await db.tasks.get(operation.id)) {
-          throw new Error('New subtask conflicts with the active task');
+          throw new Error('New task conflicts with the active task');
         }
-        assertSubtaskParent(await db.tasks.get(root.id), operation.projectId);
         const now = Date.now();
         const task: Task = { id: operation.id, title: validTitle(operation.title),
           content: operation.content ?? '', status: operation.status ?? 'pending',
           importance: operation.importance ?? 'medium', date: operation.date ?? new Date().toISOString().slice(0, 10),
-          projectId: root.projectId, parentTaskId: root.id, assignees: operation.assignees ?? [],
+          projectId: root.projectId, assignees: operation.assignees ?? [],
           createdAt: now, updatedAt: now, order: await db.tasks.where('projectId').equals(root.projectId).count(),
           sourceChatMessageId: messageId };
         if (typeof task.content !== 'string' || task.content.length > 256 * 1024
@@ -135,14 +134,15 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
           || !['low', 'medium', 'high'].includes(task.importance)
           || !/^\d{4}-\d{2}-\d{2}$/.test(task.date)
           || !Array.isArray(task.assignees) || task.assignees.some((id) => typeof id !== 'string')) {
-          throw new Error('Invalid new subtask');
+          throw new Error('Invalid new task');
         }
         await db.tasks.add(task);
+        createdIds.add(task.id);
         markTask(task.id, null, task);
       } else if (operation.type === 'add_comment') {
         const task = await db.tasks.get(operation.taskId);
         if (!task || task.deletedAt) throw new Error('Comment target is unavailable');
-        inDraftScope(task, root);
+        inDraftScope(task, root, createdIds);
         if (!operation.text.trim() || operation.text.length > 8 * 1024) throw new Error('Invalid comment');
         const id = `${draft.id}:${operation.id}`;
         if (await db.taskComments.get(id)) throw new Error('Comment ID already exists');
@@ -154,14 +154,14 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
         if (!comment || comment.taskId !== operation.taskId) throw new Error('Comment is unavailable');
         const task = await db.tasks.get(comment.taskId);
         if (!task) throw new Error('Comment task is unavailable');
-        inDraftScope(task, root);
+        inDraftScope(task, root, createdIds);
         await recordTaskDeletion(db, [{ table: 'taskComments', id: comment.id }]);
         await db.taskComments.delete(comment.id);
         markComment(comment.id, comment, null);
       } else {
         const task = await db.tasks.get(operation.taskId);
         if (!task) throw new Error('Task is unavailable');
-        inDraftScope(task, root);
+        inDraftScope(task, root, createdIds);
         if (draft.baselineUpdatedAt[task.id] === undefined && !taskEffects.has(task.id)) {
           throw new Error('Task revision is missing from the draft');
         }
@@ -175,12 +175,9 @@ export async function applyTaskDraft(messageId: string, draft: TaskAIDraft): Pro
           after = { ...task, ...patch, updatedAt: revision(task.updatedAt) };
         } else if (operation.type === 'soft_delete_task') {
           if (task.deletedAt) throw new Error('Task is already deleted');
-          assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(task.id)
-            .filter((child) => !child.deletedAt).count());
           after = { ...task, deletedAt: Date.now(), updatedAt: revision(task.updatedAt) };
         } else {
           if (!task.deletedAt) throw new Error('Task is already active');
-          if (task.parentTaskId) assertSubtaskParent(await db.tasks.get(task.parentTaskId), task.projectId);
           after = { ...task, deletedAt: undefined, updatedAt: revision(task.updatedAt) };
         }
         await db.tasks.put(after);

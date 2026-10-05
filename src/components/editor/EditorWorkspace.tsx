@@ -93,7 +93,7 @@ export function EditorWorkspace({ onEditorReady }: EditorWorkspaceProps) {
     <div
       id="editor-column"
       className={`panel col h-full${rainbowMode ? ' rainbow-mode' : ''}`}
-      style={{ background: 'var(--center-bg)', padding: '10px 10px 0px 10px' }}
+      style={{ background: 'var(--center-bg)', padding: '6px 6px 0px 6px' }}
     >
       <EditorTopBar
         editor={localEditor}

@@ -51,7 +51,7 @@
   background: var(--c-background-3);
   color: var(--c-text-2);
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   cursor: pointer;
 }
 .task-kanban-client-actions .task-list-add-project-btn {

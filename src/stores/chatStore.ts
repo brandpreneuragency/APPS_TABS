@@ -412,7 +412,7 @@ function replaceOrRemoveMessage(messages: ChatMessage[], id: string): ChatMessag
   return messages.filter((m) => m.id !== id);
 }
 
-const chatProviderIds: ChatProviderId[] = ['codex', 'grok', 'commandCode', 'openCode'];
+const chatProviderIds: ChatProviderId[] = ['codex', 'grok', 'commandCode', 'openCode', 'mockEcho', 'mockTools'];
 
 function isChatProviderId(value: unknown): value is ChatProviderId {
   return typeof value === 'string' && chatProviderIds.includes(value as ChatProviderId);

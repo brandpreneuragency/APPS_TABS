@@ -319,7 +319,7 @@ html[data-resizing='context'] .context-resize-handle {
 
 /* Stable leading slot for inner contextual-panel toggle (Phase 4). */
 .center-content-panel > .subtasks-bar-wrapper {
-  padding: 10px;
+  padding: 6px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -346,11 +346,15 @@ html[data-resizing='context'] .context-resize-handle {
 
 /* Keep active panel toggles on the accent color. */
 :root .context-panel-toggle.tbar-btn--on,
-:root .context-panel-toggle.tbar-btn--on:hover,
 :root .context-panel-toggle.context-panel-toggle--on,
-:root .assistant-toggle.tbar-btn--on,
+:root .assistant-toggle.tbar-btn--on {
+  color: var(--c-text-2);
+  background: transparent !important;
+}
+
+:root .context-panel-toggle.tbar-btn--on:hover,
 :root .assistant-toggle.tbar-btn--on:hover {
-  color: var(--c-accent-1);
+  color: var(--c-accent-2);
   background: transparent !important;
 }
 
@@ -550,7 +554,7 @@ html[data-resizing='context'] .context-resize-handle {
   flex: 0 0 auto;
   width: 100%;
   min-height: 0;
-  padding: 0 12px 12px;
+  padding: 6px 12px 12px;
   border: none;
   border-radius: var(--radius-sm);
   background-color: transparent;
@@ -637,7 +641,7 @@ html[data-resizing='context'] .context-resize-handle {
 .ai-sidebar-composer.panel-footer {
   flex: 0 0 auto;
   min-height: 0;
-  padding: 10px;
+  padding: 6px;
   /* Agent 8: container context for the chat input
    * composer in the right detail panel. */
   container-type: inline-size;
@@ -698,8 +702,8 @@ html[data-resizing='context'] .context-resize-handle {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
-  margin: 10px 5px 10px 0;
-  padding: 10px 40px;
+  margin: 0;
+  padding: 6px 40px;
 }
 
 /* Document title sits at the top of the editor pane, not in the toolbar. */
@@ -745,7 +749,7 @@ html[data-resizing='context'] .context-resize-handle {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 10px 0 0;
+  padding: 6px 6px 0 0;
   gap: 0;
   position: relative;
 }

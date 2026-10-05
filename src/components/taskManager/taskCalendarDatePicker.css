@@ -13,7 +13,7 @@
   color: var(--c-text-1);
   box-shadow: 0 8px 24px rgb(0 0 0 / 24%);
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
 }
 
 .task-calendar-date-popup button {
@@ -40,4 +40,12 @@
 .task-calendar-date-day { font-variant-numeric: tabular-nums; }
 .task-calendar-date-popup .task-calendar-date-day--outside { color: var(--c-text-3); }
 .task-calendar-date-day[aria-current='date'] { border-color: var(--calendar-picker-accent); }
-.task-calendar-date-popup .task-calendar-date-day[aria-pressed='true'] { background: var(--c-accent-3); color: var(--c-accent-1); box-shadow: inset 0 -2px var(--c-accent-1); font-weight: 600; }
+.task-calendar-date-popup .task-calendar-date-day[aria-pressed='true'] { background: var(--c-accent-2); color: var(--c-text-1); border-width: 0; box-shadow: none; font-weight: 600; }
+.task-calendar-date-footer { display: flex; justify-content: stretch; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--c-border-1); }
+.task-calendar-date-clear { flex: 1; height: 30px; }
+.task-calendar-date-clear:disabled { opacity: 0.4; cursor: default; }
+.task-calendar-date-inline { width: min(272px, 100%); box-sizing: border-box; padding: 8px; border: 1px solid var(--c-border-1); border-radius: var(--radius-sm); background: var(--c-background-1); color: var(--c-text-1); font-size: var(--fs-sm); }
+.task-calendar-date-inline .task-calendar-date-day { display: inline-flex; align-items: center; justify-content: center; min-width: 0; height: 30px; padding: 0; border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.task-calendar-date-inline .task-calendar-date-day:hover { background: var(--c-background-2); }
+.task-calendar-date-inline .task-calendar-date-day--outside { color: var(--c-text-3); }
+.task-calendar-date-inline .task-calendar-date-day[aria-pressed='true'] { background: var(--c-accent-2); color: var(--c-text-1); border-width: 0; font-weight: 600; }

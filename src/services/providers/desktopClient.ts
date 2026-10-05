@@ -1,7 +1,7 @@
 import { isTauriRuntime } from '../runtime';
-import type { ProviderId } from './modelVisibility';
 
-export type CliProviderId = Exclude<ProviderId, 'codex'>;
+/** Real CLI providers that need the desktop Tauri bridge. Mock ids run locally. */
+export type CliProviderId = 'grok' | 'commandCode' | 'openCode';
 
 export interface CliProviderModel {
   id: string;

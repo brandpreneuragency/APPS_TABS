@@ -284,6 +284,7 @@ interface WorkspaceStore {
   loadWorkspaces: () => Promise<void>;
   createWorkspace: (name?: string) => Promise<Workspace>;
   deleteWorkspace: (id: string) => Promise<void>;
+  closeUneditedWorkspaces: () => Promise<void>;
   setActiveWorkspace: (id: string) => void;
   renameWorkspace: (id: string, name: string) => void;
   /** Reorder workspace tabs by a full list of workspace ids (left → right). */
@@ -428,7 +429,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         let migrated = false;
 
         // Strip browser synthetic root marker from tab titles saved by older builds.
-        if (ws.name.startsWith('__BROWSER_ROOT__:')) {
+        if (ws.nameIsCustom !== true && ws.name.startsWith('__BROWSER_ROOT__:')) {
           ws.name = ws.name.slice('__BROWSER_ROOT__:'.length);
           migrated = true;
         }
@@ -464,8 +465,9 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
             setConnectedFolders(ws.id, [folder]);
             ws.connectedFolders = [{ id: folder.id, path: folder.path }];
             ws.activeFolderId = folder.id;
-            if (isGeneratedWorkspaceName(ws.name)) {
+            if (!(ws.nameIsCustom ?? !isGeneratedWorkspaceName(ws.name))) {
               ws.name = basename(defaultFolderPath);
+              ws.nameIsCustom = false;
             }
             await db.workspaces.put(ws);
           }
@@ -506,6 +508,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     const ws: Workspace = {
       id: nanoid(8),
       name: finalName,
+      nameIsCustom: !!name?.trim(),
       connectedFolders: [],
       activeFolderId: null,
       currentFile: null,
@@ -527,10 +530,18 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
 
     const defaultPath = get().defaultFolderPath ?? (await readDefaultFolderFromDb());
     if (defaultPath) {
-      await get().connectFolderInWorkspace(ws.id, defaultPath);
+      await get().connectFolderInWorkspace(ws.id, defaultPath, { preserveName: ws.nameIsCustom });
     }
 
     return get().workspaces.find((w) => w.id === ws.id) ?? ws;
+  },
+
+  closeUneditedWorkspaces: async () => {
+    const ids = get().workspaces.map((workspace) => workspace.id);
+    for (const id of ids) {
+      const workspace = get().workspaces.find((item) => item.id === id);
+      if (workspace && !workspace.currentFile?.isDirty) await get().deleteWorkspace(id);
+    }
   },
 
   deleteWorkspace: async (id) => {
@@ -577,7 +588,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     if (!trimmed) return;
     set((s) => ({
       workspaces: s.workspaces.map((w) =>
-        w.id === id ? { ...w, name: trimmed, updatedAt: Date.now() } : w
+        w.id === id ? { ...w, name: trimmed, nameIsCustom: true, updatedAt: Date.now() } : w
       ),
     }));
     const ws = get().workspaces.find((w) => w.id === id);
@@ -622,12 +633,21 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
   duplicateWorkspace: async (id) => {
     const source = get().workspaces.find((w) => w.id === id);
     if (!source) throw new Error('Workspace not found');
+    // Infer legacy intent from the source, before the copy suffix changes its label.
+    // Keep this fallback aligned with WorkspaceTab's automatic-name heuristic.
+    const nameIsCustom = source.nameIsCustom ?? (
+      !!source.name.trim()
+      && !isGeneratedWorkspaceName(source.name)
+      && !source.name.startsWith('__BROWSER_ROOT__:')
+      && !source.connectedFolders.some(({ path }) => source.name === (basename(path) || path))
+    );
     const colorIndex = get().workspaces.length % 6;
     const now = Date.now();
     const ws: Workspace = {
       ...source,
       id: nanoid(8),
       name: `${source.name} (copy)`,
+      nameIsCustom,
       createdAt: now,
       updatedAt: now,
       order: get().workspaces.length,
@@ -951,7 +971,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         continue;
       }
       await get().connectFolderInWorkspace(ws.id, normalized, {
-        preserveName: !isGeneratedWorkspaceName(ws.name),
+        preserveName: ws.nameIsCustom ?? !isGeneratedWorkspaceName(ws.name),
       });
     }
   },
@@ -1001,7 +1021,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       // Explicit picker connect always names the tab after the folder.
       // Default-folder apply keeps a custom tab title.
       const updates: Partial<Workspace> = {
-        ...(opts?.preserveName ? {} : { name }),
+        ...(opts?.preserveName ? {} : { name, nameIsCustom: false }),
         connectedFolders: newFolders.map((f) => ({ id: f.id, path: f.path })),
         activeFolderId: id,
         expandedPaths: [],

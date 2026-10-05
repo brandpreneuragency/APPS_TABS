@@ -73,21 +73,21 @@ function splitAtH3(md: string): Part[] {
 // Shared markdown renderer
 // ---------------------------------------------------------------------------
 const mdStyles = {
-  p: { marginBottom: 12, fontSize: 'var(--fs-base)', color: 'var(--c-text-1)', lineHeight: 1.625 },
-  h1: { fontSize: 'var(--fs-base)', fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)' },
-  h2: { fontSize: 'var(--fs-base)', fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)' },
-  h3: { fontSize: 'var(--fs-base)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)' },
-  h4: { fontSize: 'var(--fs-base)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
-  ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-base)', color: 'var(--c-text-1)' },
-  ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-base)', color: 'var(--c-text-1)' },
+  p: { marginBottom: 12, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)', lineHeight: 1.625 },
+  h1: { fontSize: 26, fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)', lineHeight: 1.2 },
+  h2: { fontSize: 22, fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)', lineHeight: 1.3 },
+  h3: { fontSize: 18, fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)', lineHeight: 1.35 },
+  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
+  ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
+  ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   li: { lineHeight: 1.625 },
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
-  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-base)' },
-  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' },
-  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-base)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
-  codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-base)' },
-  table: { width: '100%', fontSize: 'var(--fs-base)', borderCollapse: 'collapse' as const },
+  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
+  pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' },
+  inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
+  codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)' },
+  table: { width: '100%', fontSize: 'var(--fs-sm)', borderCollapse: 'collapse' as const },
   thead: { background: 'var(--c-background-4)' },
   th: { border: '1px solid var(--c-border-1)', padding: '6px 12px', textAlign: 'left' as const, fontWeight: 600, color: 'var(--c-text-1)' },
   td: { border: '1px solid var(--c-border-1)', padding: '6px 12px', color: 'var(--c-text-1)' },
@@ -148,7 +148,7 @@ function MdContent({ children }: { children: string }) {
 function ReasoningBox({ content, streaming }: { content: string; streaming: boolean }) {
   const [open, setOpen] = useState(false);
   return (
-    <div style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)', border: '1px solid var(--c-border-1)', background: 'var(--c-background-4)', overflow: 'hidden', fontSize: 'var(--fs-base)' }}>
+    <div style={{ marginBottom: 8, borderRadius: 'var(--radius-sm)', border: '1px solid var(--c-border-1)', background: 'var(--c-background-4)', overflow: 'hidden', fontSize: 'var(--fs-sm)' }}>
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -186,7 +186,7 @@ function SectionBlock({ heading, content, defaultOpen }: { heading: string; cont
           size={13}
           className="shrink-0" style={{ color: 'var(--c-info)', transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : undefined }}
         />
-        <span className="semibold" style={{ fontSize: 'var(--fs-base)', color: 'var(--c-text-1)' }}>{heading}</span>
+        <span className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' }}>{heading}</span>
       </button>
       {open && content && (
         <div style={{ padding: '4px 12px 12px 12px', borderTop: '1px solid var(--c-border-1)' }}>
@@ -253,7 +253,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
             background: 'var(--c-background-4)',
             borderRadius: 'var(--radius-sm)',
             padding: '6px 10px',
-            fontSize: 'var(--fs-base)',
+            fontSize: 'var(--fs-sm)',
             border: '1px solid var(--c-border-1)',
             maxWidth: '80%',
             cursor: 'pointer',
@@ -261,10 +261,10 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
         >
           <div style={{ width: 3, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
           <div style={{ overflow: 'hidden', minWidth: 0 }}>
-            <div className="semibold" style={{ fontSize: 'var(--fs-base)', color: 'var(--c-accent-center-panel)', marginBottom: 2 }}>
+            <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-center-panel)', marginBottom: 2 }}>
               {message.replyTo.sender}
             </div>
-            <div className="subtle trunc" style={{ fontSize: 'var(--fs-base)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div className="subtle trunc" style={{ fontSize: 'var(--fs-sm)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {message.replyTo.content}
             </div>
           </div>
@@ -280,7 +280,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
       <div onContextMenu={handleContextMenu} style={{ wordBreak: 'break-word', overflow: 'hidden', cursor: 'context-menu' }}>
         {/* Still inside the <think> block — show spinner/placeholder */}
         {isStreaming && !content && (
-          <p className={thinking ? undefined : 'streaming-cursor'} style={{ fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', opacity: thinking ? 0.5 : undefined }}>
+          <p className={thinking ? undefined : 'streaming-cursor'} style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', opacity: thinking ? 0.5 : undefined }}>
             {thinking ? 'Thinking…' : ''}
           </p>
         )}
@@ -344,7 +344,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
         )}
       </div>
 
-      <div className="subtle" style={{ fontSize: 'var(--fs-base)', paddingLeft: 4 }}>
+      <div className="subtle" style={{ fontSize: 'var(--fs-sm)', paddingLeft: 4 }}>
         {formatRelativeTime(message.timestamp)}
       </div>
 

@@ -329,7 +329,9 @@ describe('TaskProjectsKanban', () => {
     date.focus();
     await user.keyboard('{Enter}');
     expect(date).toHaveAttribute('aria-expanded', 'true');
-    await user.click(screen.getByRole('button', { name: 'Tomorrow' }));
+    const popup = screen.getByRole('dialog', { name: 'calendar.chooseDate' });
+    const day = within(popup).getByRole('button', { current: 'date' });
+    await user.click(day);
     expect(updateTask).toHaveBeenCalledWith('t1', { date: expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/) });
     expect(openTaskInActiveTab).not.toHaveBeenCalled();
     const card = screen.getByText('General task').closest('[role="button"]');

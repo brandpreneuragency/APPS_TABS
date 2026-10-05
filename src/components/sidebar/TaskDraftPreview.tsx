@@ -168,7 +168,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
       }}
     >
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-        <div className="semibold" style={{ fontSize: 'var(--fs-xs)' }}>
+        <div className="semibold" style={{ fontSize: 'var(--fs-sm)' }}>
           Draft Changes
         </div>
         <div className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>
@@ -194,7 +194,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
 
       <div className="col" style={{ gap: 6, marginBottom: 10 }}>
         {draft.operations.length === 0 ? (
-          <div className="subtle" style={{ fontSize: 'var(--fs-xs)' }}>
+          <div className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>
             No data mutations proposed.
           </div>
         ) : (
@@ -202,7 +202,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
             <div
               key={operation.id}
               style={{
-                fontSize: 'var(--fs-xs)',
+                fontSize: 'var(--fs-sm)',
                 border: '1px solid var(--c-border-1)',
                 borderRadius: 'var(--radius-sm)',
                 padding: '6px 8px',
@@ -236,14 +236,14 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
               Destructive/bulk confirm required
             </span>
           )}
-          <button type="button" onClick={handleReject} className="btn" style={{ fontSize: 'var(--fs-xs)' }}>
+          <button type="button" onClick={handleReject} className="btn" style={{ fontSize: 'var(--fs-sm)' }}>
             Reject
           </button>
           <button
             type="button"
             onClick={handleApply}
             className="btn-brand"
-            style={{ fontSize: 'var(--fs-xs)', opacity: isApplying ? 0.6 : 1 }}
+            style={{ fontSize: 'var(--fs-sm)', opacity: isApplying ? 0.6 : 1 }}
             disabled={isApplying}
           >
             {highRisk && !confirmRisk ? (
@@ -273,7 +273,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
       )}
       {canUndo && (
         <button type="button" className="btn" disabled={isUndoing} onClick={() => { void handleUndo(savedBatch.id); }}
-          style={{ marginTop: 8, fontSize: 'var(--fs-xs)' }}>
+          style={{ marginTop: 8, fontSize: 'var(--fs-sm)' }}>
           <Undo2 size={12} /> Undo
         </button>
       )}

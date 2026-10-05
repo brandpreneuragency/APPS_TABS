@@ -1,7 +1,9 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ClientDraft, ContactDraftValue, NoteDraftValue, ProfileDraftValue } from '../../types/clients';
 import { cleanupRecordsFixtures, createRecordsFixture, reopenRecordsDatabase } from './recordsTestFixtures';
+import Dexie from 'dexie';
+import { createClientRecords } from './records';
 
 
 afterEach(async () => {
@@ -48,6 +50,12 @@ function makeDraft(input: DraftInput): ClientDraft {
   if (input.kind === 'profile') return { ...common, kind: 'profile', value: input.value };
   if (input.kind === 'contact') return { ...common, kind: 'contact', value: input.value };
   return { ...common, kind: 'note', value: input.value };
+}
+
+function deferred() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((done) => { resolve = done; });
+  return { promise, resolve };
 }
 
 describe('client detail drafts', () => {
@@ -190,6 +198,93 @@ describe('client detail drafts', () => {
     expect(await database.clientDrafts.get(draft.id)).toBeUndefined();
   });
 
+  it.each(['profile', 'contact'] as const)('rejects an older %s acknowledgement value that was never durable', async (kind) => {
+    const { database, records, seedContacts } = await createRecordsFixture();
+    if (kind === 'contact') await seedContacts();
+
+    if (kind === 'profile') {
+      const input = makeDraft({ kind, baseRevision: null, generation: 1,
+        value: profileValue({ website: '', description: 'Generation one' }) });
+      const durableFirst = await records.saveDraft(input);
+      if (!durableFirst.ok || durableFirst.value.kind !== 'profile') throw new Error('Profile draft missing');
+      const first = durableFirst.value;
+      const newer = { ...first, generation: 2,
+        value: profileValue({ website: '', description: 'Generation two' }) };
+      expect(await records.saveDraft(newer)).toMatchObject({ ok: true });
+      const beforeProfile = await database.clientProfiles.get('client-a');
+      const beforeDraft = await database.clientDrafts.get(first.id);
+
+      const result = await records.saveProfile({
+        clientId: 'client-a', expectedRevision: 1,
+        value: profileValue({ website: '', description: 'NEVER_DURABLE' }),
+        draftAck: { id: first.id, editSessionId: first.editSessionId, generation: 1 },
+      });
+
+      expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
+      expect(await database.clientProfiles.get('client-a')).toEqual(beforeProfile);
+      expect(await database.clientDrafts.get(first.id)).toEqual(beforeDraft);
+      return;
+    }
+
+    const input = makeDraft({ kind, recordId: 'contact-a', baseRevision: 1, generation: 1,
+      value: contactValue({ name: 'Generation one' }) });
+    const durableFirst = await records.saveDraft(input);
+    if (!durableFirst.ok || durableFirst.value.kind !== 'contact') throw new Error('Contact draft missing');
+    const first = durableFirst.value;
+    const newer = { ...first, generation: 2, value: contactValue({ name: 'Generation two' }) };
+    expect(await records.saveDraft(newer)).toMatchObject({ ok: true });
+    const beforeContact = await database.clientContacts.get('contact-a');
+    const beforeDraft = await database.clientDrafts.get(first.id);
+
+    const result = await records.saveContact({
+      id: 'contact-a', clientId: 'client-a', expectedRevision: 1,
+      value: contactValue({ name: 'NEVER_DURABLE' }),
+      draftAck: { id: first.id, editSessionId: first.editSessionId, generation: 1 },
+    });
+
+    expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
+    expect(await database.clientContacts.get('contact-a')).toEqual(beforeContact);
+    expect(await database.clientDrafts.get(first.id)).toEqual(beforeDraft);
+  });
+
+  it.each(['profile', 'contact'] as const)('rejects a %s acknowledgement for an older generation that never existed', async (kind) => {
+    const { database, records, seedContacts } = await createRecordsFixture();
+    if (kind === 'contact') await seedContacts();
+
+    if (kind === 'profile') {
+      const current = makeDraft({ kind, baseRevision: null, generation: 2,
+        value: profileValue({ website: '', description: 'Generation two' }) });
+      const durable = await records.saveDraft(current);
+      expect(durable).toMatchObject({ ok: true });
+      const beforeProfile = await database.clientProfiles.get('client-a');
+      const beforeDraft = await database.clientDrafts.get(current.id);
+      const result = await records.saveProfile({
+        clientId: 'client-a', expectedRevision: 1,
+        value: profileValue({ website: '', description: 'NEVER_DURABLE' }),
+        draftAck: { id: current.id, editSessionId: current.editSessionId, generation: 1 },
+      });
+      expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
+      expect(await database.clientProfiles.get('client-a')).toEqual(beforeProfile);
+      expect(await database.clientDrafts.get(current.id)).toEqual(beforeDraft);
+      return;
+    }
+
+    const current = makeDraft({ kind, recordId: 'contact-a', baseRevision: 1, generation: 2,
+      value: contactValue({ name: 'Generation two' }) });
+    const durable = await records.saveDraft(current);
+    expect(durable).toMatchObject({ ok: true });
+    const beforeContact = await database.clientContacts.get('contact-a');
+    const beforeDraft = await database.clientDrafts.get(current.id);
+    const result = await records.saveContact({
+      id: 'contact-a', clientId: 'client-a', expectedRevision: 1,
+      value: contactValue({ name: 'NEVER_DURABLE' }),
+      draftAck: { id: current.id, editSessionId: current.editSessionId, generation: 1 },
+    });
+    expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
+    expect(await database.clientContacts.get('contact-a')).toEqual(beforeContact);
+    expect(await database.clientDrafts.get(current.id)).toEqual(beforeDraft);
+  });
+
   it('rebases implicit profile creation once and makes the same generation retry idempotent', async () => {
     const { records } = await createRecordsFixture();
     const draft = makeDraft({ kind: 'profile', baseRevision: null, value: profileValue() });
@@ -203,5 +298,61 @@ describe('client detail drafts', () => {
       draftAck: { id: draft.id, generation: draft.generation, editSessionId: draft.editSessionId },
     }])).toMatchObject({ ok: true, value: { revision: 2 } });
     expect(await records.getDraft(draft.id)).toMatchObject({ ok: true, value: null });
+  });
+
+  it('keeps a pending overlapping discard cancellation after another attempt fails first', async () => {
+    const { database, records } = await createRecordsFixture();
+    const draft = makeDraft({ kind: 'profile', baseRevision: null, value: profileValue() });
+    const durable = await records.saveDraft(draft);
+    if (!durable.ok || durable.value.kind !== 'profile') throw new Error('Profile draft missing');
+
+    const firstEntered = deferred();
+    const firstRelease = deferred();
+    const secondEntered = deferred();
+    const secondRelease = deferred();
+    const nativeTransaction = database.transaction.bind(database);
+    let transactionCalls = 0;
+    vi.spyOn(database, 'transaction').mockImplementation((...args) => {
+      transactionCalls += 1;
+      if (transactionCalls === 1) {
+        firstEntered.resolve();
+        return Dexie.Promise.resolve(firstRelease.promise).then(() => {
+          throw new DOMException('quota', 'QuotaExceededError');
+        });
+      }
+      if (transactionCalls === 2) {
+        secondEntered.resolve();
+        return Dexie.Promise.resolve(secondRelease.promise).then(() => nativeTransaction(...args));
+      }
+      return nativeTransaction(...args);
+    });
+
+    const discardInput = {
+      id: durable.value.id,
+      editSessionId: durable.value.editSessionId,
+      generation: durable.value.generation,
+    };
+    const first = records.discardDraft(discardInput);
+    await firstEntered.promise;
+    const second = createClientRecords(database).discardDraft(discardInput);
+    await secondEntered.promise;
+
+    firstRelease.resolve();
+    const firstResult = await first;
+    const lateFirstWrite = await records.saveDraft(durable.value);
+    secondRelease.resolve();
+    const secondResult = await second;
+
+    expect(firstResult).toEqual({ ok: false, code: 'STORAGE' });
+    expect(lateFirstWrite).toEqual({ ok: false, code: 'CONFLICT' });
+    expect(secondResult).toEqual({ ok: true, value: undefined });
+    const nextSession = {
+      ...durable.value,
+      editSessionId: 'session-b',
+      generation: 0,
+      value: profileValue({ description: 'New session' }),
+    };
+    expect(nextSession.id).toBe(durable.value.id);
+    expect(await records.saveDraft(nextSession)).toMatchObject({ ok: true, value: nextSession });
   });
 });

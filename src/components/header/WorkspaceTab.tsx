@@ -4,19 +4,31 @@ import { useTranslation } from 'react-i18next';
 import type { Workspace } from '../../types';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
+import { isGeneratedWorkspaceName } from '../../stores/defaultWorkspaceFolder';
+import { basename } from '../../services/fs-adapter';
 
 const BROWSER_ROOT_PREFIX = '__BROWSER_ROOT__:';
 
-function tabLabel(name: string, index: number, fileName?: string): string {
-  // Prefer the document (file) name when a file is open.
+function tabLabel(workspace: Workspace, index: number): string {
+  const name = workspace.name ?? '';
+  if (workspace.nameIsCustom === true) return name;
+  const label = name.startsWith(BROWSER_ROOT_PREFIX)
+    ? name.slice(BROWSER_ROOT_PREFIX.length)
+    : name;
+  // Legacy records have no intent flag; retain their name heuristic.
+  const isAutomatic = workspace.nameIsCustom === false
+    || !label.trim()
+    || isGeneratedWorkspaceName(label)
+    || name.startsWith(BROWSER_ROOT_PREFIX)
+    || workspace.connectedFolders.some(({ path }) => label === (basename(path) || path));
+  if (!isAutomatic) return label;
+
+  const fileName = workspace.currentFile?.name;
   if (fileName) {
     // Strip the extension for a cleaner tab label.
     const dot = fileName.lastIndexOf('.');
     return dot > 0 ? fileName.slice(0, dot) : fileName;
   }
-  const label = name.startsWith(BROWSER_ROOT_PREFIX)
-    ? name.slice(BROWSER_ROOT_PREFIX.length)
-    : name;
   return !label.trim() || /^Workspace \d+$/.test(label) ? `Doc ${index + 1}` : label;
 }
 
@@ -54,13 +66,14 @@ export function WorkspaceTab({
   onDragEnd,
 }: WorkspaceTabProps) {
   const { t } = useTranslation();
-  const label = tabLabel(workspace.name ?? '', index, workspace.currentFile?.name);
+  const label = tabLabel(workspace, index);
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(label);
   const [confirmClose, setConfirmClose] = useState(false);
   const saveCurrentFile = useWorkspaceStore((s) => s.saveCurrentFile);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const tabRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isEditing) inputRef.current?.select();
@@ -74,7 +87,7 @@ export function WorkspaceTab({
   };
 
   const commitEdit = () => {
-    if (editValue.trim() && editValue !== label) {
+    if (editValue.trim() && (editValue !== label || workspace.nameIsCustom !== true)) {
       onRename(editValue.trim());
     }
     setIsEditing(false);
@@ -99,6 +112,7 @@ export function WorkspaceTab({
 
   return (
     <div
+      ref={tabRef}
       id={`tab-ws-${isActive ? 'active' : 'passive'}-${workspace.id}`}
       data-ws-tab-id={workspace.id}
       role="tab"
@@ -197,6 +211,7 @@ export function WorkspaceTab({
 
       {confirmClose && (
         <ConfirmDialog
+          anchorRef={tabRef}
           message={t('tabs.closeConfirm') ?? 'Close this workspace? Unsaved changes will be lost.'}
           onConfirm={() => {
             setConfirmClose(false);

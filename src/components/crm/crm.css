@@ -69,7 +69,7 @@
 }
 
 .crm-page-header-title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--c-text-1);
   line-height: 1.3;
@@ -542,7 +542,7 @@
   cursor: grabbing;
 }
 .crm-kanban-column--drop-target {
-  background: color-mix(in srgb, var(--c-accent-center-panel) 10%, var(--c-background-3));
+  background: var(--c-accent-2);
 }
 .crm-kanban-column--drop-target .crm-kanban-column-body {
   background: color-mix(in srgb, var(--c-accent-center-panel) 8%, transparent);
@@ -568,7 +568,7 @@
   min-width: 0;
 }
 .crm-kanban-card-title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 400;
   color: var(--c-text-1);
   line-height: 1.3;

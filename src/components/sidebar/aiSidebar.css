@@ -7,7 +7,7 @@
 .right-panel-subheader-wrapper {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 10px;
+  padding: 6px;
 }
 
 .chat-window-wrapper,
@@ -102,7 +102,7 @@
   outline: none;
   background: transparent;
   font-family: var(--c-font-1);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   line-height: var(--line-normal);
   padding: 0;
   color: var(--c-text-1);
@@ -136,7 +136,7 @@
   outline: none;
   background: transparent;
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   padding: 8px 6px;
   color: var(--c-text-1);
 }
@@ -161,26 +161,30 @@
   border-radius: var(--radius-sm);
 }
 :root #chat-input-card .drop {
-  border-width: 0 !important;
-  padding: 0;
-  background: var(--c-background-1) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--c-border-1) !important;
+  padding: 4px;
+  background: var(--c-background-2) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 #chat-input-card .drop-item {
   background-color: transparent;
 }
 #chat-input-card .drop-item:focus,
 #chat-input-card button.drop-item:focus {
-  background-color: var(--c-accent-3);
-  color: var(--c-accent-1);
+  background-color: var(--c-background-4);
+  color: var(--c-text-1);
 }
 #chat-input-card .drop-item:hover,
 #chat-input-card .drop-item.drop-item--brand:hover {
-  background-color: var(--c-background-1);
+  background-color: var(--c-background-4);
 }
 #chat-input-card button.drop-item.header-dropdown-item--active,
 #chat-input-card button.drop-item.header-dropdown-item--active:hover {
-  background-color: var(--c-accent-3);
-  color: var(--c-accent-1);
+  background-color: var(--c-background-4);
+  color: var(--c-text-1);
 }
 #chat-input {
   border: none;
@@ -318,7 +322,7 @@
   outline: none;
   background: transparent;
   font-family: var(--c-font-1);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   line-height: var(--line-normal);
   padding: 0;
   color: var(--c-text-1);
@@ -351,7 +355,7 @@
   outline: none;
   background: transparent;
   font: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   padding: 8px 6px;
   color: var(--c-text-1);
 }

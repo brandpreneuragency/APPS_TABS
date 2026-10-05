@@ -99,7 +99,7 @@ function CommentContextMenu({
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const menuW = 150;
+  const menuW = 192;
   const menuH = 116;
   const left = Math.min(x, vw - menuW - 8);
   const top = Math.min(y, vh - menuH - 8);
@@ -107,15 +107,13 @@ function CommentContextMenu({
   return (
     <div
       ref={menuRef}
-      style={{ left, top, position: 'fixed', zIndex: 90, minWidth: 130 }}
+      style={{ left, top, position: 'fixed', zIndex: 90, minWidth: 192 }}
       className="drop"
     >
       <button
         type="button"
         onClick={() => { onReply(); onClose(); }}
         className="drop-item"
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-background-4)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <Reply size={12} />
         Reply
@@ -131,8 +129,6 @@ function CommentContextMenu({
         }}
         className={`drop-item${hasText ? '' : ' cursor-not-allowed'}`}
         style={hasText ? { color: 'var(--c-accent-2)' } : { color: 'var(--c-text-2)' }}
-        onMouseEnter={e => { if (hasText) e.currentTarget.style.background = 'var(--c-background-4)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <Sparkles size={12} />
         {t('chat.sendToAI')}
@@ -148,8 +144,6 @@ function CommentContextMenu({
         }}
         className={`drop-item${deletable ? '' : ' cursor-not-allowed'}`}
         style={deletable ? {color:'var(--c-danger)'} : {color:'var(--c-text-2)'}}
-        onMouseEnter={e => { if (deletable) e.currentTarget.style.background = 'var(rgba(239,68,68,0.1))'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <Trash2 size={12} />
         Delete
@@ -278,7 +272,6 @@ function CommentBubble({
 }
 
 export function TaskCommentThread({ comments, onReplyComment }: TaskCommentThreadProps) {
-  const { t } = useTranslation();
   const [contextMenu, setContextMenu] = useState<{
     comment: TaskComment;
     x: number;
@@ -290,7 +283,6 @@ export function TaskCommentThread({ comments, onReplyComment }: TaskCommentThrea
   const fileViewerOpen = useUIStore((s) => s.fileViewerOpen);
   const fileViewerFile = useUIStore((s) => s.fileViewerFile);
   const setSelectedText = useUIStore((s) => s.setSelectedText);
-  const showToast = useUIStore((s) => s.showToast);
 
   const handleOpenFileViewer = useCallback(
     (file: FileViewerItem) => {
@@ -321,9 +313,8 @@ export function TaskCommentThread({ comments, onReplyComment }: TaskCommentThrea
   const handleSendToAI = useCallback(
     (comment: TaskComment) => {
       setSelectedText({ text: comment.text, from: 0, to: 0 });
-      showToast(t('chat.sendToAIToast'), 'info');
     },
-    [setSelectedText, showToast, t]
+    [setSelectedText]
   );
 
   if (comments.length === 0) {
@@ -339,7 +330,6 @@ export function TaskCommentThread({ comments, onReplyComment }: TaskCommentThrea
 
   return (
     <>
-      <div className="tdp-comments-header">COMMENTS</div>
       <div id="task-comment-thread" className="ai-scroll flex-1 overflow-y-a" style={{display:'flex',flexDirection:'column',gap:16}}>
         {comments.map((comment) => (
           <CommentBubble

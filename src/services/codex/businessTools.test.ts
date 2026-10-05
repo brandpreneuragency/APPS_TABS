@@ -259,30 +259,13 @@ describe('Codex business tool boundary', () => {
     await expect(executeBusinessProposal(owner, changed)).rejects.toThrow(/reused/);
   });
 
-  it('creates one-level subtasks only under an unchanged active parent', async () => {
-    await db.tasks.add({ id: 'parent', title: 'Parent', content: '', status: 'pending',
-      importance: 'medium', date: '2026-09-23', projectId: 'project-1', assignees: [],
-      createdAt: 1, updatedAt: 5, order: 0 });
-    const owner = run();
-    const requestSubtask = request('tabs_tasks_create_v1', {
+  it('rejects the retired parent parameter in AI task creation', async () => {
+    await expect(prepareBusinessProposal(run(), request('tabs_tasks_create_v1', {
       title: 'Child', parentTaskId: 'parent',
-    }, 'create-subtask');
-    const proposal = await prepareBusinessProposal(owner, requestSubtask);
-    expect(proposal.targetIds).toEqual(['project-1', 'parent']);
-    await db.tasks.update('parent', { updatedAt: 6 });
-    await expect(executeBusinessProposal(owner, proposal)).rejects.toThrow(/parent changed/);
-    await db.tasks.update('parent', { updatedAt: 5 });
-    const applied = await executeBusinessProposal(owner, proposal);
-    expect(applied.outcome).toBe('applied');
-    expect((await db.tasks.get(applied.affectedIds[0]))?.parentTaskId).toBe('parent');
-    expect((await executeBusinessProposal(owner, proposal)).affectedIds).toEqual(applied.affectedIds);
-    await expect(prepareBusinessProposal(owner, request('tabs_tasks_create_v1', {
-      title: 'Grandchild', parentTaskId: applied.affectedIds[0],
-    }, 'nested-subtask'))).rejects.toThrow(/top-level/);
-    expect(await db.tasks.count()).toBe(2);
+    }, 'create-subtask'))).rejects.toThrow();
   });
 
-  it('keeps a parent and its active subtask in one project', async () => {
+  it('allows legacy related tasks to move and delete independently', async () => {
     await db.projects.add({ id: 'project-2', name: 'Other project', color: '#fff',
       clientId: 'client-1', createdAt: 1, order: 1 });
     await db.tasks.bulkAdd([
@@ -296,13 +279,13 @@ describe('Codex business tool boundary', () => {
     const owner = run();
     await expect(prepareBusinessProposal(owner, request('tabs_tasks_update_v1', {
       taskId: 'parent', expectedUpdatedAt: 5, projectId: 'project-2',
-    }, 'move-parent'))).rejects.toThrow(/subtasks/);
+    }, 'move-parent'))).resolves.toMatchObject({ targetIds: ['parent', 'project-2'] });
     await expect(prepareBusinessProposal(owner, request('tabs_tasks_update_v1', {
       taskId: 'child', expectedUpdatedAt: 5, projectId: 'project-2',
-    }, 'move-child'))).rejects.toThrow(/parent task/);
+    }, 'move-child'))).resolves.toMatchObject({ targetIds: ['child', 'project-2'] });
     await expect(prepareBusinessProposal(owner, request('tabs_tasks_soft_delete_v1', {
       taskId: 'parent', expectedUpdatedAt: 5,
-    }, 'delete-parent'))).rejects.toThrow(/subtasks/);
+    }, 'delete-parent'))).resolves.toMatchObject({ targetIds: ['parent'] });
     expect((await db.tasks.get('parent'))?.deletedAt).toBeUndefined();
     expect(await db.codexOperationReceipts.count()).toBe(0);
   });

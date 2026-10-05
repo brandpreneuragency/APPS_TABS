@@ -170,20 +170,19 @@ describe('real SQLite authority with Dexie offline cache', () => {
     expect(engine.getSnapshot().pending).toBe(0);
     expect(rpc({ schema: 1, action: 'snapshot' }).snapshot.generation).toBe(2);
   });
-  it.each(['local', 'remote'] as const)('keeps related records atomic when a parent is deleted remotely (%s choice)', async choice => {
+  it('syncs a legacy child independently when its old parent is deleted remotely', async () => {
     await engine.connect();
     await database.table('tasks').put({ ...initial[2].value, id: 'new-child', parentTaskId: 't' });
     const snapshot = rpc({ schema: 1, action: 'snapshot' }).snapshot;
     rpc({ schema: 1, action: 'sync', databaseId: snapshot.databaseId!, actor: 'hermes:test',
       operationId: crypto.randomUUID(), changes: [{ table: 'tasks', id: 't', expectedRevision: 1, value: null }] });
     await engine.sync();
-    expect(engine.getSnapshot().metadata?.dependencyConflict).toBe(true);
-    expect(await database.table('tasks').get('t')).toBeTruthy();
+    expect(engine.getSnapshot().metadata?.dependencyConflict).not.toBe(true);
+    expect(await database.table('tasks').get('t')).toBeUndefined();
     expect(await database.table('tasks').get('new-child')).toBeTruthy();
-    await engine.resolveGroup(engine.getSnapshot().conflicts, choice);
     expect(engine.getSnapshot().state).toBe('online');
     const final = rpc({ schema: 1, action: 'snapshot' }).snapshot;
-    expect(Boolean(final.records!.find(r => r.id === 't')?.value)).toBe(choice === 'local');
-    expect(Boolean(final.records!.find(r => r.id === 'new-child')?.value)).toBe(choice === 'local');
+    expect(final.records!.find(row => row.id === 't')?.value).toBeNull();
+    expect(final.records!.find(row => row.id === 'new-child')?.value).toBeTruthy();
   });
 });

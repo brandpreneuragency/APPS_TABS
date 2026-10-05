@@ -46,10 +46,10 @@ export function AppearanceSection() {
         <>
           <SettingsContent />
           <div>
-            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 8 }}>Editor font</label>
+            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 8 }}>Editor font</label>
             <div className="row gap-3" style={{ gap: 12, alignItems: 'flex-end' }}>
               <div style={{ flex: 1 }}>
-                <select className="ctrl w-full" style={{ fontSize: 'var(--fs-base)' }} value={editorFontFamily} onChange={(e) => setEditorFontFamily(e.target.value)}>
+                <select className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={editorFontFamily} onChange={(e) => setEditorFontFamily(e.target.value)}>
                   {['Inter', 'Arial', 'Times New Roman', 'Georgia', 'Courier New'].map((f) => <option key={f} value={f}>{f}</option>)}
                 </select>
               </div>
@@ -61,10 +61,10 @@ export function AppearanceSection() {
             </div>
           </div>
           <div>
-            <button className="btn" style={{ fontSize: 'var(--fs-base)' }} onClick={() => resetAll()}>
+            <button className="btn" style={{ fontSize: 'var(--fs-sm)' }} onClick={() => resetAll()}>
               <RotateCcw size={14} style={{ marginRight: 6, verticalAlign: '-2px' }} /> Reset all token overrides
             </button>
-            <p className="subtle" style={{ fontSize: 'var(--fs-base)', marginTop: 6 }}>
+            <p className="subtle" style={{ fontSize: 'var(--fs-sm)', marginTop: 6 }}>
               {Object.keys(tokens).length} override(s) active. Defaults come from the CSS.
             </p>
           </div>
@@ -73,7 +73,7 @@ export function AppearanceSection() {
 
       {active.id !== GENERAL_CATEGORY_ID && (
         <>
-          <p className="subtle" style={{ fontSize: 'var(--fs-base)', margin: '0 0 4px' }}>{active.hint}</p>
+          <p className="subtle" style={{ fontSize: 'var(--fs-sm)', margin: '0 0 4px' }}>{active.hint}</p>
           {active.tokens.map((tok) => (
             <TokenRow
               key={tok.name}
@@ -126,7 +126,7 @@ function TokenRow({ token, overridden, onSet, onReset }: {
       {token.type === 'font' ? (
         <select
           className="ctrl settings-token-input"
-          style={{ fontSize: 'var(--fs-base)' }}
+          style={{ fontSize: 'var(--fs-sm)' }}
           value={overridden ? current : ''}
           onChange={(e) => onSet(e.target.value)}
         >
@@ -136,7 +136,7 @@ function TokenRow({ token, overridden, onSet, onReset }: {
       ) : (
         <input
           className="ctrl settings-token-input"
-          style={{ fontSize: 'var(--fs-base)' }}
+          style={{ fontSize: 'var(--fs-sm)' }}
           defaultValue={overridden ? current : ''}
           placeholder={current || '—'}
           onBlur={(e) => onSet(e.target.value)}

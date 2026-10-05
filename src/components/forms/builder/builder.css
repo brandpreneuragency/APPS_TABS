@@ -49,7 +49,7 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-1);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   outline: none;
   transition: border-color 0.15s, background-color 0.15s;

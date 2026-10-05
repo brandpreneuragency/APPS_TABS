@@ -1,9 +1,10 @@
 import { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-import { Trash2, Folder, Calendar, X } from 'lucide-react';
+import { Trash2, Folder, Calendar } from 'lucide-react';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { projectsForClient } from '../../stores/taskSelection';
 import { findProjectByNameInClient } from '../../stores/taskTreeNames';
+import { TaskDueDateCalendar } from './TaskCalendarDatePicker';
 
 interface TaskContextMenuProps {
   taskId: string;
@@ -21,7 +22,6 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
   const [panel, setPanel] = useState<Panel>('main');
   const [newProjectName, setNewProjectName] = useState('');
-  const [customDate, setCustomDate] = useState(task?.date ?? '');
 
   const rootRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -31,10 +31,14 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
   useEffect(() => {
     const onPointerDown = (e: PointerEvent) => {
       if (rootRef.current?.contains(e.target as Node)) return;
+      if (e.target instanceof Element && e.target.closest('.task-calendar-date-popup')) return;
       onCloseRef.current();
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCloseRef.current();
+      if (e.key === 'Escape') {
+        if (e.target instanceof Element && e.target.closest('.task-calendar-date-popup')) return;
+        onCloseRef.current();
+      }
     };
 
     const id = window.setTimeout(() => {
@@ -75,18 +79,6 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
   const clientId = projects.find((p) => p.id === task.projectId)?.clientId ?? '';
   const clientProjects = projectsForClient(projects, clientId || null);
 
-  const dateOptions: { label: string; value: string }[] = [
-    { label: 'No date', value: '' },
-    { label: 'Today', value: new Date().toISOString().slice(0, 10) },
-  ];
-  {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    dateOptions.push({ label: 'Tomorrow', value: d.toISOString().slice(0, 10) });
-    d.setDate(d.getDate() + 6);
-    dateOptions.push({ label: 'Next week', value: d.toISOString().slice(0, 10) });
-  }
-
   const removeTask = () => {
     deleteTask(task.id);
     onClose();
@@ -111,26 +103,17 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
   };
 
   const assignDate = (dateStr: string) => {
-    updateTask(task.id, { date: dateStr || new Date().toISOString().slice(0, 10) });
+    updateTask(task.id, { date: dateStr });
     setPanel('main');
   };
 
-  const applyCustomDate = () => {
-    if (customDate) assignDate(customDate);
-  };
-
-  const removeDate = () => {
-    updateTask(task.id, { date: new Date().toISOString().slice(0, 10) });
-    setPanel('main');
-  };
-
-  const itemStyle = { fontSize: 'var(--fs-base)' } as const;
+  const itemStyle = { fontSize: 'var(--fs-sm)' } as const;
 
   return (
     <div
       ref={rootRef}
       className="drop"
-      style={{ position: 'fixed', left: pos.left, top: pos.top, zIndex: 1001, minWidth: 180 }}
+      style={{ position: 'fixed', left: pos.left, top: pos.top, zIndex: 1001, minWidth: 192 }}
       onMouseDown={(e) => e.stopPropagation()}
     >
       {panel === 'main' && (
@@ -141,7 +124,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
           <button type="button" className="drop-item" onClick={() => setPanel('project')} style={itemStyle}>
             <Folder size={12} /> Assign Project
           </button>
-          <button type="button" className="drop-item" onClick={() => { setCustomDate(task.date); setPanel('date'); }} style={itemStyle}>
+          <button type="button" className="drop-item" onClick={() => setPanel('date')} style={itemStyle}>
             <Calendar size={12} /> Edit Due Date
           </button>
         </>
@@ -172,7 +155,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
               }}
               placeholder="New project name..."
               style={{
-                width: '100%', fontSize: 'var(--fs-base)', padding: '6px 8px',
+                width: '100%', fontSize: 'var(--fs-sm)', padding: '6px 8px',
                 border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)',
                 background: 'var(--c-background-1)', color: 'var(--c-text-1)',
                 outline: 'none',
@@ -192,43 +175,12 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
 
       {panel === 'date' && (
         <>
-          {dateOptions.map((opt) => (
-            <button
-              key={opt.value || '__none__'}
-              type="button"
-              className="drop-item"
-              onClick={() => assignDate(opt.value)}
-              style={{ ...itemStyle, fontWeight: task.date === opt.value ? 700 : 400 }}
-            >
-              {opt.value ? <Calendar size={12} /> : <X size={12} />} {opt.label}
-            </button>
-          ))}
-          <div style={{ height: 1, background: 'var(--c-border-1)', margin: '4px 0' }} />
-          <div style={{ padding: '4px 12px' }}>
-            <input
-              type="date"
-              value={customDate}
-              onChange={(e) => setCustomDate(e.target.value)}
-              title="Custom due date"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') { e.preventDefault(); applyCustomDate(); }
-                if (e.key === 'Escape') setPanel('main');
-              }}
-              style={{
-                width: '100%', fontSize: 'var(--fs-base)', padding: '6px 8px',
-                border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)',
-                background: 'var(--c-background-1)', color: 'var(--c-text-1)',
-                outline: 'none',
-              }}
-            />
+          <div style={{ padding: '4px 6px 2px' }}>
+            <div className="task-calendar-date-inline">
+              <TaskDueDateCalendar value={task.date} onSelect={assignDate} onClear={() => assignDate('')} />
+            </div>
           </div>
           <div style={{ display: 'flex', gap: 4, padding: '4px 12px 6px' }}>
-            <button type="button" className="drop-item" onClick={applyCustomDate} disabled={!customDate} style={{ ...itemStyle, flex: 1, justifyContent: 'center', opacity: customDate ? 1 : 0.4 }}>
-              Apply
-            </button>
-            <button type="button" className="drop-item" onClick={removeDate} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
-              Reset
-            </button>
             <button type="button" className="drop-item" onClick={() => setPanel('main')} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
               Back
             </button>

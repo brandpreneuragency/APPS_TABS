@@ -86,7 +86,7 @@ function StyleBtn({
       onClick={onClick}
       title={title}
       className={`tbar-btn${active ? ' tbar-btn--on' : ''}`}
-      style={{ fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-base)', fontWeight: 500, paddingLeft: 0, paddingRight: 0 }}
+      style={{ fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)', fontWeight: 500, paddingLeft: 0, paddingRight: 0 }}
     >
       {label}
     </button>
@@ -105,14 +105,14 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
 
   const visible = pos !== null;
 
-  // Close toolbar when clicking outside the editor and the toolbar itself.
+  // Close toolbar on left-click outside the toolbar itself.
   useEffect(() => {
     if (!visible) return;
 
     const handleClickOutside = (e: MouseEvent) => {
+      if (e.button !== 0) return;
       const target = e.target as Node;
       if (toolbarRef.current?.contains(target)) return;
-      if (editorScrollRef.current?.contains(target)) return;
       setPos(null);
       setSavedRange(null);
       setLinkOpen(false);
@@ -127,7 +127,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
       clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [visible, editorScrollRef]);
+  }, [visible]);
   const activeTextPreset = (editor?.getAttributes('textStyle').textPreset ?? null) as InlineTextPresetName | null;
 
   const handleContextMenu = useCallback((e: MouseEvent) => {
@@ -289,8 +289,8 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
 
   if (!visible) return null;
 
-  const rawLeft = pos.x - 140;
-  const clampedLeft = Math.max(8, Math.min(rawLeft, window.innerWidth - 280 - 8));
+  const rawLeft = pos.x - 120;
+  const clampedLeft = Math.max(8, Math.min(rawLeft, window.innerWidth - 240 - 8));
   const currentAlign = (
     editor?.getAttributes('paragraph').textAlign ||
     editor?.getAttributes('heading').textAlign ||
@@ -331,7 +331,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
         }}
       >
       {/* Row 1: Link, Bold, Italic, Underline, Strikethrough, Bullet list, Number list */}
-      <div className="row-xs" style={{ padding: '4px 6px' }}>
+      <div className="row-xs" style={{ padding: '0 6px' }}>
         <ToolBtn
           onClick={() => {
             const nextOpen = !linkOpen;
@@ -409,7 +409,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
       </div>
 
       {/* Row 2: h1, h2, h3, p, Align, Text color, Clear formatting */}
-      <div className="row-xs" style={{ padding: '4px 6px' }}>
+      <div className="row-xs" style={{ padding: '0 6px' }}>
         <StyleBtn label="h1" title="Inline heading 1" active={activeTextPreset === INLINE_TEXT_PRESETS[0]} onClick={() => applyTextPreset('h1')} />
         <StyleBtn label="h2" title="Inline heading 2" active={activeTextPreset === INLINE_TEXT_PRESETS[1]} onClick={() => applyTextPreset('h2')} />
         <StyleBtn label="h3" title="Inline heading 3" active={activeTextPreset === INLINE_TEXT_PRESETS[2]} onClick={() => applyTextPreset('h3')} />

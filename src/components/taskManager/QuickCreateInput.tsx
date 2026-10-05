@@ -16,6 +16,7 @@ import { projectsForClient, resolveQuickCreateProjectId } from '../../stores/tas
 import { parseTaskInput } from '../../services/nlpParser';
 import { getTodayIso, getTomorrowIso } from '../../services/taskFormat';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
+import { TaskDueDatePicker } from './TaskCalendarDatePicker';
 
 import type { Project } from '../../types';
 
@@ -26,10 +27,10 @@ function ProjectDropdown({ show, projects, onPick }: { show: boolean; projects: 
       id="tqc-project-dropdown"
       className="drop"
       onMouseDown={(event) => event.stopPropagation()}
-      style={{ left: 0, bottom: '100%', minWidth: 120, marginBottom: 2 }}
+      style={{ left: 0, bottom: '100%', minWidth: 192, marginBottom: 0 }}
     >
       {projects.map((p) => (
-        <button key={p.id} type="button" className="drop-item" onClick={() => onPick(p.name)} style={{ fontSize: 'var(--fs-base)' }}>
+        <button key={p.id} type="button" className="drop-item" onClick={() => onPick(p.name)} style={{ fontSize: 'var(--fs-sm)' }}>
           {p.name}
         </button>
       ))}
@@ -37,54 +38,7 @@ function ProjectDropdown({ show, projects, onPick }: { show: boolean; projects: 
   );
 }
 
-function DateDropdown({ show, dateInputRef, onPick, onClose }: { show: boolean; dateInputRef: React.RefObject<HTMLInputElement | null>; onPick: (date: string) => void; onClose: () => void }) {
-  if (!show) return null;
-  return (
-    <div
-      id="tqc-date-dropdown"
-      className="drop"
-      onMouseDown={(event) => event.stopPropagation()}
-      style={{ left: 0, bottom: '100%', minWidth: 140, marginBottom: 2 }}
-    >
-      <button type="button" className="drop-item" onClick={() => onPick('')} style={{ fontSize: 'var(--fs-base)' }}>
-        No date
-      </button>
-      {['Today', 'Tomorrow', 'Next week', 'Next month'].map((label) => (
-        <button
-          key={label}
-          type="button"
-          className="drop-item"
-          onClick={() => {
-            const d = new Date();
-            if (label === 'Tomorrow') d.setDate(d.getDate() + 1);
-            else if (label === 'Next week') d.setDate(d.getDate() + 7);
-            else if (label === 'Next month') d.setMonth(d.getMonth() + 1);
-            onPick(d.toISOString().slice(0, 10));
-            onClose();
-          }}
-          style={{ fontSize: 'var(--fs-base)' }}
-        >
-          {label}
-        </button>
-      ))}
-      <button
-        type="button"
-        className="drop-item"
-        onClick={() => {
-          if (dateInputRef.current?.showPicker) {
-            dateInputRef.current.showPicker();
-          } else {
-            dateInputRef.current?.click();
-          }
-          onClose();
-        }}
-        style={{ fontSize: 'var(--fs-base)' }}
-      >
-        Custom...
-      </button>
-    </div>
-  );
-}
+
 
 interface QuickCreateInputProps {
   prefillText?: string | null;
@@ -105,7 +59,6 @@ export function QuickCreateInput({
 }: QuickCreateInputProps) {
   const [value, setValue] = useState('');
   const [showProjectPicker, setShowProjectPicker] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
   const [assignedDate, setAssignedDate] = useState<string | null>(assignedDateProp ?? null);
   const [assignedProject, setAssignedProject] = useState<string | null>(assignedProjectProp ?? null);
 
@@ -145,9 +98,7 @@ export function QuickCreateInput({
     projects,
   );
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const dateInputRef = useRef<HTMLInputElement>(null);
   const projectRef = useRef<HTMLDivElement>(null);
-  const datePickerRef = useRef<HTMLDivElement>(null);
   const addTaskPlaceholder = usePlaceholder('addTask');
   const parsed = value.trim() ? parseTaskInput(value) : null;
 
@@ -190,10 +141,11 @@ export function QuickCreateInput({
   const pickedProjectId = clientProjects.find(
     (p) => p.name.toLowerCase() === effectiveProject?.toLowerCase(),
   )?.id ?? null;
-  const resolvedProjectId = pickedProjectId ?? fallbackProjectId;
-  const hasProjectValue = !!effectiveProject?.trim();
+  const resolvedProjectId = selectedProjectId ?? pickedProjectId ?? fallbackProjectId;
+  const selectedProjectName = projects.find((project) => project.id === selectedProjectId)?.name;
+  const hasProjectValue = !!(selectedProjectName || effectiveProject?.trim());
   const hasDateValue = !!effectiveDate?.trim();
-  const projectButtonLabel = effectiveProject?.trim() || 'No Project';
+  const projectButtonLabel = selectedProjectName || effectiveProject?.trim() || 'No Project';
   const dateButtonLabel = (() => {
     if (!effectiveDate) return 'No Due Date';
     if (effectiveDate === getTodayIso()) return 'Today';
@@ -252,20 +204,8 @@ export function QuickCreateInput({
     return () => document.removeEventListener('mousedown', handleClick);
   }, [showProjectPicker]);
 
-  useEffect(() => {
-    if (!showDatePicker) return;
-    const handleClick = (e: MouseEvent) => {
-      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
-        setShowDatePicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showDatePicker]);
-
   const handleDatePick = (dateStr: string) => {
     handleSetDate(dateStr || null);
-    setShowDatePicker(false);
     inputRef.current?.focus();
   };
 
@@ -301,13 +241,14 @@ export function QuickCreateInput({
                 <button
                   type="button"
                   onClick={() => setShowProjectPicker(!showProjectPicker)}
+                  disabled={!!selectedProjectId}
                   className="btn-icon task-quick-create-dropup-btn"
                   data-kind="project"
                   data-active={hasProjectValue ? 'true' : 'false'}
                   title={hasProjectValue ? `Project: ${projectButtonLabel}` : 'No Project'}
                   aria-label={hasProjectValue ? `Project: ${projectButtonLabel}` : 'No Project'}
                   aria-haspopup="menu"
-                  aria-expanded={showProjectPicker}
+                  aria-expanded={!selectedProjectId && showProjectPicker}
                 >
                   {hasProjectValue && (
                     <Folder size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
@@ -315,33 +256,23 @@ export function QuickCreateInput({
                   <span className="trunc med task-quick-create-dropup-label">{projectButtonLabel}</span>
                   <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
                 </button>
-                <ProjectDropdown show={showProjectPicker} projects={clientProjects} onPick={handleProjectPick} />
+                <ProjectDropdown show={!selectedProjectId && showProjectPicker} projects={clientProjects} onPick={handleProjectPick} />
               </div>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }} ref={datePickerRef}>
-                <button
-                  type="button"
-                  onClick={() => setShowDatePicker(!showDatePicker)}
-                  className="btn-icon task-quick-create-dropup-btn"
-                  data-kind="date"
-                  data-active={hasDateValue ? 'true' : 'false'}
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <TaskDueDatePicker
+                  value={effectiveDate ?? ''}
+                  onChange={handleDatePick}
+                  buttonClassName="btn-icon task-quick-create-dropup-btn"
+                  ariaLabel={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
                   title={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
-                  aria-label={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
-                  aria-haspopup="menu"
-                  aria-expanded={showDatePicker}
+                  buttonProps={{ 'data-kind': 'date', 'data-active': hasDateValue ? 'true' : 'false' } as React.ButtonHTMLAttributes<HTMLButtonElement>}
                 >
                   {hasDateValue && (
                     <Calendar size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
                   )}
                   <span className="trunc med task-quick-create-dropup-label">{dateButtonLabel}</span>
                   <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
-                </button>
-                <DateDropdown show={showDatePicker} dateInputRef={dateInputRef} onPick={handleDatePick} onClose={() => setShowDatePicker(false)} />
-                <input
-                  ref={dateInputRef}
-                  type="date"
-                  onChange={(e) => { handleDatePick(e.target.value); setShowDatePicker(false); }}
-                  style={{ position: 'absolute', left: 0, bottom: 0, width: 0, height: 0, opacity: 0, pointerEvents: 'none' }}
-                />
+                </TaskDueDatePicker>
               </div>
             </div>
             <div className="task-quick-create-send">

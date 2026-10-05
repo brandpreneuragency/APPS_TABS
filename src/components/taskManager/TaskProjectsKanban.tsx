@@ -10,8 +10,8 @@ import '../crm/crm.css';
 import './taskProjectsKanban.css';
 import './taskDetail.css';
 import { useTranslation } from 'react-i18next';
-import { formatDate } from '../crm/components/format';
-import { dateOptions } from './taskMetadataUtils';
+import { formatShortDate } from './taskMetadataUtils';
+import { TaskDueDatePicker } from './TaskCalendarDatePicker';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
 import { kanbanColumnsForClient, projectsForClient, resolveQuickCreateProjectId } from '../../stores/taskSelection';
@@ -58,19 +58,6 @@ export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to m
   const project = projects.find((item) => item.id === task.projectId);
   const client = clients.find((item) => item.id === project?.clientId);
   const [isDragging, setIsDragging] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const dateRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!showDatePicker) return;
-    const onDocClick = (e: MouseEvent) => {
-      if (dateRef.current && !dateRef.current.contains(e.target as Node)) {
-        setShowDatePicker(false);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, [showDatePicker]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
     e.dataTransfer.effectAllowed = 'move';
@@ -98,40 +85,22 @@ export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to m
     >
       <div className="task-kanban-card-header">
         <div
-          ref={dateRef}
           className="crm-kanban-card-date"
           onClick={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => { if (e.key === 'Escape') setShowDatePicker(false); }}
         >
-          <button
-            type="button"
-            className="tdp-meta-field-btn"
-            onClick={() => setShowDatePicker(!showDatePicker)}
-            aria-label={t('tasks.dueDateCalendar')}
-            aria-expanded={showDatePicker}
+          <TaskDueDatePicker
+            value={task.date}
+            onChange={(iso) => { updateTask(task.id, { date: iso }); }}
+            buttonClassName="tdp-meta-field-btn"
+            ariaLabel={t('tasks.dueDateCalendar')}
             title={task.date || t('tasks.dueDateCalendar')}
           >
             <Calendar size={12} />
             <span className="tdp-meta-field-label">
-              {task.date ? formatDate(task.date, { month: 'short', day: 'numeric' }) : t('tasks.noDate')}
+              {task.date ? formatShortDate(task.date) : t('tasks.noDate')}
             </span>
-          </button>
-          {showDatePicker && (
-            <div className="drop" style={{ position: 'absolute', top: '100%', right: 0, minWidth: 160, marginTop: 2, zIndex: 1000 }}>
-              {dateOptions().map((opt) => (
-                <button
-                  key={opt.value || '__empty__'}
-                  type="button"
-                  className="drop-item"
-                  onClick={() => { updateTask(task.id, { date: opt.value }); setShowDatePicker(false); }}
-                  style={{ fontSize: 'var(--fs-base)' }}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          )}
+          </TaskDueDatePicker>
         </div>
         <div
           className="task-kanban-card-assignment"

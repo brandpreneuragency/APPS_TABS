@@ -103,12 +103,6 @@ def validate_graph(records):
             continue
         if task['projectId'] not in records['projects']:
             raise RequestError('Active task project is missing')
-        parent_id = task.get('parentTaskId')
-        if parent_id:
-            parent = records['tasks'].get(parent_id)
-            if (not parent or parent.get('deletedAt') or parent.get('parentTaskId')
-                    or parent['id'] == task['id'] or parent['projectId'] != task['projectId']):
-                raise RequestError('Invalid subtask relationship')
 
 
 class Store:

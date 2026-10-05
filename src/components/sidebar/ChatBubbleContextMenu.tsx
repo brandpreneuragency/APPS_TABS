@@ -39,7 +39,7 @@ export function ChatBubbleContextMenu({
 
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const menuW = 150;
+  const menuW = 192;
   const menuH = 88;
   const left = Math.min(x, vw - menuW - 8);
   const top = Math.min(y, vh - menuH - 8);
@@ -47,15 +47,13 @@ export function ChatBubbleContextMenu({
   return (
     <div
       ref={menuRef}
-      style={{ left, top, position: 'fixed', zIndex: 90, minWidth: 130 }}
+      style={{ left, top, position: 'fixed', zIndex: 90, minWidth: 192 }}
       className="drop"
     >
       <button
         type="button"
         onClick={() => { onReply(); onClose(); }}
         className="drop-item"
-        onMouseEnter={e => { e.currentTarget.style.background = 'var(--c-background-4)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <Reply size={12} />
         Reply
@@ -65,8 +63,6 @@ export function ChatBubbleContextMenu({
         onClick={() => { onDelete(); onClose(); }}
         className="drop-item"
         style={{ color: 'var(--c-danger)' }}
-        onMouseEnter={e => { e.currentTarget.style.background = 'rgba(239,68,68,0.1)'; }}
-        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
       >
         <Trash2 size={12} />
         Delete

@@ -12,17 +12,17 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--c-background-1);
+  background: transparent;
 }
 
 .file-viewer-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--c-border-1);
+  padding: 0;
+  border-bottom: 0;
   flex-shrink: 0;
-  height: 42px;
+  height: 32px;
 }
 
 .file-viewer-header-left {
@@ -47,7 +47,7 @@
 }
 
 .file-viewer-filename {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--c-text-1);
   max-width: 100%;
@@ -60,7 +60,7 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   border: 1px solid var(--c-border-1);
   background: var(--c-background-3);
@@ -137,8 +137,11 @@
   flex-shrink: 0;
 }
 
-/* Image viewer â€” uses 100dvh (dynamic viewport) so the cap
+/* Image viewer — uses 100dvh (dynamic viewport) so the cap
    adapts to mobile chrome and windowed resize. */
+.file-viewer-content-inner.file-viewer-content-image {
+  padding: 0;
+}
 .file-viewer-content-image img {
   max-width: 100%;
   max-height: calc(100dvh - 120px);
@@ -182,7 +185,7 @@
 }
 
 .file-viewer-video-name {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--c-text-1);
   text-align: center;
@@ -213,7 +216,7 @@
   margin: 0;
   padding: 0;
   font-family: var(--c-font-1);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--c-text-1);
   white-space: pre-wrap;
@@ -238,13 +241,13 @@
   text-align: center;
 }
 .file-viewer-other-name {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
   word-break: break-all;
 }
 .file-viewer-other-size {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   color: var(--c-text-3);
 }
 .file-viewer-download-btn {
@@ -253,7 +256,7 @@
   gap: 6px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   background: var(--c-accent-center-panel);
   color: #fff;
@@ -304,16 +307,16 @@
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--c-background-1);
+  background: transparent;
 }
 :root .file-viewer-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--c-border-1);
+  padding: 0;
+  border-bottom: 0;
   flex-shrink: 0;
-  height: 42px;
+  height: 32px;
 }
 :root .file-viewer-header-left {
   display: flex;
@@ -334,7 +337,7 @@
   flex-shrink: 0;
 }
 :root .file-viewer-filename {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--c-text-1);
   max-width: 100%;
@@ -346,7 +349,7 @@
   gap: 5px;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   border: 1px solid var(--c-border-1);
   background: var(--c-background-3);
@@ -419,6 +422,9 @@
   background: var(--c-background-2);
   flex-shrink: 0;
 }
+:root .file-viewer-content-inner.file-viewer-content-image {
+  padding: 0;
+}
 :root .file-viewer-content-image img {
   max-width: 100%;
   max-height: calc(100dvh - 120px);
@@ -448,7 +454,7 @@
   margin: 0;
   padding: 0;
   font-family: var(--c-font-1);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   line-height: 1.5;
   color: var(--c-text-1);
   white-space: pre-wrap;
@@ -471,13 +477,13 @@
   text-align: center;
 }
 :root .file-viewer-other-name {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
   word-break: break-all;
 }
 :root .file-viewer-other-size {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   color: var(--c-text-3);
 }
 :root .file-viewer-download-btn {
@@ -486,7 +492,7 @@
   gap: 6px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   background: var(--c-accent-center-panel);
   color: #fff;

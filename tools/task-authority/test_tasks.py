@@ -101,7 +101,7 @@ class AuthorityTests(unittest.TestCase):
         with self.assertRaises(RequestError):
             self.store.rpc(bad)
         self.assertEqual(self.store.rpc({'schema': 1, 'action': 'snapshot'})['snapshot'], snapshot)
-        child = dict(inventory()[2]['value'], id='child', parentTaskId='t')
+        child = dict(inventory()[2]['value'], id='child', parentTaskId='retired-parent')
         good = dict(bad, operationId='subtask', changes=[
             {'table': 'tasks', 'id': 'child', 'expectedRevision': None, 'value': child}])
         self.assertEqual(self.store.rpc(good)['outcome'], 'applied')

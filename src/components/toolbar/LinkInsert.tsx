@@ -45,7 +45,7 @@ export function LinkInsert({ editor, onClose }: LinkInsertProps) {
       id="link-insert-panel"
       ref={containerRef}
       className="drop"
-      style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 288, padding: 12 }}
+      style={{ position: 'absolute', top: '100%', left: 0, marginTop: 0, width: 288, padding: 12 }}
     >
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
         <span className="label semibold">Insert Link</span>

@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUIStore } from '../../stores/uiStore';
-import { TaskMetadataControls } from '../taskManager/TaskMetadataControls';
+import { TaskClientProjectControls, TaskDueDateControl } from '../taskManager/TaskMetadataControls';
 
 export function TaskTitleBar() {
-  const { t } = useTranslation();
-  const { taskMode, activeTaskPage } = useUIStore();
-  const subtaskSectionCollapsed = useUIStore((state) => state.subtaskSectionCollapsed);
-  const toggleSubtaskSection = useUIStore((state) => state.toggleSubtaskSection);
-  const task = useTaskStore((state) => state.tasks.find((item) => item.id === state.activeTaskId) ?? null);
+  const taskMode = useUIStore((state) => state.taskMode);
+  const activeTaskPage = useUIStore((state) => state.activeTaskPage);
+  const uiActiveTaskId = useUIStore((state) => state.activeTaskId);
+  const storeActiveTaskId = useTaskStore((state) => state.activeTaskId);
+  const tasks = useTaskStore((state) => state.tasks);
+  const effectiveTaskId = uiActiveTaskId ?? storeActiveTaskId;
+  const task = tasks.find((item) => item.id === effectiveTaskId) ?? null;
   const updateTask = useTaskStore((state) => state.updateTask);
   const [localTitle, setLocalTitle] = useState(task?.title ?? '');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -51,24 +51,19 @@ export function TaskTitleBar() {
       className="task-toggle-bar"
     >
       <div className="task-toggle-bar-inner">
-        <div className="task-toggle-bar-row">
-          {task && !task.parentTaskId && (
-            <button
-              type="button"
-              className="subtask-section-toggle"
-              aria-label={t(subtaskSectionCollapsed ? 'tasks.expandSubtasks' : 'tasks.collapseSubtasks')}
-              aria-expanded={!subtaskSectionCollapsed}
-              aria-controls="task-subtasks"
-              onClick={toggleSubtaskSection}
-            >
-              {subtaskSectionCollapsed ? <ChevronRight size={15} /> : <ChevronDown size={15} />}
-            </button>
-          )}
+        <div className="task-toggle-bar-row task-title-bar-spread">
+          <div className="task-title-bar-left">
+            <TaskClientProjectControls />
+            <TaskDueDateControl />
+          </div>
+          <span className="task-title-separator" aria-hidden="true">
+            |
+          </span>
           {isEditingTitle ? (
             <input
               ref={inputRef}
               type="text"
-              className="task-title-input"
+              className="task-title-input task-title-input--center"
               value={localTitle}
               onChange={(event) => setLocalTitle(event.target.value)}
               onBlur={commitTitle}
@@ -88,7 +83,7 @@ export function TaskTitleBar() {
           ) : (
             <button
               type="button"
-              className="task-title-input"
+              className="task-title-input task-title-input--center"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
                 setLocalTitle(task?.title ?? '');
@@ -99,7 +94,6 @@ export function TaskTitleBar() {
               {task?.title || 'Untitled task'}
             </button>
           )}
-          <TaskMetadataControls />
         </div>
       </div>
     </div>

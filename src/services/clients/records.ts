@@ -17,6 +17,25 @@ import { nanoid } from 'nanoid';
 import { CLIENTS_ACTOR_KEY, MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS_PER_OWNER } from './schema';
 import { validateContact, validateNote, validateProfile } from './validation';
 
+interface ClientDraftRuntimeState {
+  durableGenerations: Map<string, Map<number, ClientDraft>>;
+  discardedSessions: Map<string, { attempts: Set<symbol>; succeeded: boolean }>;
+}
+
+const clientDraftRuntimeStates = new WeakMap<TabsDB, ClientDraftRuntimeState>();
+
+function clientDraftRuntimeState(database: TabsDB): ClientDraftRuntimeState {
+  const current = clientDraftRuntimeStates.get(database);
+  if (current) return current;
+  const created: ClientDraftRuntimeState = { durableGenerations: new Map(), discardedSessions: new Map() };
+  clientDraftRuntimeStates.set(database, created);
+  return created;
+}
+
+function draftSessionKey(id: string, editSessionId: string): string {
+  return JSON.stringify([id, editSessionId]);
+}
+
 class RecordFailure extends Error {
   readonly code: ClientRecordErrorCode;
   readonly field?: string;
@@ -239,6 +258,7 @@ export function clientDraftId(clientId: string, kind: ClientDraft['kind'], recor
 async function verifyDraftAcknowledgement(
   database: TabsDB,
   acknowledgement: ClientDraftAcknowledgement,
+  durableGenerations: ReadonlyMap<number, ClientDraft> | undefined,
   expected:
     | { clientId: string; kind: 'profile'; recordId: string; baseRevision: number | null; value: ProfileDraftValue }
     | { clientId: string; kind: 'contact'; recordId: string; baseRevision: number | null; value: ContactDraftValue },
@@ -251,20 +271,28 @@ async function verifyDraftAcknowledgement(
     || draft.baseRevision !== expected.baseRevision) {
     throw new RecordFailure('CONFLICT');
   }
-  if (draft.generation === acknowledgement.generation) {
-    if (draft.kind === 'profile' && expected.kind === 'profile') {
-      const value = validateProfile(draft.value);
-      if (!value.ok || JSON.stringify(value.value) !== JSON.stringify(expected.value)) {
-        throw new RecordFailure('CONFLICT');
-      }
-    } else if (draft.kind === 'contact' && expected.kind === 'contact') {
-      const value = validateContact(draft.value);
-      if (!value.ok || JSON.stringify(value.value) !== JSON.stringify(expected.value)) {
-        throw new RecordFailure('CONFLICT');
-      }
-    } else {
+  const acknowledged = draft.generation === acknowledgement.generation
+    ? draft
+    : durableGenerations?.get(acknowledgement.generation);
+  if (!acknowledged || acknowledged.id !== draft.id || acknowledged.clientId !== draft.clientId
+    || acknowledged.kind !== draft.kind || acknowledged.recordId !== draft.recordId
+    || acknowledged.editSessionId !== draft.editSessionId
+    || acknowledged.generation !== acknowledgement.generation
+    || acknowledged.baseRevision !== expected.baseRevision) {
+    throw new RecordFailure('CONFLICT');
+  }
+  if (acknowledged.kind === 'profile' && expected.kind === 'profile') {
+    const value = validateProfile(acknowledged.value);
+    if (!value.ok || JSON.stringify(value.value) !== JSON.stringify(expected.value)) {
       throw new RecordFailure('CONFLICT');
     }
+  } else if (acknowledged.kind === 'contact' && expected.kind === 'contact') {
+    const value = validateContact(acknowledged.value);
+    if (!value.ok || JSON.stringify(value.value) !== JSON.stringify(expected.value)) {
+      throw new RecordFailure('CONFLICT');
+    }
+  } else {
+    throw new RecordFailure('CONFLICT');
   }
   return draft;
 }
@@ -295,7 +323,9 @@ async function persistDraft(
   database: TabsDB,
   nextDraft: ClientDraft,
   clock: () => number,
+  isDiscarded: (draft: ClientDraft) => boolean = () => false,
 ): Promise<ClientDraft> {
+  if (isDiscarded(nextDraft)) throw new RecordFailure('CONFLICT');
   if (nextDraft.kind === 'profile' && nextDraft.recordId !== nextDraft.clientId) {
     throw new RecordFailure('VALIDATION', 'recordId');
   }
@@ -357,6 +387,7 @@ async function persistDraft(
       throw new RecordFailure('CONFLICT');
     }
   }
+  if (isDiscarded(nextDraft)) throw new RecordFailure('CONFLICT');
   await database.clientDrafts.put(savedDraft);
   return savedDraft;
 }
@@ -463,6 +494,38 @@ function resultFailure<T>(error: unknown): ClientRecordResult<T> {
 }
 
 export function createClientRecords(database: TabsDB, clock: () => number = Date.now) {
+  const runtime = clientDraftRuntimeState(database);
+  const durableDraftGenerations = runtime.durableGenerations;
+  const isDraftDiscarded = (draft: ClientDraft): boolean =>
+    runtime.discardedSessions.has(draftSessionKey(draft.id, draft.editSessionId));
+  const rememberDraftGeneration = (draft: ClientDraft): void => {
+    if (draft.kind === 'note' || isDraftDiscarded(draft)) return;
+    const validation = draft.kind === 'profile'
+      ? validateProfile(draft.value)
+      : validateContact(draft.value);
+    if (!validation.ok) return;
+    const key = draftSessionKey(draft.id, draft.editSessionId);
+    const generations = durableDraftGenerations.get(key) ?? new Map<number, ClientDraft>();
+    generations.set(draft.generation, cloneDraft(draft));
+    durableDraftGenerations.set(key, generations);
+  };
+  const durableGenerationsFor = (acknowledgement: ClientDraftAcknowledgement) =>
+    durableDraftGenerations.get(draftSessionKey(acknowledgement.id, acknowledgement.editSessionId));
+  const isAcknowledgementDiscarded = (acknowledgement: ClientDraftAcknowledgement): boolean =>
+    runtime.discardedSessions.has(draftSessionKey(acknowledgement.id, acknowledgement.editSessionId));
+  const forgetAcknowledgedGenerations = (acknowledgement: ClientDraftAcknowledgement): void => {
+    const key = draftSessionKey(acknowledgement.id, acknowledgement.editSessionId);
+    const generations = durableDraftGenerations.get(key);
+    if (!generations) return;
+    for (const generation of generations.keys()) {
+      if (generation <= acknowledgement.generation) generations.delete(generation);
+    }
+    if (!generations.size) durableDraftGenerations.delete(key);
+  };
+  const forgetDraftSession = (id: string, editSessionId: string): void => {
+    durableDraftGenerations.delete(draftSessionKey(id, editSessionId));
+  };
+
   return {
     getProfile: async (clientId: string): Promise<ClientRecordResult<ClientProfile | null>> => {
       if (!validId(clientId)) return { ok: false, code: 'VALIDATION', field: 'clientId' };
@@ -499,12 +562,18 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
           if (current ? input.expectedRevision !== current.revision : input.expectedRevision !== null) {
             throw new RecordFailure('CONFLICT');
           }
+          if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+            throw new RecordFailure('CONFLICT');
+          }
           const acknowledgedDraft = input.draftAck
-            ? await verifyDraftAcknowledgement(database, input.draftAck, {
+            ? await verifyDraftAcknowledgement(database, input.draftAck, durableGenerationsFor(input.draftAck), {
               clientId: input.clientId, kind: 'profile', recordId: input.clientId,
               baseRevision: input.expectedRevision, value: validation.value,
             })
             : null;
+          if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+            throw new RecordFailure('CONFLICT');
+          }
           const updatedAt = checkedTime(clock);
           const next: ClientProfile = {
             clientId: input.clientId,
@@ -516,12 +585,19 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
             updatedAt,
           };
           await database.clientProfiles.put(next);
+          if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+            throw new RecordFailure('CONFLICT');
+          }
           if (acknowledgedDraft && input.draftAck) {
             await finishDraftAcknowledgement(database, acknowledgedDraft, input.draftAck.generation,
               next.revision, updatedAt);
           }
+          if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+            throw new RecordFailure('CONFLICT');
+          }
           return next;
         });
+        if (input.draftAck) forgetAcknowledgedGenerations(input.draftAck);
         return { ok: true, value: cloneProfile(profile) };
       } catch (error) {
         return resultFailure(error);
@@ -566,14 +642,23 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
             if (current && current.clientId !== input.clientId) throw new RecordFailure('CONFLICT');
             if (current?.deletedAt !== undefined) throw new RecordFailure('NOT_FOUND');
             checkExpectedRevision(current, input.expectedRevision);
+            if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+              throw new RecordFailure('CONFLICT');
+            }
             const acknowledgedDraft = input.draftAck
-              ? await verifyDraftAcknowledgement(database, input.draftAck, {
+              ? await verifyDraftAcknowledgement(database, input.draftAck, durableGenerationsFor(input.draftAck), {
                 clientId: input.clientId, kind: 'contact', recordId: input.id,
                 baseRevision: input.expectedRevision, value: validation.value,
               })
               : null;
+            if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+              throw new RecordFailure('CONFLICT');
+            }
             const now = checkedTime(clock);
             await ensureProfile(database, client, now);
+            if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+              throw new RecordFailure('CONFLICT');
+            }
             const next: ClientContact = {
               id: input.id,
               clientId: input.clientId,
@@ -583,13 +668,20 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
               updatedAt: now,
             };
             await database.clientContacts.put(next);
+            if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+              throw new RecordFailure('CONFLICT');
+            }
             if (acknowledgedDraft && input.draftAck) {
               await finishDraftAcknowledgement(database, acknowledgedDraft, input.draftAck.generation,
                 next.revision, now);
             }
+            if (input.draftAck && isAcknowledgementDiscarded(input.draftAck)) {
+              throw new RecordFailure('CONFLICT');
+            }
             return next;
           },
         );
+        if (input.draftAck) forgetAcknowledgedGenerations(input.draftAck);
         return { ok: true, value: cloneContact(contact) };
       } catch (error) {
         return resultFailure(error);
@@ -748,11 +840,20 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
       if (validation.value.contactId !== null && !validId(validation.value.contactId)) {
         return { ok: false, code: 'VALIDATION', field: 'contactId' };
       }
+      const draftSession = input.draftId !== null && input.editSessionId !== null
+        ? draftSessionKey(input.draftId, input.editSessionId)
+        : null;
+      const assertDraftSessionNotDiscarded = (): void => {
+        if (draftSession && runtime.discardedSessions.has(draftSession)) {
+          throw new RecordFailure('CONFLICT');
+        }
+      };
       try {
         const note = await database.transaction(
           'rw', [database.clients, database.clientProfiles, database.clientContacts,
             database.clientNotes, database.clientDrafts, database.clientAttachments, database.settings],
           async () => {
+            assertDraftSessionNotDiscarded();
             const client = validOwner(await database.clients.get(input.clientId), input.clientId);
             const current = await database.clientNotes.get(input.id);
             if (current && current.clientId !== input.clientId) throw new RecordFailure('CONFLICT');
@@ -776,6 +877,7 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
               }
               matchedDraft = draft;
             }
+            assertDraftSessionNotDiscarded();
 
             let contactSnapshot: ClientNote['contactSnapshot'];
             if (current && current.contactId === validation.value.contactId) {
@@ -813,7 +915,9 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
             }
 
             const now = checkedTime(clock);
+            assertDraftSessionNotDiscarded();
             await ensureProfile(database, client, now);
+            assertDraftSessionNotDiscarded();
             const actorSetting = await database.settings.get(CLIENTS_ACTOR_KEY);
             const actorId = typeof actorSetting?.value === 'string' && validId(actorSetting.value)
               ? actorSetting.value
@@ -821,6 +925,7 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
             if (actorId !== actorSetting?.value) {
               await database.settings.put({ key: CLIENTS_ACTOR_KEY, value: actorId });
             }
+            assertDraftSessionNotDiscarded();
             const next: ClientNote = {
               id: input.id,
               clientId: input.clientId,
@@ -837,6 +942,7 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
               await database.clientAttachments.put({ ...attachment, ownerType: 'note', ownerId: input.id });
             }
             if (matchedDraft) await database.clientDrafts.delete(matchedDraft.id);
+            assertDraftSessionNotDiscarded();
             return next;
           },
         );
@@ -926,9 +1032,10 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
         const saved = await database.transaction(
           'rw', database.clients, database.clientProfiles, database.clientContacts,
           database.clientNotes, database.clientDrafts, async () => {
-            return persistDraft(database, nextDraft, clock);
+            return persistDraft(database, nextDraft, clock, isDraftDiscarded);
           },
         );
+        rememberDraftGeneration(saved);
         return { ok: true, value: cloneDraft(saved) };
       } catch (error) {
         return resultFailure(error);
@@ -951,6 +1058,12 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
       if (!input || !validId(input.id)) return { ok: false, code: 'VALIDATION', field: 'id' };
       if (!validId(input.editSessionId)) return { ok: false, code: 'VALIDATION', field: 'editSessionId' };
       if (!validGeneration(input.generation)) return { ok: false, code: 'VALIDATION', field: 'generation' };
+      const sessionKey = draftSessionKey(input.id, input.editSessionId);
+      const cancellation = runtime.discardedSessions.get(sessionKey)
+        ?? { attempts: new Set<symbol>(), succeeded: false };
+      const attempt = Symbol();
+      cancellation.attempts.add(attempt);
+      runtime.discardedSessions.set(sessionKey, cancellation);
       try {
         await database.transaction('rw', database.clientDrafts, database.clientAttachments, async () => {
           const draft = await database.clientDrafts.get(input.id);
@@ -967,9 +1080,17 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
           await database.clientAttachments.bulkDelete(attachments.map((attachment) => attachment.id));
           await database.clientDrafts.delete(input.id);
         });
+        cancellation.succeeded = true;
+        forgetDraftSession(input.id, input.editSessionId);
         return { ok: true, value: undefined };
       } catch (error) {
         return resultFailure(error);
+      } finally {
+        cancellation.attempts.delete(attempt);
+        if (!cancellation.succeeded && cancellation.attempts.size === 0
+          && runtime.discardedSessions.get(sessionKey) === cancellation) {
+          runtime.discardedSessions.delete(sessionKey);
+        }
       }
     },
     addAttachment: async (input: {
@@ -991,10 +1112,12 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
         const validation = validateDraft(input.draft);
         if (!validation.ok) return validation;
         draftSeed = validation.value;
+        if (draftSeed.kind !== 'note') return { ok: false, code: 'VALIDATION', field: 'draft' };
         if (input.ownerType !== 'draft' || draftSeed.id !== input.ownerId
           || draftSeed.clientId !== input.clientId) {
           return { ok: false, code: 'CONFLICT' };
         }
+        if (isDraftDiscarded(draftSeed)) return { ok: false, code: 'CONFLICT' };
       }
       const id = input.id;
       const clientId = input.clientId;
@@ -1007,38 +1130,75 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
         return resultFailure(error);
       }
 
+      const metadata = {
+        id, clientId, ownerType, ownerId,
+        displayName: prepared.displayName, mime: prepared.mime, bytes: prepared.bytes,
+      };
       try {
+        const prior = await database.transaction(
+          'r', [database.clients, database.clientNotes, database.clientDrafts, database.clientAttachments],
+          async () => {
+            const client = validOwner(await database.clients.get(clientId), clientId);
+            let draft: ClientDraft | undefined;
+            if (ownerType === 'note') {
+              const note = await database.clientNotes.get(ownerId);
+              if (!note) throw new RecordFailure('NOT_FOUND');
+              if (note.clientId !== client.id) throw new RecordFailure('CONFLICT');
+              if (note.deletedAt !== undefined) throw new RecordFailure('NOT_FOUND');
+            } else {
+              draft = await database.clientDrafts.get(ownerId);
+              if (!draft && !draftSeed) throw new RecordFailure('NOT_FOUND');
+              if (draft && draft.clientId !== clientId) throw new RecordFailure('CONFLICT');
+              if (draftSeed && draft && (draft.id !== draftSeed.id || draft.clientId !== draftSeed.clientId
+                || draft.kind !== draftSeed.kind || draft.recordId !== draftSeed.recordId
+                || draft.editSessionId !== draftSeed.editSessionId)) {
+                throw new RecordFailure('CONFLICT');
+              }
+            }
+            const attachment = await database.clientAttachments.get(id);
+            if (!attachment) return null;
+            if (!sameAttachmentMetadata(attachment, metadata)) throw new RecordFailure('CONFLICT');
+            validateStoredAttachment(attachment);
+            return { attachment, draft };
+          },
+        );
+        if (prior) {
+          if (!await sameBlob(prior.attachment.data, prepared.data)) throw new RecordFailure('CONFLICT');
+          if (draftSeed && (!prior.draft || !sameDraftContent(prior.draft, draftSeed))) {
+            throw new RecordFailure('CONFLICT');
+          }
+          return { ok: true, value: cloneAttachment(prior.attachment) };
+        }
+
         const outcome = await database.transaction(
           'rw', [database.clients, database.clientProfiles, database.clientContacts,
             database.clientNotes, database.clientDrafts, database.clientAttachments], async () => {
             const client = validOwner(await database.clients.get(clientId), clientId);
+            let existingDraft: ClientDraft | undefined;
             if (ownerType === 'note') {
               const note = await database.clientNotes.get(ownerId);
               if (!note) throw new RecordFailure('NOT_FOUND');
               if (note.clientId !== clientId) throw new RecordFailure('CONFLICT');
               if (note.deletedAt !== undefined) throw new RecordFailure('NOT_FOUND');
             } else {
-              const existingDraft = await database.clientDrafts.get(ownerId);
+              existingDraft = await database.clientDrafts.get(ownerId);
               if (!existingDraft && !draftSeed) throw new RecordFailure('NOT_FOUND');
               if (existingDraft && existingDraft.clientId !== clientId) throw new RecordFailure('CONFLICT');
-              if (draftSeed) {
-                const storedDraft = await persistDraft(database, draftSeed, clock);
-                if (storedDraft.id !== ownerId || storedDraft.clientId !== clientId) {
-                  throw new RecordFailure('CONFLICT');
-                }
-              } else if (!existingDraft || existingDraft.id !== ownerId) {
-                throw new RecordFailure('NOT_FOUND');
-              }
             }
-            const metadata = {
-              id, clientId, ownerType, ownerId,
-              displayName: prepared.displayName, mime: prepared.mime, bytes: prepared.bytes,
-            };
             const existing = await database.clientAttachments.get(id);
             if (existing) {
               if (!sameAttachmentMetadata(existing, metadata)) throw new RecordFailure('CONFLICT');
               validateStoredAttachment(existing);
+              if (draftSeed && (!existingDraft || !sameDraftContent(existingDraft, draftSeed))) {
+                throw new RecordFailure('CONFLICT');
+              }
               return { attachment: existing, existing: true };
+            }
+            if (ownerType === 'draft' && draftSeed) {
+              const storedDraft = await persistDraft(database, draftSeed, clock, isDraftDiscarded);
+              if (storedDraft.id !== ownerId || storedDraft.clientId !== clientId) {
+                throw new RecordFailure('CONFLICT');
+              }
             }
             const owned = await database.clientAttachments.where('[ownerType+ownerId]')
               .equals([ownerType, ownerId]).toArray();
@@ -1062,10 +1222,10 @@ export function createClientRecords(database: TabsDB, clock: () => number = Date
             return { attachment: next, existing: false };
           },
         );
-        // Retry identity is the immutable row snapshot read in the readonly/no-mutation branch;
-        // compare after commit and return that snapshot, never a later same-metadata replacement.
-        if (outcome.existing && !await sameBlob(outcome.attachment.data, prepared.data)) {
-          throw new RecordFailure('CONFLICT');
+        // Retry identity is the immutable row snapshot read without mutation; all Blob reads stay
+        // outside IndexedDB transactions, and failed comparisons cannot commit draft seeds.
+        if (outcome.existing) {
+          if (!await sameBlob(outcome.attachment.data, prepared.data)) throw new RecordFailure('CONFLICT');
         }
         return { ok: true, value: cloneAttachment(outcome.attachment) };
       } catch (error) {

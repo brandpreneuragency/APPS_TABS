@@ -8,6 +8,7 @@ import { filterTasksForSelection } from '../../stores/taskSelection';
 import { TaskListItem } from './TaskListItem';
 import { QuickCreateInput } from './QuickCreateInput';
 import { TaskCalendarView } from './TaskCalendarView';
+import { formatTurkishClock } from './formatTurkishClock';
 
 type DateCategory = 'today' | 'thisWeek' | 'notYet' | 'completed';
 
@@ -23,8 +24,7 @@ function getDateCategory(dateStr: string): DateCategory {
 }
 
 export function TaskListPanel() {
-  const { t, i18n } = useTranslation();
-  const locale = i18n?.language;
+  const { t } = useTranslation();
   const tasks = useTaskStore((state) => state.tasks);
   const activeTaskId = useTaskStore((state) => state.activeTaskId);
   const selectedClientId = useTaskStore((state) => state.selectedClientId);
@@ -38,32 +38,18 @@ export function TaskListPanel() {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
     return () => window.clearInterval(timer);
   }, []);
-  const clockLabel = `${now.toLocaleDateString(locale, { month: 'short', day: 'numeric' })}. ${now.toLocaleDateString(locale, { weekday: 'short' }).replace(/\.$/, '')}. ${now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })}`;
+  const clockLabel = formatTurkishClock(now);
   const filteredTasks = useMemo(
     () => filterTasksForSelection(tasks, projects, selectedClientId, selectedProjectId),
     [tasks, projects, selectedClientId, selectedProjectId],
   );
-  const topLevelTasks = useMemo(
-    () => filteredTasks.filter((task) => !task.parentTaskId),
-    [filteredTasks],
-  );
-  const subtasksByParent = useMemo(() => {
-    const map = new Map<string, typeof filteredTasks>();
-    for (const task of filteredTasks) {
-      if (!task.parentTaskId) continue;
-      const list = map.get(task.parentTaskId) ?? [];
-      list.push(task);
-      map.set(task.parentTaskId, list);
-    }
-    return map;
-  }, [filteredTasks]);
   const groupedTasks = useMemo(() => {
-    const groups: Record<DateCategory, typeof topLevelTasks> = { today: [], thisWeek: [], notYet: [], completed: [] };
-    for (const task of topLevelTasks) groups[task.status === 'completed' ? 'completed' : getDateCategory(task.date)].push(task);
+    const groups: Record<DateCategory, typeof filteredTasks> = { today: [], thisWeek: [], notYet: [], completed: [] };
+    for (const task of filteredTasks) groups[task.status === 'completed' ? 'completed' : getDateCategory(task.date)].push(task);
     for (const category of ['today', 'thisWeek', 'notYet'] as const) groups[category].sort((left, right) => left.date.localeCompare(right.date));
     groups.completed.sort((left, right) => right.updatedAt - left.updatedAt);
     return groups;
-  }, [topLevelTasks]);
+  }, [filteredTasks]);
 
   return (
     <div id="task-list-panel" className="panel flex-col h-full overflow-hidden">
@@ -77,10 +63,9 @@ export function TaskListPanel() {
         )}
         <div id="task-list-content" className="task-scope-content ai-scroll">
           <div hidden={activeTab !== 'list'}>
-            {topLevelTasks.length === 0 && <p className="task-scope-empty">{t('navigation.noTasks')}</p>}
+            {filteredTasks.length === 0 && <p className="task-scope-empty">{t('navigation.noTasks')}</p>}
             {(['today', 'thisWeek', 'notYet', 'completed'] as const).flatMap((category) => groupedTasks[category]).map((task) => (
               <TaskListItem key={task.id} task={task} isActive={task.id === activeTaskId}
-                subtasks={subtasksByParent.get(task.id) ?? []}
                 onClick={() => useTaskStore.getState().openTaskInActiveTab(task.id)} />
             ))}
           </div>

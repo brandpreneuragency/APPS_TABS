@@ -52,10 +52,6 @@ export function validRelations(rows: Row[]): boolean {
   for (const task of byTable.get('tasks')!.values()) {
     if (task.deletedAt) continue;
     if (!byTable.get('projects')!.has(String(task.projectId))) return false;
-    if (task.parentTaskId) {
-      const parent = byTable.get('tasks')!.get(String(task.parentTaskId));
-      if (!parent || parent.deletedAt || parent.parentTaskId || parent.id === task.id || parent.projectId !== task.projectId) return false;
-    }
   }
   return true;
 }

@@ -41,7 +41,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
     saveCurrentFile,
     createWorkspace,
     connectFolderInWorkspace,
-    renameWorkspace,
+    updateWorkspace,
   } = useWorkspaceStore();
 
   const activeWs = workspaces.find((w) => w.id === activeWorkspaceId);
@@ -261,7 +261,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
     }
     await swapFileInWorkspace(newWs.id, node, { skipPrompt: true });
     const folderName = parentPath.split('/').pop() || 'Workspace';
-    renameWorkspace(newWs.id, folderName);
+    updateWorkspace(newWs.id, { name: folderName, nameIsCustom: false });
   };
 
   // ── Drag-and-drop handlers ──────────────────────────────────────────
@@ -449,7 +449,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
         <div
           ref={contextRef}
           className="drop"
-          style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, minWidth: 160 }}
+          style={{ position: 'fixed', top: contextMenu.y, left: contextMenu.x, minWidth: 192 }}
           onClick={(e) => e.stopPropagation()}
         >
           {node.kind === 'directory' && (

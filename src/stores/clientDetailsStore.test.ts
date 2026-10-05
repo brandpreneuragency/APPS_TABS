@@ -7,10 +7,25 @@ const noteValue = (bodyText = 'Initial'): NoteDraftValue => ({
 });
 
 afterEach(() => {
-  useClientDetailsStore.setState({ drafts: {}, saveStates: {} });
+  useClientDetailsStore.setState({ category: 'overview', drafts: {}, saveStates: {} });
 });
 
 describe('client details edit state', () => {
+  it.each(['profile', 'contact'] as const)('recovers a %s draft as pending canonical commit', (kind) => {
+    const draft = kind === 'profile'
+      ? useClientDetailsStore.getState().startEdit({ clientId: 'client-a', kind,
+        baseRevision: 1, value: { website: '', description: 'Recovered profile' } })
+      : useClientDetailsStore.getState().startEdit({ clientId: 'client-a', kind, recordId: 'contact-a',
+        baseRevision: 1, value: { name: 'Ada', role: 'Analyst', email: '', phone: '' } });
+    useClientDetailsStore.setState({ drafts: {}, saveStates: {} });
+
+    expect(useClientDetailsStore.getState().recoverDraft(draft)).toBe(true);
+    expect(useClientDetailsStore.getState().drafts[draft.id]).toEqual(draft);
+    expect(useClientDetailsStore.getState().saveStates[draft.id]).toEqual({
+      editSessionId: draft.editSessionId, generation: draft.generation, status: 'idle',
+    });
+  });
+
   it('keeps a generated note identity and increases generation without changing its session', () => {
     const store = useClientDetailsStore.getState();
     const initial = store.startEdit({ clientId: 'client-a', kind: 'note', baseRevision: null, value: noteValue() });
@@ -112,6 +127,21 @@ describe('client details edit state', () => {
     expect(useClientDetailsStore.getState().recoverDraft(otherSession)).toBe(false);
     expect(useClientDetailsStore.getState().drafts[initial.id]).toMatchObject({
       editSessionId: initial.editSessionId, generation: initial.generation,
+    });
+  });
+
+  it('changes the active category without replacing edit drafts or save state', () => {
+    const draft = useClientDetailsStore.getState().startEdit({
+      clientId: 'client-a', kind: 'note', recordId: 'note-category', baseRevision: null, value: noteValue(),
+    });
+    useClientDetailsStore.getState().markSaving(draft.id, draft.editSessionId, draft.generation);
+
+    useClientDetailsStore.getState().setCategory('notes');
+
+    expect(useClientDetailsStore.getState().category).toBe('notes');
+    expect(useClientDetailsStore.getState().drafts[draft.id]).toEqual(draft);
+    expect(useClientDetailsStore.getState().saveStates[draft.id]).toEqual({
+      editSessionId: draft.editSessionId, generation: draft.generation, status: 'saving',
     });
   });
 });

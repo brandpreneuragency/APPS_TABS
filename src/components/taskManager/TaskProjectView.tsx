@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Plus, Pencil, Folder } from 'lucide-react';
+import { Plus, Pencil, Folder, Calendar } from 'lucide-react';
 import type { Task } from '../../types';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { filterTasksForSelection, projectsForClient } from '../../stores/taskSelection';
+import { TaskDueDatePicker } from './TaskCalendarDatePicker';
 
 interface TaskProjectViewProps {
   tasks: Task[];
@@ -74,14 +75,18 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
   return (
     <div className="task-project-view">
       <div className="project-filter-bar">
-        <input
-          type="date"
+        <TaskDueDatePicker
           value={maxDate}
-          onChange={(e) => setMaxDate(e.target.value)}
-          className="ctrl-xs c-ptr"
-          placeholder="Due before"
-          style={{ flex: 1 }}
-        />
+          onChange={(iso) => setMaxDate(iso)}
+          buttonClassName="ctrl-xs c-ptr"
+          ariaLabel={maxDate ? `Due before ${maxDate}` : 'Due before'}
+          title={maxDate ? `Due before ${maxDate}` : 'Due before'}
+        >
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 1 }}>
+            <Calendar size={12} />
+            <span>{maxDate || 'Due before'}</span>
+          </span>
+        </TaskDueDatePicker>
       </div>
 
       {grouped.map(([, { project, tasks: groupTasks }]) => {

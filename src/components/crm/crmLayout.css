@@ -97,7 +97,7 @@
 
 /* Stub page helpers (primary rules live in crm.css) */
 .crm-page-title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 700;
   color: var(--c-text-1);
   margin: 0;

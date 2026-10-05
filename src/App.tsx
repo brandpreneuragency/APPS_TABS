@@ -17,6 +17,7 @@ import { ToastContainer } from './components/ui/Toast';
 import { CRMWorkspace } from './components/layout/CRMWorkspace';
 import { CRMListPanel } from './components/crm/CRMListPanel';
 import { FormsListPanel } from './components/forms/FormsListPanel';
+import { ClientsCategoryPanel } from './components/clients/ClientsCategoryPanel';
 import { useWorkspaceStore } from './stores/workspaceStore';
 import { useUIStore } from './stores/uiStore';
 import { useAIStore } from './stores/aiStore';
@@ -189,10 +190,13 @@ export default function App() {
   // Panel 1 (leftPanel) — CRM / Forms / file explorer.
   // Settings supplies its own list via SettingsPanels inside SettingsDocument.
   const formsPageActive = crmMode && activeCRMPage === 'forms';
+  const clientsPageActive = crmMode && activeCRMPage === 'clients';
   const leftPanel = crmMode
     ? formsPageActive
       ? <FormsListPanel />
-      : <CRMListPanel />
+      : clientsPageActive
+        ? <ClientsCategoryPanel />
+        : <CRMListPanel />
     : settingsActive
     ? null
     : <FileExplorerPanel />;

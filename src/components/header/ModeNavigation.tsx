@@ -1,5 +1,6 @@
-import { CalendarDays, FileText, Folder, List, PanelLeftClose, PanelLeftOpen, Settings, TerminalSquare } from 'lucide-react';
+import { CalendarDays, FileText, Folder, List, PanelLeftClose, PanelLeftOpen, Settings, TerminalSquare, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { enterClients } from '../../services/clients/navigation';
 import { useUIStore } from '../../stores/uiStore';
 
 export function ModeNavigation() {
@@ -39,6 +40,7 @@ export function ModeNavigation() {
         <button id="nav-btn-terminal" type="button" title={t('navigation.terminal')} aria-label={t('navigation.terminal')}
           aria-pressed={terminalOpen} onClick={() => useUIStore.getState().setTerminalPanelOpen(!terminalOpen)}><TerminalSquare size={15} /></button>
       </div>
+      <span className="mode-navigation-separator" aria-hidden="true">|</span>
       <button id="nav-btn-documents" type="button" className="header-mode" aria-pressed={docsActive}
         onClick={() => {
           const ui = useUIStore.getState();
@@ -47,6 +49,7 @@ export function ModeNavigation() {
         }}>
         <FileText size={15} /><span>{t('navigation.docs')}</span>
       </button>
+      <span className="mode-navigation-separator" aria-hidden="true">|</span>
         <button id="nav-btn-tasks" type="button" className="header-mode" aria-pressed={taskMode && taskPage === 'list'}
           onClick={() => {
             const ui = useUIStore.getState();
@@ -65,6 +68,7 @@ export function ModeNavigation() {
           }}>
           <CalendarDays size={15} /><span>{t('navigation.calendar')}</span>
         </button>
+        <span className="mode-navigation-separator" aria-hidden="true">|</span>
         <button id="nav-btn-projects" type="button" className="header-mode" aria-pressed={crmMode && clientPage === 'projects'}
           onClick={() => {
             const ui = useUIStore.getState();
@@ -73,6 +77,10 @@ export function ModeNavigation() {
             ui.setContextPanelOpen('crm', true);
           }}>
           <Folder size={15} /><span>{t('navigation.projects')}</span>
+        </button>
+        <button id="nav-btn-clients" type="button" className="header-mode" aria-pressed={crmMode && clientPage === 'clients'}
+          onClick={enterClients}>
+          <Users size={15} /><span>{t('navigation.clients')}</span>
         </button>
     </nav>
   );

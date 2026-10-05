@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { TaskListItem } from './TaskListItem';
 import type { Task } from '../../types';
 
@@ -60,80 +61,39 @@ function makeTask(overrides: Partial<Task> = {}): Task {
 }
 
 describe('TaskListItem', () => {
-  it('keeps subtasks attached and collapses without opening the parent', () => {
+  it('opens the task once from the title, metadata, due date and empty card space', () => {
     const onClick = vi.fn();
-    const { container } = render(<TaskListItem task={makeTask()} isActive={false} onClick={onClick}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-    const disclosure = screen.getByRole('button', { name: 'Subtasks 0/1' });
-    expect(disclosure.parentElement).toHaveClass('task-item-footer');
-    expect(disclosure.closest('.task-card')).not.toBeNull();
-    expect(container.querySelectorAll('.task-item')).toHaveLength(1);
-    expect(screen.getByRole('button', { name: 'Child brief' })).toHaveAttribute('aria-current', 'true');
-    fireEvent.click(disclosure);
-    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
-    expect(screen.queryByRole('button', { name: 'Child brief' })).not.toBeInTheDocument();
-    expect(onClick).not.toHaveBeenCalled();
-    fireEvent.click(disclosure);
-    expect(screen.getByRole('button', { name: 'Child brief' })).toBeVisible();
+    const { container } = render(<TaskListItem task={makeTask()} isActive={false} onClick={onClick} />);
+    const card = container.querySelector('.task-card')!;
+    const dueDate = container.querySelector('.task-item-due-date')!;
+    expect(dueDate.parentElement).toHaveClass('row-xs');
+    expect(dueDate.parentElement).toContainElement(screen.getByText('General'));
+    expect(container.querySelector('.task-item-footer')).not.toBeInTheDocument();
+
+    for (const target of [screen.getByText('Write brief'), screen.getByText('General'), dueDate, card]) {
+      onClick.mockClear();
+      fireEvent.click(target);
+      expect(onClick).toHaveBeenCalledTimes(1);
+    }
   });
 
-  it('opens and completes the child independently of the parent', async () => {
-    openTask.mockClear();
-    updateTask.mockClear();
+  it('keeps the task button accessible through Enter and Space', async () => {
+    const user = userEvent.setup();
     const onClick = vi.fn();
-    render(<TaskListItem task={makeTask()} isActive={false} onClick={onClick}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Child brief' }));
-    expect(openTask).toHaveBeenCalledWith('child');
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Complete subtask: Child brief' }));
-    expect(updateTask).toHaveBeenCalledWith('child', { status: 'completed' });
-    expect(onClick).not.toHaveBeenCalled();
-    await waitFor(() => expect(screen.getByRole('checkbox')).toBeEnabled());
+    render(<TaskListItem task={makeTask()} isActive={false} onClick={onClick} />);
+    await user.tab();
+    expect(screen.getByRole('button', { name: /Write brief/ })).toHaveFocus();
+    await user.keyboard('{Enter}');
+    expect(onClick).toHaveBeenCalledTimes(1);
+    await user.keyboard(' ');
+    expect(onClick).toHaveBeenCalledTimes(2);
   });
 
-  it('updates the counter when a subtask is added and allows reopening a completed subtask', async () => {
-    updateTask.mockClear();
-    const view = render(<TaskListItem task={makeTask()} isActive={false} onClick={() => undefined} />);
+  it('renders legacy children as ordinary task cards without subtask controls', () => {
+    render(<TaskListItem task={makeTask({ parentTaskId: 'old-parent' })} isActive={false} onClick={() => undefined} />);
+    expect(screen.getByRole('button', { name: /Write brief/ })).toBeVisible();
     expect(screen.queryByRole('button', { name: /Subtasks/ })).not.toBeInTheDocument();
-    view.rerender(<TaskListItem task={makeTask()} isActive={false} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1', status: 'completed' })]} />);
-    expect(screen.getByRole('button', { name: 'Subtasks 1/1' })).toHaveAttribute('aria-expanded', 'true');
-    fireEvent.click(screen.getByRole('checkbox'));
-    expect(updateTask).toHaveBeenCalledWith('child', { status: 'pending' });
-    await waitFor(() => expect(screen.getByRole('checkbox')).toBeEnabled());
-  });
-
-  it('collapses subtasks when another task becomes active', async () => {
-    activeTask.id = 't1';
-    const view = render(<TaskListItem task={makeTask()} isActive={true} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'other-child', title: 'Child brief', parentTaskId: 't1' })]} />);
-    const disclosure = screen.getByRole('button', { name: 'Subtasks 0/1' });
-    expect(disclosure).toHaveAttribute('aria-expanded', 'true');
-
-    activeTask.id = 'other-task';
-    view.rerender(<TaskListItem task={makeTask()} isActive={false} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-
-    await waitFor(() => expect(disclosure).toHaveAttribute('aria-expanded', 'false'));
-  });
-
-  it('keeps subtasks expanded when a subtask becomes active', () => {
-    activeTask.id = 't1';
-    const view = render(<TaskListItem task={makeTask()} isActive={true} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-    const disclosure = screen.getByRole('button', { name: 'Subtasks 0/1' });
-
-    activeTask.id = 'child';
-    view.rerender(<TaskListItem task={makeTask()} isActive={false} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-
-    expect(disclosure).toHaveAttribute('aria-expanded', 'true');
-
-    activeTask.id = 'other-task';
-    view.rerender(<TaskListItem task={makeTask()} isActive={false} onClick={() => undefined}
-      subtasks={[makeTask({ id: 'child', title: 'Child brief', parentTaskId: 't1' })]} />);
-
-    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument();
   });
 
   it('renders client meta before project meta', () => {

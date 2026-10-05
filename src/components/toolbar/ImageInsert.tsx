@@ -53,7 +53,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
       id="image-insert-panel"
       ref={containerRef}
       className="drop"
-      style={{ position: 'absolute', top: '100%', left: 0, marginTop: 4, width: 288 }}
+      style={{ position: 'absolute', top: '100%', left: 0, marginTop: 0, width: 288 }}
     >
       <div className="row" style={{ justifyContent: 'space-between', padding: '12px 12px 8px 12px' }}>
         <span className="label semibold">Insert Image</span>

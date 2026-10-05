@@ -51,7 +51,7 @@
   background: var(--c-background-2);
     border-radius: var(--radius-sm);
   color: var(--c-text-2);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -115,7 +115,7 @@ button.task-item--on:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px;
+  padding: 0px 10px;
   width: 100%;
   min-height: 0;
   flex: 1 1 0;
@@ -287,7 +287,7 @@ button.task-item--on:hover {
   gap: 6px;
   background: transparent;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   text-align: left;
 }
 #task-quick-create .task-quick-create-dropup-btn .task-quick-create-dropup-chevron {
@@ -319,16 +319,11 @@ button.task-item--on:hover {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: var(--fs-sm);
 }
 #task-quick-create .task-quick-create-dropup-btn:hover {
   background: transparent;
   color: var(--c-text-2);
-}
-#tqc-project-dropdown button.drop-item {
-  background-color: transparent;
-}
-#tqc-project-dropdown button.drop-item:hover {
-  background-color: var(--c-background-1);
 }
 #task-quick-create .task-quick-create-dropup-btn:hover .task-quick-create-dropup-label,
 #task-quick-create .task-quick-create-dropup-btn:hover .task-quick-create-dropup-chevron,
@@ -382,12 +377,6 @@ button.task-item--on:hover {
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
-}
-#tqc-date-dropdown button.drop-item {
-  background-color: transparent;
-}
-#tqc-date-dropdown button.drop-item:hover {
-  background-color: var(--c-background-1);
 }
 @container (max-width: 300px) {
   #task-quick-create .task-quick-create-dropup-btn {
@@ -484,7 +473,7 @@ button.task-item--on:hover {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-3);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   text-align: center;
   cursor: pointer;
   vertical-align: middle;
@@ -617,7 +606,7 @@ button.task-item--on:hover {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
 }
@@ -693,7 +682,10 @@ button.task-item--on:hover {
     each card below its content size and clip the title. */
 .task-item {
   width: 100%;
-  padding: 12px;
+  padding-top: 12px;
+  padding-right: 12px;
+  padding-bottom: 8px;
+  padding-left: 12px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -733,7 +725,7 @@ button.task-item--on:hover {
   color: var(--c-text-1);
 }
 .task-title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-2);
   text-align: left;
@@ -823,7 +815,7 @@ button.task-item--on:hover {
   gap: 6px;
   background: transparent;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   text-align: left;
 }
 #subtask-quick-create .task-quick-create-dropup-btn[data-kind='date'][data-active='true'] {
@@ -894,12 +886,6 @@ button.task-item--on:hover {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
-#stqc-date-dropdown button.drop-item {
-  background-color: transparent;
-}
-#stqc-date-dropdown button.drop-item:hover {
-  background-color: var(--c-background-1);
-}
 @container (max-width: 300px) {
   #subtask-quick-create .task-quick-create-dropup-btn {
     width: var(--control-height-sm);
@@ -962,8 +948,10 @@ button.task-item--on:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
+  min-width: 0;
+  min-height: 0;
   padding: 0;
   border: none;
   border-radius: var(--radius-full);
@@ -1053,7 +1041,7 @@ button.task-item--on:hover {
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--c-text-2);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
 }
@@ -1201,7 +1189,7 @@ button.task-item--on:hover {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
   padding: 4px 2px;
@@ -1306,7 +1294,7 @@ button.task-item--on:hover {
   border-radius: var(--radius-sm);
   border: 1px solid var(--c-border-1);
   color: var(--c-text-2);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
@@ -1346,7 +1334,7 @@ button.task-item--on:hover {
   border-image: none;
   outline: none;
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 12px 12px 12px;
   transition: background-color 0.12s;
 }
 :root button.task-item:hover {
@@ -1383,7 +1371,7 @@ button.task-item--on:hover {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 12px 12px 0;
+  padding: 0px 10px;
   width: 100%;
   min-height: 0;
   flex: 1 1 0;
@@ -1507,7 +1495,7 @@ button.task-item--on:hover {
   gap: 6px;
   background: transparent;
   border-radius: var(--radius-sm);
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   text-align: left;
 }
 :root #task-quick-create .task-quick-create-dropup-btn .task-quick-create-dropup-chevron {
@@ -1543,12 +1531,6 @@ button.task-item--on:hover {
 :root #task-quick-create .task-quick-create-dropup-btn:hover {
   background: transparent;
   color: var(--c-text-2);
-}
-:root #tqc-project-dropdown button.drop-item {
-  background-color: transparent;
-}
-:root #tqc-project-dropdown button.drop-item:hover {
-  background-color: var(--c-background-1);
 }
 :root #task-quick-create .task-quick-create-dropup-btn:hover .task-quick-create-dropup-label,
 :root #task-quick-create .task-quick-create-dropup-btn:hover .task-quick-create-dropup-chevron,
@@ -1603,13 +1585,6 @@ button.task-item--on:hover {
   word-break: break-word;
   overflow-wrap: anywhere;
 }
-:root #tqc-date-dropdown button.drop-item {
-  background-color: transparent;
-}
-:root #tqc-date-dropdown button.drop-item:hover {
-  background-color: var(--c-background-1);
-}
-:root #tqc-date-dropdown.drop,
 :root #tqc-project-dropdown.drop {
   border-width: 0 !important;
   padding: 0;
@@ -1659,7 +1634,7 @@ button.task-item--on:hover {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
 }
@@ -1729,7 +1704,7 @@ button.task-item--on:hover {
 }
 :root .task-item {
   width: 100%;
-  padding: 12px 12px 8px;
+  padding: 12px 12px 12px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -1747,7 +1722,7 @@ button.task-item--on:hover {
   transition: background-color 0.12s;
 }
 :root .task-card-group--active .task-item {
-  padding-bottom: 8px;
+  padding-bottom: 12px;
 }
 :root .task-item .meta {
   font-size: var(--fs-sm);
@@ -1772,7 +1747,7 @@ button.task-item--on:hover {
   color: var(--c-text-1);
 }
 :root .task-title {
-  font-size: var(--fs-base);
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-2);
   text-align: left;

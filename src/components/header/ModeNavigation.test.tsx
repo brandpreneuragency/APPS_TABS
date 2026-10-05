@@ -1,29 +1,54 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useUIStore } from '../../stores/uiStore';
+import { useTaskStore } from '../../stores/taskStore';
 import { ModeNavigation } from './ModeNavigation';
 
-vi.mock('../../services/db', () => ({ db: { settings: { put: vi.fn().mockResolvedValue(undefined) } } }));
+vi.mock('../../services/db', () => ({
+  db: { settings: { put: vi.fn().mockResolvedValue(undefined) } },
+  getSetting: vi.fn().mockResolvedValue(null),
+  setSetting: vi.fn().mockResolvedValue(undefined),
+}));
 vi.mock('../../stores/crmStore', () => ({ useCrmStore: { getState: () => ({ setLeadsCenterView: vi.fn() }) } }));
 vi.mock('react-i18next', async (importOriginal) => ({
   ...await importOriginal<typeof import('react-i18next')>(),
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-beforeEach(() => useUIStore.setState(useUIStore.getInitialState()));
+beforeEach(() => {
+  useUIStore.setState(useUIStore.getInitialState());
+  useTaskStore.setState(useTaskStore.getInitialState());
+});
 afterEach(cleanup);
 
 describe('ModeNavigation', () => {
   it('keeps all controls visible in the requested order across view changes', () => {
     render(<ModeNavigation />);
-    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'tasks', 'calendar', 'projects'];
-    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs']) {
+    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'tasks', 'calendar', 'projects', 'clients'];
+    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs', 'navigation.clients']) {
       fireEvent.click(screen.getByRole('button', { name }));
       expect(screen.getAllByRole('button').map((button) => button.id)).toEqual(expected.map((id) => `nav-btn-${id}`));
       expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
       expect(document.querySelectorAll('.header-mode[aria-pressed="true"]')).toHaveLength(1);
     }
-    expect(screen.queryByRole('button', { name: 'navigation.clients' })).not.toBeInTheDocument();
+  });
+
+  it('enters Clients without changing the selected client and clears project scope', () => {
+    useTaskStore.setState({ selectedClientId: 'client-a', selectedProjectId: 'project-a' });
+    useUIStore.setState({ activeCRMPage: 'projects', crmMode: true });
+    render(<ModeNavigation />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'navigation.clients' }));
+
+    expect(useTaskStore.getState()).toMatchObject({ selectedClientId: 'client-a', selectedProjectId: null });
+    expect(useUIStore.getState()).toMatchObject({
+      activeCRMPage: 'clients', crmMode: true, contextPanelOpenByMode: { ...useUIStore.getState().contextPanelOpenByMode, crm: true },
+    });
+    expect(document.querySelectorAll('.header-mode[aria-pressed="true"]')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'navigation.docs' }));
+    expect(useUIStore.getState().crmMode).toBe(false);
+    expect(useTaskStore.getState()).toMatchObject({ selectedClientId: 'client-a', selectedProjectId: null });
   });
 
   it('toggles the left navbar while preserving its resized width', () => {
@@ -46,6 +71,7 @@ describe('ModeNavigation', () => {
       ['navigation.calendar', 'tasks', 'calendar'],
       ['navigation.projects', 'crm', 'projects'],
       ['navigation.taskList', 'tasks', 'list'],
+      ['navigation.clients', 'crm', 'clients'],
     ]) {
       fireEvent.click(screen.getByRole('button', { name }));
       const state = useUIStore.getState();

@@ -34,7 +34,7 @@ describe('task draft transactions and undo', () => {
     const second = await applyTaskDraft('message-1', proposed);
     expect(second.id).toBe(first.id);
     expect(await db.tasks.count()).toBe(2);
-    expect((await db.tasks.get('child'))?.parentTaskId).toBe('root');
+    expect((await db.tasks.get('child'))?.parentTaskId).toBeUndefined();
     expect((await db.tasks.get('root'))?.title).toBe('Updated');
     expect(await db.taskComments.count()).toBe(1);
     await undoTaskDraft(first.id);

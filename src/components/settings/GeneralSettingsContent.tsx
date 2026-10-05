@@ -55,24 +55,24 @@ export function SettingsContent() {
         <div>
           <div style={{ marginBottom: 12 }}>
             <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
-              <label className="subtle" style={{ fontSize: 'var(--fs-base)' }}>{t('settings.textSize')}</label>
+              <label className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>{t('settings.textSize')}</label>
               <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
                 <button
                   type="button"
                   disabled={!canDecreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, -1))}
                   className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canDecreaseFont ? 1 : 0.3, cursor: canDecreaseFont ? 'pointer' : 'not-allowed' }}
+                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-sm)', lineHeight: 1, opacity: canDecreaseFont ? 1 : 0.3, cursor: canDecreaseFont ? 'pointer' : 'not-allowed' }}
                 >
                   −
                 </button>
-                <span className="nowrap" style={{ fontSize: 'var(--fs-base)', color: 'var(--c-text-1)', width: 32, textAlign: 'center' }}>{editorFontSize}px</span>
+                <span className="nowrap" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)', width: 32, textAlign: 'center' }}>{editorFontSize}px</span>
                 <button
                   type="button"
                   disabled={!canIncreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, 1))}
                   className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-base)', lineHeight: 1, opacity: canIncreaseFont ? 1 : 0.3, cursor: canIncreaseFont ? 'pointer' : 'not-allowed' }}
+                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-sm)', lineHeight: 1, opacity: canIncreaseFont ? 1 : 0.3, cursor: canIncreaseFont ? 'pointer' : 'not-allowed' }}
                 >
                   +
                 </button>
@@ -82,13 +82,13 @@ export function SettingsContent() {
 
           {/* Font Family — full width */}
           <div style={{ marginBottom: 12 }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-base)', display: 'block', marginBottom: 6 }}>{t('settings.fontFamily')}</label>
+            <label className="subtle" style={{ fontSize: 'var(--fs-sm)', display: 'block', marginBottom: 6 }}>{t('settings.fontFamily')}</label>
             <div ref={fontRef} className="relative">
               <button
                 type="button"
                 onClick={() => setFontOpen((v) => !v)}
                 className="btn w-full"
-                style={{ padding: 10, borderRadius: 'var(--radius-sm)', fontSize: 'var(--fs-base)', justifyContent: 'space-between' }}
+                style={{ padding: 10, borderRadius: 'var(--radius-sm)', fontSize: 'var(--fs-sm)', justifyContent: 'space-between' }}
               >
                 <span style={{ fontFamily: editorFontFamily }}>{editorFontFamily}</span>
                 <ChevronDown size={14} className="subtle" style={{ transform: fontOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
@@ -103,7 +103,7 @@ export function SettingsContent() {
                       className="drop-item"
                       style={{
                         fontFamily: font,
-                        fontSize: 'var(--fs-base)',
+                        fontSize: 'var(--fs-sm)',
                         background: editorFontFamily === font ? 'var(--c-background-4)' : undefined,
                         color: editorFontFamily === font ? 'var(--c-accent-center-panel)' : undefined,
                       }}
@@ -118,10 +118,10 @@ export function SettingsContent() {
 
           {/* Default workspace folder */}
           <div style={{ marginBottom: 12 }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-base)', display: 'block', marginBottom: 6 }}>
+            <label className="subtle" style={{ fontSize: 'var(--fs-sm)', display: 'block', marginBottom: 6 }}>
               {t('settings.defaultFolder')}
             </label>
-            <p className="subtle" style={{ fontSize: 'var(--fs-base)', margin: '0 0 8px' }}>
+            <p className="subtle" style={{ fontSize: 'var(--fs-sm)', margin: '0 0 8px' }}>
               {t('settings.defaultFolderHint')}
             </p>
             <div className="row" style={{ gap: 8, alignItems: 'center' }}>
@@ -134,7 +134,7 @@ export function SettingsContent() {
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   display: 'block',
-                  fontSize: 'var(--fs-base)',
+                  fontSize: 'var(--fs-sm)',
                   color: defaultFolderPath ? 'var(--c-text-1)' : 'var(--c-text-3)',
                 }}
                 title={defaultFolderPath ?? undefined}
@@ -144,7 +144,7 @@ export function SettingsContent() {
               <button
                 type="button"
                 className="btn"
-                style={{ fontSize: 'var(--fs-base)', flexShrink: 0 }}
+                style={{ fontSize: 'var(--fs-sm)', flexShrink: 0 }}
                 onClick={() => void handleChooseDefaultFolder()}
                 disabled={!canPickFolder || pickingFolder}
               >
@@ -154,7 +154,7 @@ export function SettingsContent() {
                 <button
                   type="button"
                   className="btn"
-                  style={{ fontSize: 'var(--fs-base)', flexShrink: 0 }}
+                  style={{ fontSize: 'var(--fs-sm)', flexShrink: 0 }}
                   onClick={() => void setDefaultFolderPath(null)}
                   disabled={pickingFolder}
                 >
@@ -163,7 +163,7 @@ export function SettingsContent() {
               )}
             </div>
             {!canPickFolder && (
-              <p className="subtle" style={{ fontSize: 'var(--fs-base)', marginTop: 6 }}>
+              <p className="subtle" style={{ fontSize: 'var(--fs-sm)', marginTop: 6 }}>
                 {t('settings.defaultFolderUnavailable')}
               </p>
             )}
@@ -171,7 +171,7 @@ export function SettingsContent() {
 
           {/* Language */}
           <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-base)' }}>{t('settings.language')}</label>
+            <label className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>{t('settings.language')}</label>
             <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
               {(['en', 'tr'] as const).map((lang) => (
                 <button
@@ -182,7 +182,7 @@ export function SettingsContent() {
                   style={{
                     padding: '2px 10px',
                     borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--fs-base)',
+                    fontSize: 'var(--fs-sm)',
                     border: 'none',
                     cursor: 'pointer',
                     background: language === lang ? 'var(--c-accent-center-panel)' : 'transparent',

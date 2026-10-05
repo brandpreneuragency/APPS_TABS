@@ -100,7 +100,7 @@ export function ActionsSection() {
                   onBlur={() => { void renameGroup(g.id, renameValue); setRenamingGroupId(null); }}
                   onKeyDown={(e) => { if (e.key === 'Enter') { void renameGroup(g.id, renameValue); setRenamingGroupId(null); } }}
                   className="ctrl"
-                  style={{ fontSize: 'var(--fs-base)', padding: '2px 6px', flex: 1 }}
+                  style={{ fontSize: 'var(--fs-sm)', padding: '2px 6px', flex: 1 }}
                 />
               ) : (
                 <span
@@ -122,7 +122,7 @@ export function ActionsSection() {
               <div className="settings-action-group-body">
                 {items.map((a, i) => renderActionRow(a, g.id, i))}
                 {items.length === 0 && (
-                  <div className="subtle" style={{ fontSize: 'var(--fs-base)', padding: '6px 10px' }}>Drag actions here</div>
+                  <div className="subtle" style={{ fontSize: 'var(--fs-sm)', padding: '6px 10px' }}>Drag actions here</div>
                 )}
               </div>
             )}
@@ -215,28 +215,28 @@ function ActionDetail({ action, groups, onSave, onDelete }: ActionDetailProps) {
   return (
     <div className="settings-detail-body">
       <div>
-        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Title</label>
-        <input className="ctrl w-full" style={{ fontSize: 'var(--fs-base)' }} value={title} onChange={(e) => setTitle(e.target.value)} />
+        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Title</label>
+        <input className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
       <div>
-        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Prompt</label>
-        <textarea className="ctrl w-full" rows={8} style={{ fontSize: 'var(--fs-base)', resize: 'vertical', lineHeight: 1.625 }} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Prompt</label>
+        <textarea className="ctrl w-full" rows={8} style={{ fontSize: 'var(--fs-sm)', resize: 'vertical', lineHeight: 1.625 }} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
       </div>
       <div className="row gap-3" style={{ gap: 12 }}>
         <div style={{ flex: 1 }}>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Icon (lucide name)</label>
-          <input className="ctrl w-full" style={{ fontSize: 'var(--fs-base)' }} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="e.g. Zap" />
+          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Icon (lucide name)</label>
+          <input className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="e.g. Zap" />
         </div>
         <div style={{ flex: 1 }}>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-base)', color: 'var(--c-text-2)', marginBottom: 6 }}>Group</label>
-          <select className="ctrl w-full" style={{ fontSize: 'var(--fs-base)' }} value={groupId ?? ''} onChange={(e) => setGroupId(e.target.value || undefined)}>
+          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Group</label>
+          <select className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={groupId ?? ''} onChange={(e) => setGroupId(e.target.value || undefined)}>
             <option value="">— None —</option>
             {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
       </div>
       <div className="row gap-2">
-        <button className="btn-brand flex-1" style={{ fontSize: 'var(--fs-base)', padding: '8px 12px' }} onClick={() => void onSave({ title, prompt, icon, groupId })}>
+        <button className="btn-brand flex-1" style={{ fontSize: 'var(--fs-sm)', padding: '8px 12px' }} onClick={() => void onSave({ title, prompt, icon, groupId })}>
           Save Changes
         </button>
         <button className="btn-icon" style={{ width: 40, border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-sm)', color: 'var(--c-danger)' }} onClick={() => void onDelete()}>

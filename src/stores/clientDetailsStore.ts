@@ -11,6 +11,7 @@ import type {
 import { clientDraftId } from '../services/clients/records';
 
 export type ClientDraftSaveStatus = 'idle' | 'saving' | 'saved' | 'error';
+export type ClientCategory = 'overview' | 'profile' | 'notes';
 
 export interface ClientDraftSaveState {
   editSessionId: string;
@@ -20,6 +21,15 @@ export interface ClientDraftSaveState {
   field?: string;
 }
 
+export interface ClientProfileRevisionMutation {
+  id: string;
+  clientId: string;
+  mutationId: string;
+  editSessionId: string | null;
+  generation: number | null;
+  baseRevision: number | null;
+}
+
 type StartClientEditInput = (
   | { kind: 'profile'; clientId: string; recordId?: string; baseRevision: number | null; value: ProfileDraftValue }
   | { kind: 'contact'; clientId: string; recordId?: string; baseRevision: number | null; value: ContactDraftValue }
@@ -27,8 +37,11 @@ type StartClientEditInput = (
 );
 
 interface ClientDetailsState {
+  category: ClientCategory;
   drafts: Record<string, ClientDraft>;
   saveStates: Record<string, ClientDraftSaveState>;
+  profileRevisionMutations: Record<string, ClientProfileRevisionMutation>;
+  setCategory: (category: ClientCategory) => void;
   startEdit: (input: StartClientEditInput) => ClientDraft;
   updateDraft: (input: {
     id: string;
@@ -36,6 +49,20 @@ interface ClientDetailsState {
     value: ProfileDraftValue | ContactDraftValue | NoteDraftValue;
   }) => ClientDraft | null;
   recoverDraft: (draft: ClientDraft) => boolean;
+  beginProfileRevisionMutation: (clientId: string, baseRevision: number | null) => ClientProfileRevisionMutation | null;
+  completeProfileRevisionMutation: (
+    mutation: ClientProfileRevisionMutation,
+    result: { revision: number | null } | { error: ClientRecordErrorCode },
+  ) => Extract<ClientDraft, { kind: 'profile' }> | null;
+  finishProfileRevisionMutation: (mutation: ClientProfileRevisionMutation) => void;
+  failProfileRevisionMutation: (mutation: ClientProfileRevisionMutation, code: ClientRecordErrorCode) => void;
+  resolveProfileConflict: (input: {
+    id: string;
+    editSessionId: string;
+    generation: number;
+    expectedBaseRevision: number | null;
+    baseRevision: number | null;
+  }) => boolean;
   markSaving: (id: string, editSessionId: string, generation: number) => void;
   markDraftSaved: (id: string, editSessionId: string, generation: number) => void;
   rebaseDraft: (id: string, editSessionId: string, generation: number, revision: number) => void;
@@ -95,8 +122,11 @@ function canRecoverDraft(draft: ClientDraft): boolean {
 }
 
 export const useClientDetailsStore = create<ClientDetailsState>((set, get) => ({
+  category: 'overview',
   drafts: {},
   saveStates: {},
+  profileRevisionMutations: {},
+  setCategory: (category) => set({ category }),
 
   startEdit: (input) => {
     const recordId = input.kind === 'profile' ? input.clientId : input.recordId ?? nanoid();
@@ -129,9 +159,13 @@ export const useClientDetailsStore = create<ClientDetailsState>((set, get) => ({
       const next: Extract<ClientDraft, { kind: 'profile' }> = {
         ...current, generation: current.generation + 1, updatedAt: Date.now(), value: { ...value },
       };
+      const revisionMutation = get().profileRevisionMutations[id];
       set((state) => ({
         drafts: { ...state.drafts, [id]: next },
-        saveStates: { ...state.saveStates, [id]: { editSessionId, generation: next.generation, status: 'idle' } },
+        saveStates: { ...state.saveStates, [id]: {
+          editSessionId, generation: next.generation, status: revisionMutation?.editSessionId === editSessionId
+            ? 'saved' : 'idle',
+        } },
       }));
       return cloneDraft(next);
     }
@@ -168,7 +202,125 @@ export const useClientDetailsStore = create<ClientDetailsState>((set, get) => ({
     set((state) => ({
       drafts: { ...state.drafts, [draft.id]: recovered },
       saveStates: { ...state.saveStates, [draft.id]: {
-        editSessionId: draft.editSessionId, generation: draft.generation, status: 'saved',
+        editSessionId: draft.editSessionId, generation: draft.generation,
+        // Durable profile/contact drafts still need canonical commit; notes need explicit publication.
+        status: draft.kind === 'note' ? 'saved' : 'idle',
+      } },
+    }));
+    return true;
+  },
+
+  beginProfileRevisionMutation: (clientId, baseRevision) => {
+    if (typeof clientId !== 'string' || !clientId
+      || (baseRevision !== null && (!Number.isSafeInteger(baseRevision) || baseRevision < 1))) return null;
+    const id = clientDraftId(clientId, 'profile', clientId);
+    const state = get();
+    if (state.profileRevisionMutations[id]) return null;
+    const current = state.drafts[id];
+    let editSessionId: string | null = null;
+    let generation: number | null = null;
+    if (current) {
+      if (current.kind !== 'profile' || current.clientId !== clientId || current.baseRevision !== baseRevision) return null;
+      const save = state.saveStates[id];
+      const isUntouched = current.generation === 0
+        && save?.editSessionId === current.editSessionId && save.generation === 0 && save.status === 'idle';
+      const isSaved = save?.editSessionId === current.editSessionId
+        && save.generation === current.generation && save.status === 'saved';
+      if (!isUntouched && !isSaved) return null;
+      editSessionId = current.editSessionId;
+      generation = current.generation;
+    }
+    const mutation: ClientProfileRevisionMutation = {
+      id, clientId, mutationId: nanoid(), editSessionId, generation, baseRevision,
+    };
+    set((currentState) => ({
+      profileRevisionMutations: { ...currentState.profileRevisionMutations, [id]: mutation },
+    }));
+    return mutation;
+  },
+
+  completeProfileRevisionMutation: (mutation, result) => {
+    const active = get().profileRevisionMutations[mutation.id];
+    if (!active || active.mutationId !== mutation.mutationId) return null;
+    const current = get().drafts[mutation.id];
+    if ('error' in result) {
+      get().failProfileRevisionMutation(mutation, result.error);
+      return null;
+    }
+    if (result.revision !== null && (!Number.isSafeInteger(result.revision) || result.revision < 1)) {
+      get().failProfileRevisionMutation(mutation, 'STORAGE');
+      return null;
+    }
+    if (mutation.baseRevision !== null && result.revision === null) {
+      get().failProfileRevisionMutation(mutation, 'CONFLICT');
+      return null;
+    }
+    if (!current || current.kind !== 'profile' || current.editSessionId !== mutation.editSessionId
+      || current.baseRevision !== mutation.baseRevision || current.generation < (mutation.generation ?? 0)) {
+      get().finishProfileRevisionMutation(mutation);
+      return null;
+    }
+    const rebased: Extract<ClientDraft, { kind: 'profile' }> = { ...current, baseRevision: result.revision };
+    if (mutation.generation !== null && current.generation > mutation.generation) {
+      set((state) => ({
+        drafts: { ...state.drafts, [mutation.id]: rebased },
+        saveStates: { ...state.saveStates, [mutation.id]: {
+          editSessionId: current.editSessionId, generation: current.generation, status: 'saved',
+        } },
+      }));
+      return cloneDraft(rebased) as Extract<ClientDraft, { kind: 'profile' }>;
+    }
+    set((state) => {
+      const profileRevisionMutations = { ...state.profileRevisionMutations };
+      delete profileRevisionMutations[mutation.id];
+      return {
+        drafts: { ...state.drafts, [mutation.id]: rebased },
+        profileRevisionMutations,
+        saveStates: { ...state.saveStates, [mutation.id]: {
+          editSessionId: current.editSessionId, generation: current.generation,
+          status: current.generation === 0 ? 'idle' : 'saved',
+        } },
+      };
+    });
+    return null;
+  },
+
+  finishProfileRevisionMutation: (mutation) => set((state) => {
+    const active = state.profileRevisionMutations[mutation.id];
+    if (!active || active.mutationId !== mutation.mutationId) return state;
+    const profileRevisionMutations = { ...state.profileRevisionMutations };
+    delete profileRevisionMutations[mutation.id];
+    return { profileRevisionMutations };
+  }),
+
+  failProfileRevisionMutation: (mutation, code) => set((state) => {
+    const active = state.profileRevisionMutations[mutation.id];
+    if (!active || active.mutationId !== mutation.mutationId) return state;
+    const profileRevisionMutations = { ...state.profileRevisionMutations };
+    delete profileRevisionMutations[mutation.id];
+    const current = state.drafts[mutation.id];
+    if (!current || current.kind !== 'profile' || current.editSessionId !== mutation.editSessionId) {
+      return { profileRevisionMutations };
+    }
+    return {
+      profileRevisionMutations,
+      saveStates: { ...state.saveStates, [mutation.id]: {
+        editSessionId: current.editSessionId, generation: current.generation, status: 'error', code,
+      } },
+    };
+  }),
+
+  resolveProfileConflict: ({ id, editSessionId, generation, expectedBaseRevision, baseRevision }) => {
+    const current = get().drafts[id];
+    if (!current || current.kind !== 'profile' || current.editSessionId !== editSessionId
+      || current.generation < generation || current.baseRevision !== expectedBaseRevision
+      || get().profileRevisionMutations[id]
+      || (baseRevision !== null && (!Number.isSafeInteger(baseRevision) || baseRevision < 1))) return false;
+    const updated: Extract<ClientDraft, { kind: 'profile' }> = { ...current, baseRevision };
+    set((state) => ({
+      drafts: { ...state.drafts, [id]: updated },
+      saveStates: { ...state.saveStates, [id]: {
+        editSessionId: current.editSessionId, generation: current.generation, status: 'idle',
       } },
     }));
     return true;

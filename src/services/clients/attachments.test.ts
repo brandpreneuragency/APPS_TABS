@@ -35,6 +35,23 @@ async function createNote(records: Awaited<ReturnType<typeof createRecordsFixtur
   return result.value;
 }
 
+async function snapshotClientDetailTables(database: Awaited<ReturnType<typeof createRecordsFixture>>['database']) {
+  const [profiles, contacts, notes, drafts, attachments, settings] = await Promise.all([
+    database.clientProfiles.toArray(), database.clientContacts.toArray(), database.clientNotes.toArray(),
+    database.clientDrafts.toArray(), database.clientAttachments.toArray(), database.settings.toArray(),
+  ]);
+  return {
+    clientProfiles: profiles,
+    clientContacts: contacts,
+    clientNotes: notes,
+    clientDrafts: drafts,
+    clientAttachments: await Promise.all(attachments.map(async (attachment) => ({
+      ...attachment, data: Array.from(new Uint8Array(await attachment.data.arrayBuffer())),
+    }))),
+    settings,
+  };
+}
+
 describe('client detail attachments', () => {
   it('atomically creates a matching durable draft when attaching to a new note draft', async () => {
     const { database, records } = await createRecordsFixture();
@@ -57,6 +74,20 @@ describe('client detail attachments', () => {
     expect(await database.clientAttachments.count()).toBe(1);
   });
 
+  it('lists a persisted draft attachment through the records API with the original Blob bytes', async () => {
+    const { records } = await createRecordsFixture();
+    const draft = seedNoteDraft();
+    expect(await records.addAttachment({
+      id: 'listed-draft-file', clientId: 'client-a', ownerType: 'draft', ownerId: draft.id,
+      file: testFile('listed.txt'), draft,
+    })).toMatchObject({ ok: true });
+
+    const listed = await records.listAttachments({ ownerType: 'draft', ownerId: draft.id });
+    expect(listed).toMatchObject({ ok: true, value: [{ id: 'listed-draft-file', displayName: 'listed.txt' }] });
+    if (!listed.ok) throw new Error(`Could not list draft attachment: ${listed.code}`);
+    expect(await listed.value[0]?.data.text()).toBe('file bytes');
+  });
+
   it('rolls back the newly seeded draft when the attachment transaction aborts', async () => {
     const { database, records } = await createRecordsFixture();
     const draft = seedNoteDraft();
@@ -72,6 +103,52 @@ describe('client detail attachments', () => {
     expect(await database.clientProfiles.get('client-a')).toBeUndefined();
   });
 
+  it('leaves all six client tables unchanged when an attachment byte retry conflicts', async () => {
+    const { database, records } = await createRecordsFixture();
+    const first = seedNoteDraft({ generation: 1, value: noteValue({ bodyText: 'old' }) });
+    const owner = { id: 'retry-seed-conflict', clientId: 'client-a', ownerType: 'draft' as const, ownerId: first.id };
+    expect(await records.addAttachment({ ...owner, file: testFile('same.txt', 'AAA'), draft: first }))
+      .toMatchObject({ ok: true });
+    await database.clients.update('client-a', { name: 'Brand A renamed', color: '#abcdef' });
+    const before = await snapshotClientDetailTables(database);
+    const newer = { ...first, generation: 2, value: noteValue({ bodyText: 'newer' }) };
+    const nativeArrayBuffer = Blob.prototype.arrayBuffer;
+    const comparedBlobs: Blob[] = [];
+    vi.spyOn(Blob.prototype, 'arrayBuffer').mockImplementation(function (this: Blob) {
+      if (!(this instanceof File)) comparedBlobs.push(this);
+      return nativeArrayBuffer.call(this);
+    });
+
+    const result = await records.addAttachment({ ...owner, file: testFile('same.txt', 'BBB'), draft: newer });
+    vi.restoreAllMocks();
+
+    expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
+    expect(comparedBlobs.length).toBeGreaterThan(0);
+    expect(await snapshotClientDetailTables(database)).toEqual(before);
+  });
+
+  it('leaves all six client tables unchanged when attachment byte comparison fails', async () => {
+    const { database, records } = await createRecordsFixture();
+    const first = seedNoteDraft({ generation: 1, value: noteValue({ bodyText: 'old' }) });
+    const owner = { id: 'retry-seed-storage', clientId: 'client-a', ownerType: 'draft' as const, ownerId: first.id };
+    expect(await records.addAttachment({ ...owner, file: testFile('same.txt', 'AAA'), draft: first }))
+      .toMatchObject({ ok: true });
+    await database.clients.update('client-a', { name: 'Brand A renamed', color: '#abcdef' });
+    const before = await snapshotClientDetailTables(database);
+    const newer = { ...first, generation: 2, value: noteValue({ bodyText: 'newer' }) };
+    const nativeArrayBuffer = Blob.prototype.arrayBuffer;
+    vi.spyOn(Blob.prototype, 'arrayBuffer').mockImplementation(function (this: Blob) {
+      if (!(this instanceof File)) return Promise.reject(new Error('Blob read failed'));
+      return nativeArrayBuffer.call(this);
+    });
+
+    const result = await records.addAttachment({ ...owner, file: testFile('same.txt', 'AAA'), draft: newer });
+    vi.restoreAllMocks();
+
+    expect(result).toMatchObject({ ok: false, code: 'STORAGE' });
+    expect(await snapshotClientDetailTables(database)).toEqual(before);
+  });
+
   it('rejects a foreign or mismatched draft seed without creating an orphan attachment', async () => {
     const { database, records } = await createRecordsFixture();
     const foreignDraft = seedNoteDraft({ clientId: 'client-b' });
@@ -82,6 +159,32 @@ describe('client detail attachments', () => {
     expect(result).toMatchObject({ ok: false, code: 'CONFLICT' });
     expect(await database.clientDrafts.count()).toBe(0);
     expect(await database.clientAttachments.count()).toBe(0);
+  });
+
+  it.each(['profile', 'contact'] as const)('rejects a %s draft seed from the note-attachment pathway without mutation', async (kind) => {
+    const { database, records, seedContacts } = await createRecordsFixture();
+    if (kind === 'contact') await seedContacts();
+    const recordId = kind === 'profile' ? 'client-a' : 'contact-a';
+    const draft: ClientDraft = kind === 'profile'
+      ? {
+        id: JSON.stringify(['client-a', kind, recordId]), clientId: 'client-a', recordId, kind,
+        editSessionId: 'profile-session', generation: 1, baseRevision: null, updatedAt: 1_000,
+        value: { website: '', description: 'Profile seed' },
+      }
+      : {
+        id: JSON.stringify(['client-a', kind, recordId]), clientId: 'client-a', recordId, kind,
+        editSessionId: 'contact-session', generation: 1, baseRevision: 1, updatedAt: 1_000,
+        value: { name: 'Ada Lovelace', role: 'Analyst', email: 'ada@example.test', phone: '' },
+      };
+    const before = await snapshotClientDetailTables(database);
+
+    const result = await Reflect.apply(records.addAttachment, records, [{
+      id: `unsupported-${kind}-attachment`, clientId: 'client-a', ownerType: 'draft', ownerId: draft.id,
+      file: testFile('unsupported.txt'), draft,
+    }]);
+
+    expect(result).toMatchObject({ ok: false, code: 'VALIDATION', field: 'draft' });
+    expect(await snapshotClientDetailTables(database)).toEqual(before);
   });
 
   it('accepts empty and exact-limit files, rejects oversize files, and enforces five per owner', async () => {

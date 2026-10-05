@@ -12,7 +12,6 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { editorRef } from '../../stores/editorRef';
 import { isEditorFontSize } from '../../stores/editorFontSize';
 import { db } from '../db';
-import { assertSubtaskParent, assertTaskProjectChange, assertTaskSoftDelete } from '../taskRelations';
 import { parseMarkdown, parseTxt, serialize } from '../fileFormat';
 import { serializeDocx } from '../docxFormat';
 import { codexDesktopClient } from './desktopClient';
@@ -59,10 +58,9 @@ const catalog: Record<string, CodexToolSpec> = {
   tabs_tasks_history_list_v1: { name: 'tabs_tasks_history_list_v1',
     description: 'List bounded, completed task changes in this conversation that may be undone.',
     inputSchema: objectSchema({}) },
-  tabs_tasks_create_v1: { name: 'tabs_tasks_create_v1', description: 'Propose one task or one-level subtask in the captured project. Requires TABS approval.',
+  tabs_tasks_create_v1: { name: 'tabs_tasks_create_v1', description: 'Propose one task in the captured project. Requires TABS approval.',
     inputSchema: objectSchema({ title: stringSchema, content: stringSchema, date: stringSchema,
-      status: { type: 'string', enum: taskStatuses }, importance: { type: 'string', enum: importanceLevels },
-      parentTaskId: stringSchema }, ['title']) },
+      status: { type: 'string', enum: taskStatuses }, importance: { type: 'string', enum: importanceLevels } }, ['title']) },
   tabs_tasks_update_v1: { name: 'tabs_tasks_update_v1', description: 'Propose an update to a task in the captured project, including assignment to an existing project under the same client. Requires TABS approval.',
     inputSchema: objectSchema({ taskId: stringSchema, expectedUpdatedAt: { type: 'number' }, title: stringSchema,
       content: stringSchema, date: stringSchema, status: { type: 'string', enum: taskStatuses },
@@ -131,18 +129,9 @@ function isUndoableTaskTool(name: string | undefined): boolean {
 }
 
 async function assertUndoRelationship(source: CodexOperationReceipt, task: Task): Promise<void> {
-  const activeChildCount = await db.tasks.where('parentTaskId').equals(task.id)
-    .filter((child) => !child.deletedAt).count();
-  if (source.sourceToolName === 'tabs_tasks_create_v1') {
-    assertTaskSoftDelete(activeChildCount);
-    return;
-  }
+  if (source.sourceToolName === 'tabs_tasks_create_v1') return;
   const before = source.projectionPreviousTask;
   if (!before) throw new Error('Original task state is unavailable for undo');
-  if (before.parentTaskId) {
-    assertSubtaskParent(await db.tasks.get(before.parentTaskId), before.projectId);
-  }
-  assertTaskProjectChange(task, before.projectId, activeChildCount);
   if (before.projectId !== task.projectId) {
     const [sourceProject, targetProject] = await Promise.all([
       db.projects.get(task.projectId), db.projects.get(before.projectId),
@@ -510,7 +499,7 @@ export async function prepareBusinessProposal(run: CodexRunRecord, request: Code
     summary = i18n.t(toolName === 'tabs_document_create_v1'
       ? 'codex.documentCreate' : 'codex.documentExport', { name });
   } else if (toolName === 'tabs_tasks_create_v1') {
-    exactKeys(args, ['title', 'content', 'date', 'status', 'importance', 'parentTaskId']);
+    exactKeys(args, ['title', 'content', 'date', 'status', 'importance']);
     const projectId = taskProject(run.scope);
     const project = projectId ? await db.projects.get(projectId) : undefined;
     if (!project) throw new Error('Captured project is unavailable');
@@ -521,15 +510,10 @@ export async function prepareBusinessProposal(run: CodexRunRecord, request: Code
     const importance = args.importance ?? 'medium';
     if (!taskStatuses.includes(status as typeof taskStatuses[number])
       || !importanceLevels.includes(importance as typeof importanceLevels[number])) throw new Error('Invalid task state');
-    const parentTaskId = args.parentTaskId === undefined
-      ? undefined : requiredText(args.parentTaskId, 'Parent task ID', 128);
-    const parent = parentTaskId ? await db.tasks.get(parentTaskId) : undefined;
-    if (parentTaskId) assertSubtaskParent(parent, project.id);
-    targetIds = parentTaskId ? [project.id, parentTaskId] : [project.id];
-    before = parent ? { project, parent } : project;
-    after = { title, content, date, status, importance, projectId: project.id, parentTaskId };
-    summary = parent ? i18n.t('codex.createSubtask', { task: title, parent: parent.title })
-      : `Create task “${title}” in the selected project`;
+    targetIds = [project.id];
+    before = project;
+    after = { title, content, date, status, importance, projectId: project.id };
+    summary = `Create task “${title}” in the selected project`;
   } else if (toolName === 'tabs_tasks_update_v1' || toolName === 'tabs_tasks_comment_v1'
     || toolName === 'tabs_tasks_soft_delete_v1') {
     if (toolName === 'tabs_tasks_comment_v1') exactKeys(args, ['taskId', 'expectedUpdatedAt', 'text']);
@@ -547,8 +531,6 @@ export async function prepareBusinessProposal(run: CodexRunRecord, request: Code
       after = { taskId, text };
       summary = `Comment on task “${task.title}”`;
     } else if (toolName === 'tabs_tasks_soft_delete_v1') {
-      assertTaskSoftDelete(await db.tasks.where('parentTaskId').equals(task.id)
-        .filter((child) => !child.deletedAt).count());
       targetIds = [taskId]; expectedRevision = task.updatedAt; before = task;
       after = { ...task, deletedAt: 'approval-time' };
       summary = `Move task “${task.title}” to trash`;
@@ -575,8 +557,6 @@ export async function prepareBusinessProposal(run: CodexRunRecord, request: Code
         throw new Error('Project assignment is outside the task client');
       }
       if (projectId !== task.projectId) {
-        assertTaskProjectChange(task, projectId, await db.tasks.where('parentTaskId').equals(task.id)
-          .filter((child) => !child.deletedAt).count());
         if (projectMirrorsOverlap(sourceProject.name, targetProject.name)) {
           throw new Error('Project assignment would overlap the existing task mirror');
         }
@@ -1062,12 +1042,10 @@ export async function executeBusinessProposal(run: CodexRunRecord, proposal: Cod
       if (tool === 'tabs_tasks_create_v1') {
         const data = proposal.after as Pick<Task, 'title' | 'content' | 'date' | 'status' | 'importance' | 'projectId' | 'parentTaskId'>;
         const project = await db.projects.get(data.projectId);
-        const parent = data.parentTaskId ? await db.tasks.get(data.parentTaskId) : undefined;
-        if (data.projectId !== taskProject(run.scope) || !project
-          || JSON.stringify(parent ? { project, parent } : project) !== JSON.stringify(proposal.before)) {
-          throw new Error('Project or subtask parent changed');
+        if (data.parentTaskId || data.projectId !== taskProject(run.scope) || !project
+          || JSON.stringify(project) !== JSON.stringify(proposal.before)) {
+          throw new Error('Project changed or obsolete task proposal');
         }
-        if (data.parentTaskId) assertSubtaskParent(parent, data.projectId);
         const now = Date.now();
         task = { ...data, id: `codex_${proposal.proposalHash.slice(0, 12)}`, assignees: [],
           createdAt: now, updatedAt: now, order: await db.tasks.count(),
@@ -1082,8 +1060,6 @@ export async function executeBusinessProposal(run: CodexRunRecord, proposal: Cod
         const approved = proposal.after as Task;
         const sourceProject = await db.projects.get(current.projectId);
         const targetProject = await db.projects.get(approved.projectId);
-        const activeChildCount = await db.tasks.where('parentTaskId').equals(current.id)
-          .filter((child) => !child.deletedAt).count();
         if (!sourceProject || !targetProject
           || sourceProject.clientId !== targetProject.clientId
           || (approved.projectId !== current.projectId
@@ -1092,8 +1068,6 @@ export async function executeBusinessProposal(run: CodexRunRecord, proposal: Cod
             && proposal.targetIds[1] !== approved.projectId)) {
           throw new Error('Project assignment changed');
         }
-        if (tool === 'tabs_tasks_soft_delete_v1') assertTaskSoftDelete(activeChildCount);
-        else assertTaskProjectChange(current, approved.projectId, activeChildCount);
         task = tool === 'tabs_tasks_soft_delete_v1'
           ? { ...current, deletedAt: Date.now(), updatedAt: Date.now() }
           : { ...current, title: approved.title, content: approved.content, date: approved.date,
