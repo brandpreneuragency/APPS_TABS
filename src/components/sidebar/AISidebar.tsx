@@ -19,10 +19,12 @@ interface AISidebarProps {
   settingsTab?: string | null;
   /** Override the chat context mode. Defaults from taskId when omitted. */
   mode?: 'writer' | 'task';
+  /** Isolate provider history and context to the selected GitHub target. */
+  githubMode?: boolean;
   editor: Editor | null;
 }
 
-export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride, editor }: AISidebarProps) {
+export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride, editor, githubMode = false }: AISidebarProps) {
   const { t } = useTranslation();
   const {
     activeThreadId,
@@ -37,6 +39,9 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
   const isTaskMode = modeOverride === 'task' || (modeOverride !== 'writer' && Boolean(taskId));
   const mode = isTaskMode ? 'task' : 'writer';
   const hasContext = Boolean(workspaceId || taskId || settingsTab);
+  const activeThread = threads.find((thread) => thread.id === activeThreadId);
+  const activeThreadMatchesContext = !githubMode || Boolean(activeThread && activeThread.workspaceId === workspaceId
+    && !activeThread.taskId && !activeThread.settingsTab);
 
   // Auto-swap on context change: when workspaceId/taskId/settingsTab changes,
   // load threads for that context.
@@ -54,9 +59,9 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
   }, [workspaceId, taskId, settingsTab, setActiveContext]);
 
   // Empty state: no active thread or thread has no messages
-  const activeMessages = getActiveThreadMessages();
+  const activeMessages = activeThreadMatchesContext ? getActiveThreadMessages() : [];
   const activeOrigin = threads.find((thread) => thread.id === activeThreadId)?.origin;
-  const showEmptyState = !activeThreadId || activeMessages.length === 0;
+  const showEmptyState = !activeThreadId || !activeThreadMatchesContext || activeMessages.length === 0;
 
   const contextLabel = isSettingsMode
     ? 'settings'
@@ -64,6 +69,8 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
     ? 'client'
     : taskId?.startsWith('project:')
     ? 'project'
+    : githubMode
+    ? 'GitHub repository'
     : isTaskMode
     ? 'task'
     : 'document';
@@ -108,7 +115,7 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
               workspaceId={workspaceId}
               taskId={taskId}
               editor={editor}
-              onReplyMessage={setReplyToMessage}
+              onReplyMessage={githubMode ? undefined : setReplyToMessage}
             />
           )}
         </div>
@@ -116,10 +123,11 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
 
       {hasContext && (
         <div className="ai-sidebar-composer panel-footer">
-          {isTauriRuntime() && activeOrigin === 'codex' && <CodexRequestPanel appThreadId={activeThreadId} />}
-          {isTauriRuntime() && (activeOrigin === 'legacy_api' || activeOrigin === undefined) && <CodexHandoffButton appThreadId={activeThreadId} mode={mode}
+          {!githubMode && isTauriRuntime() && activeOrigin === 'codex' && <CodexRequestPanel appThreadId={activeThreadId} />}
+          {!githubMode && isTauriRuntime() && (activeOrigin === 'legacy_api' || activeOrigin === undefined) && <CodexHandoffButton appThreadId={activeThreadId} mode={mode}
             workspaceId={workspaceId} taskId={taskId} settingsTab={settingsTab} />}
           <ChatInput
+            key={`${githubMode ? 'github' : 'chat'}:${workspaceId ?? ''}`}
             mode={mode}
             threadId={activeThreadId ?? ''}
             workspaceId={workspaceId}
@@ -128,6 +136,7 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
             replyToMessage={replyToMessage}
             onClearReply={() => setReplyToMessage(null)}
             editor={editor}
+            githubMode={githubMode}
           />
         </div>
       )}

@@ -17,6 +17,11 @@ interface PrimaryWorkspaceContentProps {
   contextPanelOpen: boolean;
   contextOnly?: boolean;
   contextPanelWidthVw: number;
+  contextPanelWidthPx?: number;
+  contextPanelMinWidthPx?: number;
+  contextPanelMaxWidthPx?: number;
+  onContextPanelWidthChange?: (widthPx: number, persist: boolean) => void;
+  contextResizeLabel?: string;
   contextPanelId?: string;
   contextPanelClassName?: string;
   contextPanelStyle?: CSSProperties;
@@ -44,16 +49,23 @@ export function PrimaryWorkspaceContent({
   subtasksBar,
   showSubtasksBar,
   leadingControls,
+  contextPanelWidthPx,
+  contextPanelMinWidthPx,
+  contextPanelMaxWidthPx,
+  onContextPanelWidthChange,
+  contextResizeLabel,
 }: PrimaryWorkspaceContentProps) {
   const contextRef = useRef<HTMLDivElement>(null);
   const primaryContentRef = useRef<HTMLDivElement>(null);
   const showContext = contextPanelAvailable && (contextPanelOpen || contextOnly) && contextPanel != null;
 
   const rowStyle = {
-    ['--context-min-width' as string]: `${CONTEXT_MIN_PX}px`,
-    ['--context-max-width' as string]: `${CONTEXT_MAX_PX}px`,
+    ['--context-min-width' as string]: `${contextPanelMinWidthPx ?? CONTEXT_MIN_PX}px`,
+    ['--context-max-width' as string]: `${contextPanelMaxWidthPx ?? CONTEXT_MAX_PX}px`,
     ['--center-min-width' as string]: `${CENTER_MIN_PX}px`,
-    ['--context-panel-width' as string]: `clamp(${CONTEXT_MIN_PX}px, ${contextPanelWidthVw}vw, ${CONTEXT_MAX_PX}px)`,
+    ['--context-panel-width' as string]: contextPanelWidthPx === undefined
+      ? `clamp(${CONTEXT_MIN_PX}px, ${contextPanelWidthVw}vw, ${CONTEXT_MAX_PX}px)`
+      : `${Math.max(contextPanelMinWidthPx ?? CONTEXT_MIN_PX, Math.min(contextPanelMaxWidthPx ?? CONTEXT_MAX_PX, contextPanelWidthPx))}px`,
   } as CSSProperties;
 
   return (
@@ -81,6 +93,11 @@ export function PrimaryWorkspaceContent({
         <ContextResizeHandle
           contextRef={contextRef}
           primaryContentRef={primaryContentRef}
+          widthPx={contextPanelWidthPx}
+          minWidthPx={contextPanelMinWidthPx}
+          maxWidthPx={contextPanelMaxWidthPx}
+          onWidthChange={onContextPanelWidthChange}
+          ariaLabel={contextResizeLabel}
         />
       )}
       <CenterContentPanel

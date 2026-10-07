@@ -6,6 +6,8 @@ import i18n from '../../i18n';
 import type { CliProviderId } from './desktopClient';
 import { runCliProvider, stopCliProvider } from './chatClient';
 import { buildCliConversationPrompt } from './conversationPrompt';
+import { finalizeProviderDispatch, persistedGithubDispatchAllowed, providerDispatchBlockedMessage } from '../github/aiEgress';
+import type { GithubDispatchContext } from '../github/aiEgress';
 
 type CliScope = Pick<CodexScope,
   'appThreadId' | 'mode' | 'workspaceId' | 'taskId' | 'settingsTab' | 'agentId'
@@ -17,6 +19,7 @@ export interface CliSubmission {
   reasoningEffort?: string;
   scope: CliScope;
   text: string;
+  github?: GithubDispatchContext;
 }
 
 export interface ActiveCliRun {
@@ -37,14 +40,23 @@ export class CliProviderSessionService {
   };
   private notify() { for (const listener of this.listeners) listener(); }
 
-  async submit({ providerId, modelId, reasoningEffort, scope, text }: CliSubmission): Promise<void> {
+  async submit({ providerId, modelId, reasoningEffort, scope, text, github }: CliSubmission): Promise<void> {
     if (this.active) throw new Error(i18n.t('cliChat.waitForResponse'));
     const thread = await db.chatThreads.get(scope.appThreadId);
     if (!thread || thread.origin !== providerId) {
       throw new Error(i18n.t('cliChat.wrongProviderThread', { provider: providerName(providerId) }));
     }
     const priorMessages = await db.chatMessages.where('threadId').equals(scope.appThreadId).toArray();
-    const prompt = buildCliConversationPrompt(text, scope.context, priorMessages);
+    if (github && !persistedGithubDispatchAllowed({
+      accountId: github.accountId,
+      repoId: github.repoId,
+      ref: github.ref,
+      requestedWorkspaceId: scope.workspaceId,
+      threadWorkspaceId: thread.workspaceId,
+      messageWorkspaceIds: priorMessages.map((message) => message.workspaceId),
+    })) {
+      throw new Error('GitHub provider thread does not match the consented repository. Previously sent content cannot be recalled.');
+    }
     const runId = crypto.randomUUID();
     const now = Date.now();
     const common = {
@@ -72,6 +84,23 @@ export class CliProviderSessionService {
     this.notify();
 
     try {
+      const decision = finalizeProviderDispatch({
+        provider: 'cli',
+        threadId: scope.appThreadId,
+        text,
+        context: scope.context,
+        history: priorMessages.map((message) => ({ role: message.role, content: message.content, timestamp: message.timestamp })),
+        attachments: [],
+        images: [],
+        toolOutput: '',
+        github,
+      });
+      if (decision.aborted) {
+        await db.chatMessages.update(assistantMessage.id, { content: decision.reason ?? providerDispatchBlockedMessage() });
+        return;
+      }
+      const history = priorMessages.filter((message) => decision.history.some((item) => item.content === message.content));
+      const prompt = buildCliConversationPrompt(decision.text, decision.context, history);
       const result = await runCliProvider({
         runId, providerId, modelId, reasoningEffort, prompt, workspaceRoot: scope.workspaceRoot,
       });

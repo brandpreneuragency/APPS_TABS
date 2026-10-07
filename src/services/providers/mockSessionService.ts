@@ -3,6 +3,7 @@ import { useChatStore } from '../../stores/chatStore';
 import type { ChatMessage } from '../../types';
 import i18n from '../../i18n';
 import { buildMockEchoAnswer, buildMockToolsAnswer, isMockProviderId, type MockProviderId } from './mockProviders';
+import { finalizeProviderDispatch, providerDispatchBlockedMessage } from '../github/aiEgress';
 
 export interface MockSubmission {
   providerId: MockProviderId;
@@ -81,8 +82,23 @@ export class MockProviderSessionService {
     this.notify();
 
     try {
+      const history = await db.chatMessages.where('threadId').equals(submission.appThreadId).toArray();
+      const decision = finalizeProviderDispatch({
+        provider: 'mock',
+        threadId: submission.appThreadId,
+        text,
+        context: '',
+        history: history.map((message) => ({ role: message.role, content: message.content })),
+        attachments: [],
+        images: [],
+        toolOutput: '',
+      });
+      if (decision.aborted) {
+        await db.chatMessages.update(assistantMessage.id, { content: decision.reason ?? providerDispatchBlockedMessage() });
+        return;
+      }
       const isTools = submission.providerId === 'mockTools';
-      const { reasoning, answer } = isTools ? buildMockToolsAnswer(text) : buildMockEchoAnswer(text);
+      const { reasoning, answer } = isTools ? buildMockToolsAnswer(decision.text) : buildMockEchoAnswer(decision.text);
 
       // 1) Stream reasoning inside <think>…</think>.
       const words = reasoning.split(/\s+/);

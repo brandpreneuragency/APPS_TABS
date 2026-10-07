@@ -1,0 +1,97 @@
+
+> tabs@1.1.3 check
+> npm run typecheck && npm run lint && npm run test && npm run build
+
+
+> tabs@1.1.3 typecheck
+> tsc -b --pretty false
+
+
+> tabs@1.1.3 lint
+> eslint .
+
+
+/home/admin/ATLAS/DEV/TABS/src/components/editor/EditorTopBar.tsx
+  139:6  warning  React Hook useEffect has missing dependencies: 'computeMatches', 'currentFile', 'query', 'replaceText', and 'searchStateByDoc'. Either include them or remove the dependency array. You can also replace multiple useState variables with useReducer if 'setSearchStateByDoc' needs the current value of 'query'  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/editor/EditorWorkspace.tsx
+  90:6  warning  React Hook useMemo has an unnecessary dependency: 'htmlViewOpen'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/editor/TipTapEditor.tsx
+  315:6  warning  React Hook useEffect has a missing dependency: 'editorStateCache'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/fileExplorer/FileExplorerPanel.tsx
+  55:9  warning  The 'expandedPaths' logical expression could make the dependencies of useEffect Hook (at line 153) change on every render. To fix this, wrap the initialization of 'expandedPaths' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/github/GithubWorkspace.tsx
+  779:6  warning  React Hook useCallback has an unnecessary dependency: 'localizedGithubError'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+  864:6  warning  React Hook useCallback has an unnecessary dependency: 'localizedGithubError'. Either exclude it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/taskManager/TaskDetailPanel.tsx
+  21:6  warning  React Hook useEffect has a missing dependency: 'task'. Either include it or remove the dependency array                                   react-hooks/exhaustive-deps
+  27:7  warning  React Hook useEffect has a complex expression in the dependency array. Extract it to a separate variable so it can be statically checked  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/terminal/TerminalInstance.tsx
+  163:34  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/immutability')
+  173:6   warning  React Hook useEffect has a missing dependency: 'ensureSession'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+/home/admin/ATLAS/DEV/TABS/src/components/toolbar/FindReplace.tsx
+  57:6  warning  React Hook useEffect has a missing dependency: 'close'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+✖ 11 problems (0 errors, 11 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+
+
+> tabs@1.1.3 test
+> vitest run
+
+
+ RUN  v4.1.10 /home/admin/ATLAS/DEV/TABS
+
+
+ Test Files  103 passed (103)
+      Tests  686 passed (686)
+   Start at  08:52:38
+   Duration  31.70s (transform 10.40s, setup 8.22s, import 33.30s, tests 90.64s, environment 90.61s)
+
+
+> tabs@1.1.3 build
+> tsc -b && vite build
+
+vite v8.1.4 building client environment for production...
+[2K
+transforming...✓ 2755 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                     0.80 kB │ gzip:   0.42 kB
+dist/assets/TaskAcceptanceApp-BmNG31xv.css          0.34 kB │ gzip:   0.26 kB
+dist/assets/AcceptanceApp-CW7RLXRF.css              1.86 kB │ gzip:   0.60 kB
+dist/assets/index-BN9-KB5A.css                     94.35 kB │ gzip:  15.59 kB
+dist/assets/App-kKjXBb2k.css                      271.29 kB │ gzip:  36.38 kB
+dist/assets/lib-De0V-ob8.js                         0.05 kB │ gzip:   0.07 kB
+dist/assets/crmStore-CNvK9gXj.js                    0.06 kB │ gzip:   0.07 kB
+dist/assets/event-CDD-_CNg.js                       0.12 kB │ gzip:   0.12 kB
+dist/assets/path-BqF88_cv.js                        0.84 kB │ gzip:   0.45 kB
+dist/assets/rolldown-runtime-DAXXjFlN.js            1.26 kB │ gzip:   0.70 kB
+dist/assets/core-CQmZ4jZa.js                        2.82 kB │ gzip:   1.12 kB
+dist/assets/useTranslation-C8leKtcd.js              4.60 kB │ gzip:   2.17 kB
+dist/assets/TaskAcceptanceApp-CtnG3fgJ.js           4.81 kB │ gzip:   2.09 kB
+dist/assets/AcceptanceApp-I8PXGCcE.js               5.65 kB │ gzip:   2.01 kB
+dist/assets/tauri-folder-connector-D8PZwEru.js      5.83 kB │ gzip:   1.83 kB
+dist/assets/engine-6mwTg2qY.js                     11.29 kB │ gzip:   3.61 kB
+dist/assets/import-wrapper-prod-CyYq89T_.js        95.16 kB │ gzip:  31.31 kB
+dist/assets/index-CaR8Vr8y.js                     330.06 kB │ gzip: 105.69 kB
+dist/assets/App-Dv7UlI-F.js                     2,889.74 kB │ gzip: 759.28 kB
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0mnode_modules/@tauri-apps/api/event.js is dynamically imported by src/services/codex/desktopClient.ts, src/services/desktopFileOpen.ts but also statically imported by node_modules/@tauri-apps/api/window.js, src/components/terminal/TerminalInstance.tsx, dynamic import will not move module into another chunk.
+
+[plugin builtin:vite-reporter] 
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rolldownOptions.output.codeSplitting to improve chunking: https://rolldown.rs/reference/OutputOptions.codeSplitting
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0mnode_modules/mammoth/lib/index.js is dynamically imported by src/services/codex/contextBuilder.ts but also statically imported by src/services/docxFormat.ts, dynamic import will not move module into another chunk.
+
+[33m[INEFFECTIVE_DYNAMIC_IMPORT] [0msrc/stores/crmStore.ts is dynamically imported by src/stores/uiStore.ts but also statically imported by src/App.tsx, src/components/crm/CRMListPanel.tsx, src/components/crm/detail/CompanyDetail.tsx, src/components/crm/detail/ContactDetail.tsx, src/components/crm/detail/LeadDetail.tsx, ..., dynamic import will not move module into another chunk.
+
+✓ built in 1.16s

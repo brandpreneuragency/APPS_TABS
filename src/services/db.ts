@@ -4,6 +4,8 @@ import type { ClientAttachment, ClientContact, ClientDraft, ClientNote, ClientPr
 import { migrateProjectsToClients } from '../stores/migrateProjectsToClients';
 import type { CodexSessionRecord, CodexRunRecord, CodexEventRecord, CodexPendingRecord, CodexOperationReceipt, CodexDocumentIntent } from './codex/sessionTypes';
 import { CLIENTS_V1_STORES } from './clients/schema';
+import { GITHUB_V1_STORES } from './github/schema';
+import type { GithubAccountRecord, GithubDraftRecord, GithubPrivateCacheRecord, GithubWorkspaceRecord } from './github/schema';
 
 /** @deprecated Removed in v12 — folders now live inside Workspace objects. */
 export interface FileHandleRecord {
@@ -42,6 +44,10 @@ export class TabsDB extends Dexie {
   codexPendingRequests!: Table<CodexPendingRecord>;
   codexOperationReceipts!: Table<CodexOperationReceipt>;
   codexDocumentIntents!: Table<CodexDocumentIntent>;
+  githubAccounts!: Table<GithubAccountRecord>;
+  githubDrafts!: Table<GithubDraftRecord>;
+  githubWorkspaces!: Table<GithubWorkspaceRecord>;
+  githubPrivateCache!: Table<GithubPrivateCacheRecord>;
 
   constructor(name = 'ZenEditorDB') {
     super(name);
@@ -325,6 +331,9 @@ export class TabsDB extends Dexie {
       });
     });
     this.version(19).stores(CLIENTS_V1_STORES);
+    // v20: GitHub mode drafts, workspace selection, and sealed private cache.
+    // Tokens are not stored here. Existing tables are left untouched.
+    this.version(20).stores(GITHUB_V1_STORES);
   }
 }
 

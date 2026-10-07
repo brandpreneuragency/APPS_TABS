@@ -6,21 +6,35 @@ import { useUIStore } from '../../../stores/uiStore';
 interface ContextResizeHandleProps {
   contextRef: RefObject<HTMLElement | null>;
   primaryContentRef?: RefObject<HTMLElement | null>;
+  widthPx?: number;
+  minWidthPx?: number;
+  maxWidthPx?: number;
+  onWidthChange?: (widthPx: number, persist: boolean) => void;
+  ariaLabel?: string;
 }
 
 /** Resize handle between contextual panel and center content (inside primary). */
 export function ContextResizeHandle({
   contextRef,
   primaryContentRef,
+  widthPx,
+  minWidthPx,
+  maxWidthPx,
+  onWidthChange,
+  ariaLabel,
 }: ContextResizeHandleProps) {
   const { onPointerDown, onKeyDown, ariaValueMin, ariaValueMax } = useContextPanelResize({
     contextRef,
     primaryContentRef,
+    widthPx,
+    minWidthPx,
+    maxWidthPx,
+    onWidthChange,
   });
   const widthVw = useUIStore((s) => s.contextPanelWidth);
   const viewport =
     typeof window !== 'undefined' ? window.innerWidth : 1200;
-  const valueNow = Math.round(vwToPx(widthVw, viewport));
+  const valueNow = Math.round(widthPx ?? vwToPx(widthVw, viewport));
 
   return (
     <div
@@ -28,11 +42,11 @@ export function ContextResizeHandle({
       role="separator"
       tabIndex={0}
       aria-orientation="vertical"
-      aria-label="Resize context panel"
-      aria-valuemin={ariaValueMin ?? CONTEXT_MIN_PX}
-      aria-valuemax={ariaValueMax ?? CONTEXT_MAX_PX}
+      aria-label={ariaLabel ?? 'Resize context panel'}
+      aria-valuemin={minWidthPx ?? ariaValueMin ?? CONTEXT_MIN_PX}
+      aria-valuemax={maxWidthPx ?? ariaValueMax ?? CONTEXT_MAX_PX}
       aria-valuenow={valueNow}
-      title="Drag or use arrow keys to resize context panel"
+      title={ariaLabel ?? 'Drag or use arrow keys to resize context panel'}
       onPointerDown={onPointerDown}
       onKeyDown={onKeyDown}
       className="context-resize-handle resize-handle workspace-handle"

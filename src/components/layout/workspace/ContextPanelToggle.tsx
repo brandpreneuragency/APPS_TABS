@@ -1,4 +1,5 @@
 import { PanelLeft } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { WorkspaceMode } from '../../../stores/uiLayoutState';
 import {
   selectActiveWorkspaceMode,
@@ -12,6 +13,7 @@ const CONTEXT_PANEL_NOUN: Record<WorkspaceMode, string> = {
   crm: 'CRM list',
   forms: 'Forms list',
   settings: 'Settings list',
+  github: 'repository files',
 };
 
 interface ContextPanelToggleProps {
@@ -35,6 +37,7 @@ export function ContextPanelToggle({
   variant = 'toolbar',
   id: idProp,
 }: ContextPanelToggleProps) {
+  const { t } = useTranslation();
   const activeMode = useUIStore(selectActiveWorkspaceMode);
   const availableFromStore = useUIStore(selectIsContextPanelAvailable);
   const mode = modeProp ?? activeMode;
@@ -50,7 +53,9 @@ export function ContextPanelToggle({
   }
 
   const noun = CONTEXT_PANEL_NOUN[mode];
-  const label = open ? `Hide ${noun}` : `Show ${noun}`;
+  const label = mode === 'github'
+    ? t(open ? 'github.hideRepositoryPanel' : 'github.showRepositoryPanel')
+    : open ? `Hide ${noun}` : `Show ${noun}`;
   const resolvedIconSize = iconSize ?? (variant === 'header' ? 16 : 12);
   const className =
     variant === 'header'

@@ -42,6 +42,7 @@ export default function App() {
   const {
     loadUISettings,
     taskMode,
+    githubMode,
     activeTaskId,
     activeTaskPage,
     setTaskMode,
@@ -173,11 +174,13 @@ export default function App() {
   const effectiveTaskId = activeTaskId ?? storeActiveTaskId;
 
   // The Settings doc only lives in doc mode (not task/crm).
-  const settingsActive = !taskMode && !crmMode && activeView === 'settings';
+  const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
 
   // Panel 2 (editor) — CRM > task > doc. Settings primary content is
   // owned by AppLayout (SettingsDocument → section slots).
-  const activeWorkspace = crmMode
+  const activeWorkspace = githubMode
+    ? null
+    : crmMode
     ? <CRMWorkspace />
     : taskMode
     ? activeTaskPage === 'projects'
@@ -191,7 +194,9 @@ export default function App() {
   // Settings supplies its own list via SettingsPanels inside SettingsDocument.
   const formsPageActive = crmMode && activeCRMPage === 'forms';
   const clientsPageActive = crmMode && activeCRMPage === 'clients';
-  const leftPanel = crmMode
+  const leftPanel = githubMode
+    ? null
+    : crmMode
     ? formsPageActive
       ? <FormsListPanel />
       : clientsPageActive
@@ -203,7 +208,7 @@ export default function App() {
 
   // Assistant content — Settings AI (scoped by sub-tab), Task Manager AI
   // (Tasks + Clients/Projects/CRM), or document writer AI.
-  const taskBinding = resolveTaskAssistantBinding({
+  const taskBinding = githubMode ? null : resolveTaskAssistantBinding({
     taskMode,
     crmMode,
     activeCRMPage,
@@ -212,7 +217,9 @@ export default function App() {
     selectedProjectId,
   });
 
-  const sidebar = settingsActive ? (
+  const sidebar = githubMode ? (
+    <AISidebar workspaceId={null} taskId={null} mode="writer" editor={null} />
+  ) : settingsActive ? (
     <AISidebar
       workspaceId={null}
       taskId={null}

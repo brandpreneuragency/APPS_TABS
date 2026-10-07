@@ -5,10 +5,11 @@ import type { Task } from '../../types';
 import en from '../../i18n/en';
 import { TaskTitleBar } from './TaskTitleBar';
 
-const { state, updateTask, toggleSubtaskSection } = vi.hoisted(() => ({
+const { state, updateTask, toggleSubtaskSection, showToast } = vi.hoisted(() => ({
   state: { task: null as Task | null, taskMode: true, activeTaskPage: 'list', collapsed: false },
   updateTask: vi.fn(),
   toggleSubtaskSection: vi.fn(),
+  showToast: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -22,11 +23,14 @@ vi.mock('../../stores/taskStore', () => ({
 vi.mock('../../stores/uiStore', () => ({
   useUIStore: (selector?: (store: object) => unknown) => {
     const store = { taskMode: state.taskMode, activeTaskPage: state.activeTaskPage,
-      subtaskSectionCollapsed: state.collapsed, toggleSubtaskSection };
+      subtaskSectionCollapsed: state.collapsed, toggleSubtaskSection, showToast };
     return selector ? selector(store) : store;
   },
 }));
-vi.mock('../taskManager/TaskMetadataControls', () => ({ TaskMetadataControls: () => null }));
+vi.mock('../taskManager/TaskMetadataControls', () => ({
+  TaskClientProjectControls: () => null,
+  TaskDueDateControl: () => null,
+}));
 
 function task(overrides: Partial<Task> = {}): Task {
   return { id: 'parent', title: 'Write brief', content: '', status: 'pending', importance: 'medium',
@@ -40,6 +44,7 @@ beforeEach(() => {
   state.collapsed = false;
   updateTask.mockReset().mockResolvedValue(undefined);
   toggleSubtaskSection.mockReset();
+  showToast.mockReset();
 });
 
 describe('TaskTitleBar completion', () => {
@@ -86,6 +91,33 @@ describe('TaskTitleBar completion', () => {
     expect(updateTask).toHaveBeenCalledTimes(1);
     await act(async () => { finish(); });
     expect(complete).toBeEnabled();
+  });
+
+  it('keeps pending status writes scoped to the task selected when each action starts', async () => {
+    const finishers: Array<() => void> = [];
+    updateTask.mockImplementation(() => new Promise<void>((resolve) => { finishers.push(() => resolve()); }));
+    const view = render(<TaskTitleBar />);
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
+
+    state.task = task({ id: 'next' });
+    view.rerender(<TaskTitleBar />);
+    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
+
+    expect(updateTask).toHaveBeenNthCalledWith(1, 'parent', { status: 'completed' });
+    expect(updateTask).toHaveBeenNthCalledWith(2, 'next', { status: 'completed' });
+    await act(async () => { finishers.forEach((finish) => finish()); });
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Mark as completed' })).toBeEnabled());
+  });
+
+  it('shows a local error and unlocks the status action when a write rejects', async () => {
+    updateTask.mockRejectedValueOnce(new Error('Task storage unavailable'));
+    render(<TaskTitleBar />);
+    const complete = screen.getByRole('button', { name: 'Mark as completed' });
+
+    fireEvent.click(complete);
+
+    await waitFor(() => expect(complete).toBeEnabled());
+    expect(showToast).toHaveBeenCalledWith('Task storage unavailable', 'error');
   });
 
   it('lets a selected subtask change status without rendering a parent disclosure', async () => {

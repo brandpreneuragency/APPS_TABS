@@ -24,13 +24,25 @@ afterEach(cleanup);
 describe('ModeNavigation', () => {
   it('keeps all controls visible in the requested order across view changes', () => {
     render(<ModeNavigation />);
-    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'tasks', 'calendar', 'projects', 'clients'];
-    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs', 'navigation.clients']) {
+    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'github', 'tasks', 'calendar', 'projects', 'clients'];
+    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs', 'navigation.github', 'navigation.clients']) {
       fireEvent.click(screen.getByRole('button', { name }));
       expect(screen.getAllByRole('button').map((button) => button.id)).toEqual(expected.map((id) => `nav-btn-${id}`));
       expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');
       expect(document.querySelectorAll('.header-mode[aria-pressed="true"]')).toHaveLength(1);
     }
+    expect(useUIStore.getState().githubMode).toBe(false);
+  });
+
+  it('enters GitHub as a separate workspace and keeps the other mode flags off', () => {
+    useUIStore.setState({ taskMode: true, crmMode: false, activeView: 'document' });
+    render(<ModeNavigation />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'navigation.github' }));
+
+    expect(useUIStore.getState()).toMatchObject({ githubMode: true, taskMode: false, crmMode: false });
+    expect(screen.getByRole('button', { name: 'navigation.github' })).toHaveAttribute('aria-pressed', 'true');
+    expect(document.querySelectorAll('.header-mode[aria-pressed="true"]')).toHaveLength(1);
   });
 
   it('enters Clients without changing the selected client and clears project scope', () => {

@@ -29,7 +29,7 @@ afterEach(() => {
 describe('enterClients', () => {
   it('retains the selected client, clears project scope, opens Clients, and starts at Overview', () => {
     useUIStore.setState({ activeCRMPage: 'projects', crmMode: true, contextPanelOpenByMode: {
-      documents: true, tasks: true, crm: false, forms: true, settings: true,
+      documents: true, tasks: true, crm: false, forms: true, settings: true, github: true,
     } });
     useTaskStore.setState({ selectedClientId: 'brand-a', selectedProjectId: 'project-a' });
     useClientDetailsStore.getState().setCategory('notes');

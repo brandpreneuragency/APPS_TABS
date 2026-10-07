@@ -17,6 +17,11 @@ import { cliReasoningEffortSettingKey, supportedCliReasoningEffort } from '../se
 import { isMockProviderId, mockProviderModels } from '../services/providers/mockProviders';
 import { mockProviderSessionService } from '../services/providers/mockSessionService';
 import type { ChatProviderId } from '../types';
+import { watchProviderThread, type GithubDispatchContext } from '../services/github/aiEgress';
+
+export interface GithubAiMessageContext extends GithubDispatchContext {
+  packet: string;
+}
 
 function isCliProvider(value: unknown): value is CliProviderId {
   return value === 'grok' || value === 'commandCode' || value === 'openCode';
@@ -49,11 +54,21 @@ export function useStreamingChat(
     attachments?: Attachment[],
     searchWeb?: boolean,
     replyTo?: { id: string; role: 'user' | 'assistant'; content: string; sender: string },
+    github?: GithubAiMessageContext,
   ) => {
     let activeThread = useChatStore.getState().activeThreadId ?? threadId;
+    if (github) {
+      const state = useChatStore.getState();
+      const selected = state.activeThreadId;
+      const selectedMeta = state.threads.find((candidate) => candidate.id === selected);
+      activeThread = selectedMeta?.workspaceId === contextWorkspaceId && !selectedMeta?.taskId && !selectedMeta?.settingsTab
+        ? selectedMeta?.id ?? ''
+        : '';
+    }
     if (!activeThread) {
-      await newChat({ mode, workspaceId: contextWorkspaceId, taskId: contextTaskId,
-        settingsTab: contextSettingsTab });
+      await newChat(github
+        ? { mode: 'writer', workspaceId: contextWorkspaceId }
+        : { mode, workspaceId: contextWorkspaceId, taskId: contextTaskId, settingsTab: contextSettingsTab });
       activeThread = useChatStore.getState().activeThreadId ?? '';
     }
     if (!activeThread) throw new Error('Could not create a chat thread');
@@ -61,6 +76,7 @@ export function useStreamingChat(
     const thread = await db.chatThreads.get(activeThread);
     if (!thread) throw new Error('Could not load the active chat thread.');
     if (isMockProviderId(thread.origin)) {
+      if (github) throw new Error('GitHub context requires a real Codex or CLI provider.');
       if (searchWeb) throw new Error(t('codex.searchUnavailable'));
       const catalogue = mockProviderModels[thread.origin];
       const preferredModel = (await db.settings.get(`providerModelId:${thread.origin}`))?.value;
@@ -78,6 +94,16 @@ export function useStreamingChat(
     const providerId: ChatProviderId = isCliProvider(thread?.origin) ? thread.origin : 'codex';
     if (thread?.origin === 'legacy_api') {
       throw new Error(t('cliChat.legacyThread'));
+    }
+    if (github) {
+      if (thread.origin !== 'codex' && !isCliProvider(thread.origin)) {
+        throw new Error('GitHub context requires a real Codex or CLI provider.');
+      }
+      watchProviderThread(activeThread, {
+        accountId: github.accountId,
+        repoId: github.repoId,
+        ref: github.ref,
+      });
     }
 
     if (isCliProvider(providerId)) {
@@ -98,15 +124,29 @@ export function useStreamingChat(
       const connectedRoot = useWorkspaceStore.getState().workspaces
         .find((workspace) => workspace.id === contextWorkspaceId)?.connectedFolders[0]?.path;
       const fallbackWorkspaceRoot = connectedRoot ? undefined : await cliProviderDefaultWorkspace();
-      const scope = await captureCodexScope({ appThreadId: activeThread, mode,
+      const scope = github ? {
+        appThreadId: activeThread,
+        mode: 'writer' as const,
+        workspaceId: contextWorkspaceId,
+        workspaceRoot: await cliProviderDefaultWorkspace(),
+        hasConnectedFolder: false,
+        permissionProfile: 'readOnly' as const,
+        model: chosen.id,
+        agentId: 'github',
+        context: github.packet,
+      } : await captureCodexScope({ appThreadId: activeThread, mode,
         workspaceId: contextWorkspaceId, taskId: contextTaskId, settingsTab: contextSettingsTab,
         selectedText, selectionFrom, selectionTo, editor, model: chosen.id,
         permissionProfile: 'readOnly', fallbackWorkspaceRoot });
-      if (replyTo) {
+      if (replyTo && !github) {
         scope.context = boundedContext([scope.context,
           `[REPLY TO ${replyTo.role} ${replyTo.id}]\n${replyTo.content}`]);
       }
-      await cliProviderSessionService.submit({ providerId, modelId: chosen.id, reasoningEffort, scope, text: userText });
+      const githubTarget: GithubDispatchContext | undefined = github ? {
+        accountId: github.accountId, repoId: github.repoId, ref: github.ref,
+        private: github.private, purpose: github.purpose,
+      } : undefined;
+      await cliProviderSessionService.submit({ providerId, modelId: chosen.id, reasoningEffort, scope, text: userText, github: githubTarget });
       return;
     }
 
@@ -134,16 +174,35 @@ export function useStreamingChat(
     const permissionProfile = existingSession
       ? existingSession.permissionProfile ?? 'readOnly'
       : preferredAccess === 'workspaceWrite' && hasConnectedFolder ? 'workspaceWrite' : 'readOnly';
-    const scope = await captureCodexScope({ appThreadId: activeThread, mode,
+    const scope = github ? {
+      appThreadId: activeThread,
+      mode: 'writer' as const,
+      workspaceId: contextWorkspaceId,
+      workspaceRoot: await codexSessionService.defaultWorkspace(),
+      hasConnectedFolder: false,
+      permissionProfile: 'readOnly' as const,
+      model: chosen?.id,
+      effort,
+      agentId: 'github',
+      context: github.packet,
+      capturedAt: Date.now(),
+      github: {
+        accountId: github.accountId,
+        repoId: github.repoId,
+        ref: github.ref,
+        private: github.private,
+        purpose: github.purpose,
+      },
+    } : await captureCodexScope({ appThreadId: activeThread, mode,
       workspaceId: contextWorkspaceId, taskId: contextTaskId, settingsTab: contextSettingsTab,
       selectedText, selectionFrom, selectionTo, attachments, editor, model: chosen?.id, effort,
       permissionProfile });
 
     const handoff = await db.settings.get(`codexHandoff:${activeThread}`);
-    if (typeof handoff?.value === 'string' && handoff.value) {
+    if (!github && typeof handoff?.value === 'string' && handoff.value) {
       scope.context = boundedContext([scope.context, `[EXPLICIT CHAT HANDOFF]\n${handoff.value}`]);
     }
-    if (replyTo) {
+    if (replyTo && !github) {
       scope.context = boundedContext([scope.context,
         `[REPLY TO ${replyTo.role} ${replyTo.id}]\n${replyTo.content}`]);
     }

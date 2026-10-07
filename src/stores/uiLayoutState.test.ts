@@ -68,6 +68,16 @@ describe('selectCanSwapWrappers', () => {
 });
 
 describe('selectActiveWorkspaceMode', () => {
+  it('resolves GitHub as its own mode ahead of other workspace flags', () => {
+    expect(selectActiveWorkspaceMode({
+      githubMode: true,
+      taskMode: true,
+      crmMode: true,
+      activeCRMPage: 'forms',
+      activeView: 'settings',
+    })).toBe('github');
+  });
+
   it('resolves tasks over documents', () => {
     expect(
       selectActiveWorkspaceMode({

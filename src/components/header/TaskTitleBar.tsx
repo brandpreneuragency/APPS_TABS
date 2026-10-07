@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { CheckCircle2, Circle } from 'lucide-react';
 import { TASK_TITLE_MAX_LENGTH } from '../../types';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUIStore } from '../../stores/uiStore';
 import { TaskClientProjectControls, TaskDueDateControl } from '../taskManager/TaskMetadataControls';
 
 export function TaskTitleBar() {
+  const { t } = useTranslation();
   const taskMode = useUIStore((state) => state.taskMode);
   const activeTaskPage = useUIStore((state) => state.activeTaskPage);
   const uiActiveTaskId = useUIStore((state) => state.activeTaskId);
@@ -13,8 +16,11 @@ export function TaskTitleBar() {
   const effectiveTaskId = uiActiveTaskId ?? storeActiveTaskId;
   const task = tasks.find((item) => item.id === effectiveTaskId) ?? null;
   const updateTask = useTaskStore((state) => state.updateTask);
+  const showToast = useUIStore((state) => state.showToast);
   const [localTitle, setLocalTitle] = useState(task?.title ?? '');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [pendingTaskIds, setPendingTaskIds] = useState<Set<string>>(() => new Set());
+  const pendingTaskIdsRef = useRef<Set<string>>(new Set());
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,6 +48,28 @@ export function TaskTitleBar() {
     setIsEditingTitle(false);
   };
 
+  const toggleTaskCompletion = async () => {
+    const selectedTask = task;
+    if (!selectedTask || pendingTaskIdsRef.current.has(selectedTask.id)) return;
+
+    const taskId = selectedTask.id;
+    const status = selectedTask.status === 'completed' ? 'in_progress' : 'completed';
+    pendingTaskIdsRef.current.add(taskId);
+    setPendingTaskIds(new Set(pendingTaskIdsRef.current));
+
+    try {
+      await updateTask(taskId, { status });
+    } catch (error) {
+      const message = error instanceof Error && error.message.trim()
+        ? error.message
+        : t('tasks.statusUpdateFailed');
+      showToast(message, 'error');
+    } finally {
+      pendingTaskIdsRef.current.delete(taskId);
+      setPendingTaskIds(new Set(pendingTaskIdsRef.current));
+    }
+  };
+
   if (!taskMode) return null;
   // The "Projects" tab shows a full-width kanban board in the center panel;
   // the task title bar does not apply there.
@@ -53,6 +81,20 @@ export function TaskTitleBar() {
       <div className="task-toggle-bar-inner">
         <div className="task-toggle-bar-row task-title-bar-spread">
           <div className="task-title-bar-left">
+            {task && (
+              <button
+                type="button"
+                className="ai-toggle-btn"
+                aria-label={t(task.status === 'completed' ? 'tasks.reopenTask' : 'tasks.completeTask')}
+                aria-pressed={task.status === 'completed'}
+                title={t(task.status === 'completed' ? 'tasks.reopenTask' : 'tasks.completeTask')}
+                disabled={pendingTaskIds.has(task.id)}
+                style={{ color: task.status === 'completed' ? 'var(--c-success)' : undefined }}
+                onClick={() => { void toggleTaskCompletion(); }}
+              >
+                {task.status === 'completed' ? <CheckCircle2 size={14} aria-hidden="true" /> : <Circle size={14} aria-hidden="true" />}
+              </button>
+            )}
             <TaskClientProjectControls />
             <TaskDueDateControl />
           </div>

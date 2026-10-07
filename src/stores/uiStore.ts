@@ -107,6 +107,7 @@ interface UIStore {
   language: 'en' | 'tr';
 
   taskMode: boolean;
+  githubMode: boolean;
   activeTaskId: string | null;
 
   /** CRM module active — mutually exclusive with task mode. Hosts the merged Forms sub-module via `activeCRMPage === 'forms'`. */
@@ -175,6 +176,7 @@ interface UIStore {
   setExpandedPaths: (paths: string[]) => void;
   setSelectedTreePath: (path: string | null) => void;
   setTaskMode: (v: boolean) => void;
+  setGithubMode: (v: boolean) => void;
   setCrmMode: (v: boolean) => void;
   setActiveCRMPage: (p: CRMPage) => void;
   setActiveFormsPage: (p: FormsPage) => void;
@@ -234,7 +236,7 @@ export function selectCanSwapWrappers(
 }
 
 export function selectActiveWorkspaceMode(
-  state: Pick<UIStore, 'taskMode' | 'crmMode' | 'activeCRMPage' | 'activeView'>,
+  state: Pick<UIStore, 'taskMode' | 'githubMode' | 'crmMode' | 'activeCRMPage' | 'activeView'>,
 ): WorkspaceMode {
   return selectActiveWorkspaceModeImpl(state);
 }
@@ -256,6 +258,7 @@ export function selectIsContextPanelOpen(
     UIStore,
     | 'contextPanelOpenByMode'
     | 'taskMode'
+    | 'githubMode'
     | 'crmMode'
     | 'activeCRMPage'
     | 'activeView'
@@ -267,7 +270,7 @@ export function selectIsContextPanelOpen(
 export function selectIsContextPanelAvailable(
   state: Pick<
     UIStore,
-    'taskMode' | 'crmMode' | 'activeCRMPage' | 'activeView' | 'activeTaskPage'
+    'taskMode' | 'githubMode' | 'crmMode' | 'activeCRMPage' | 'activeView' | 'activeTaskPage'
   >,
 ): boolean {
   return selectIsContextPanelAvailableImpl(state);
@@ -316,6 +319,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   editorFontSize: DEFAULT_EDITOR_FONT_SIZE,
   language: 'en',
   taskMode: false,
+  githubMode: false,
   activeTaskId: null,
   crmMode: false,
   activeCRMPage: 'clients',
@@ -479,6 +483,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
     // Mode entry ensures primary is open (PRD 6.6).
     set({
       taskMode: v,
+      githubMode: false,
       crmMode: false,
       activeView: 'document',
       primaryWrapperOpen: true,
@@ -486,11 +491,31 @@ export const useUIStore = create<UIStore>((set, get) => ({
     persistLayoutKeys({ primaryWrapperOpen: true });
     void db.settings.put({ key: 'taskMode', value: v });
     void db.settings.put({ key: 'crmMode', value: false });
+    void db.settings.put({ key: 'githubMode', value: false });
+  },
+
+  setGithubMode: (v) => {
+    if (v) {
+      set({
+        githubMode: true,
+        taskMode: false,
+        crmMode: false,
+        activeView: 'document',
+        primaryWrapperOpen: true,
+      });
+      persistLayoutKeys({ primaryWrapperOpen: true });
+      void db.settings.put({ key: 'taskMode', value: false });
+      void db.settings.put({ key: 'crmMode', value: false });
+    } else {
+      set({ githubMode: false });
+    }
+    void db.settings.put({ key: 'githubMode', value: v });
   },
 
   setCrmMode: (v) => {
     set({
       crmMode: v,
+      githubMode: false,
       taskMode: false,
       activeView: 'document',
       primaryWrapperOpen: true,
@@ -498,6 +523,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
     persistLayoutKeys({ primaryWrapperOpen: true });
     void db.settings.put({ key: 'crmMode', value: v });
     void db.settings.put({ key: 'taskMode', value: false });
+    void db.settings.put({ key: 'githubMode', value: false });
   },
 
   setActiveCRMPage: (p) => {
@@ -530,8 +556,9 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   setActiveView: (v) => {
     // Entering documents or settings in doc mode ensures primary open.
-    set({ activeView: v, primaryWrapperOpen: true });
+    set({ activeView: v, githubMode: false, primaryWrapperOpen: true });
     persistLayoutKeys({ primaryWrapperOpen: true });
+    void db.settings.put({ key: 'githubMode', value: false });
   },
 
   setActiveSettingsSubTab: (tab) =>
@@ -549,10 +576,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
       primaryWrapperOpen: true,
       taskMode: false,
       crmMode: false,
+      githubMode: false,
     }));
     persistLayoutKeys({ primaryWrapperOpen: true });
     void db.settings.put({ key: 'taskMode', value: false });
     void db.settings.put({ key: 'crmMode', value: false });
+    void db.settings.put({ key: 'githubMode', value: false });
   },
 
   setActiveTaskId: (id) => {
@@ -630,6 +659,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       terminalPanelOpen,
       terminalPanelHeight,
       crmModeSetting,
+      githubModeSetting,
       formsModeSetting,
       activeCRMPageSetting,
       activeFormsPageSetting,
@@ -661,6 +691,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       db.settings.get('terminalPanelOpen'),
       db.settings.get('terminalPanelHeight'),
       db.settings.get('crmMode'),
+      db.settings.get('githubMode'),
       db.settings.get('formsMode'),
       db.settings.get('activeCRMPage'),
       db.settings.get('activeFormsPage'),
@@ -685,12 +716,13 @@ export const useUIStore = create<UIStore>((set, get) => ({
     }
     document.documentElement.removeAttribute('data-theme');
 
+    const githubModeValue = githubModeSetting ? Boolean(githubModeSetting.value) : false;
     const crmModeStored = crmModeSetting ? Boolean(crmModeSetting.value) : false;
     const formsModeStored = formsModeSetting ? Boolean(formsModeSetting.value) : false;
     // Forms module was merged into CRM. Migrate a persisted standalone formsMode
     // into CRM mode (activeCRMPage falls back to 'forms' below when migrated).
-    const crmMode = crmModeStored || formsModeStored;
-    const taskModeValue = !crmMode && (taskMode ? Boolean(taskMode.value) : false);
+    const crmMode = !githubModeValue && (crmModeStored || formsModeStored);
+    const taskModeValue = !githubModeValue && !crmMode && (taskMode ? Boolean(taskMode.value) : false);
     // Drop obsolete workspace-mode key from older installs (ignored if absent).
     void db.settings.delete('chatMode');
 
@@ -758,6 +790,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
       editorFontSize: parseEditorFontSize(editorFontSize?.value),
       language: lang,
       taskMode: restoreProjects ? false : taskModeValue,
+      githubMode: githubModeValue,
       activeTaskId: lastActiveTaskId ? String(lastActiveTaskId.value) : null,
       contextWindowOpen: false,
       contextWindowCollapsed: contextWindowCollapsed ? Boolean(contextWindowCollapsed.value) : true,

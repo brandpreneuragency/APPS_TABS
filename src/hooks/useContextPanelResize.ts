@@ -32,8 +32,15 @@ export function useContextPanelResize(options: {
   contextRef: RefObject<HTMLElement | null>;
   /** Primary content row — used to protect center min width. */
   primaryContentRef?: RefObject<HTMLElement | null>;
+  /** Optional mode-scoped pixel width; defaults to the shared layout setting. */
+  widthPx?: number;
+  minWidthPx?: number;
+  maxWidthPx?: number;
+  onWidthChange?: (widthPx: number, persist: boolean) => void;
 }) {
-  const { contextRef, primaryContentRef } = options;
+  const { contextRef, primaryContentRef, widthPx, minWidthPx, maxWidthPx, onWidthChange } = options;
+  const minWidth = minWidthPx ?? CONTEXT_MIN_PX;
+  const maxWidth = maxWidthPx ?? CONTEXT_MAX_PX;
   const setContextPanelWidth = useUIStore((s) => s.setContextPanelWidth);
   const dragging = useRef(false);
   const cleanupDrag = useRef<(() => void) | null>(null);
@@ -83,8 +90,9 @@ export function useContextPanelResize(options: {
         const delta = ev.clientX - startX;
         const newWidth = startWidth + delta;
         const livePrimary = resolvePrimaryWidth() ?? primaryWidth;
-        const clampedPx = clampContextWidthPx(newWidth, livePrimary, handleWidth);
-        setContextPanelWidth(pxToVw(clampedPx, window.innerWidth), { persist: false });
+        const clampedPx = clampContextWidthPx(newWidth, livePrimary, handleWidth, undefined, minWidth, maxWidth);
+        if (onWidthChange) onWidthChange(clampedPx, false);
+        else setContextPanelWidth(pxToVw(clampedPx, window.innerWidth), { persist: false });
       };
 
       const endDrag = (ev?: PointerEvent) => {
@@ -104,8 +112,11 @@ export function useContextPanelResize(options: {
         handleEl.removeEventListener('pointerup', endDrag);
         handleEl.removeEventListener('pointercancel', endDrag);
         cleanupDrag.current = null;
-        const current = useUIStore.getState().contextPanelWidth;
-        setContextPanelWidth(current, { persist: true });
+        if (onWidthChange) onWidthChange(panelEl.getBoundingClientRect().width, true);
+        else {
+          const current = useUIStore.getState().contextPanelWidth;
+          setContextPanelWidth(current, { persist: true });
+        }
       };
 
       cleanupDrag.current = () => endDrag();
@@ -113,7 +124,7 @@ export function useContextPanelResize(options: {
       handleEl.addEventListener('pointerup', endDrag);
       handleEl.addEventListener('pointercancel', endDrag);
     },
-    [contextRef, setContextPanelWidth, endDragSession, resolvePrimaryWidth],
+    [contextRef, setContextPanelWidth, endDragSession, resolvePrimaryWidth, minWidth, maxWidth, onWidthChange],
   );
 
   const onKeyDown = useCallback(
@@ -123,15 +134,16 @@ export function useContextPanelResize(options: {
 
       const step = e.shiftKey ? KEYBOARD_RESIZE_STEP_LARGE_PX : KEYBOARD_RESIZE_STEP_PX;
       const currentVw = useUIStore.getState().contextPanelWidth;
-      const currentPx = vwToPx(currentVw, window.innerWidth);
+      const currentPx = widthPx ?? vwToPx(currentVw, window.innerWidth);
       const nextRaw = applyContextKeyboardDelta(currentPx, e.key, step);
       const handleWidth =
         e.currentTarget.getBoundingClientRect().width || HANDLE_WIDTH_PX;
       const primaryWidth = resolvePrimaryWidth();
-      const clampedPx = clampContextWidthPx(nextRaw, primaryWidth, handleWidth);
-      setContextPanelWidth(pxToVw(clampedPx, window.innerWidth), { persist: true });
+      const clampedPx = clampContextWidthPx(nextRaw, primaryWidth, handleWidth, undefined, minWidth, maxWidth);
+      if (onWidthChange) onWidthChange(clampedPx, true);
+      else setContextPanelWidth(pxToVw(clampedPx, window.innerWidth), { persist: true });
     },
-    [resolvePrimaryWidth, setContextPanelWidth],
+    [resolvePrimaryWidth, setContextPanelWidth, widthPx, minWidth, maxWidth, onWidthChange],
   );
 
   return {

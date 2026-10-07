@@ -97,7 +97,7 @@ describe('clients v1 additive database upgrade', () => {
     const migrated = new TabsDB(name);
     databases.push(migrated);
     await migrated.open();
-    expect(migrated.verno).toBe(19);
+    expect(migrated.verno).toBe(20);
     const migratedSentinels = await readSentinels(migrated);
     expect(migratedSentinels).toEqual({
       client: { id: 'client-sentinel', name: 'Sentinel client', color: '#123456', createdAt: 101, order: 0 },
@@ -115,7 +115,7 @@ describe('clients v1 additive database upgrade', () => {
     const reopened = new TabsDB(name);
     databases.push(reopened);
     await reopened.open();
-    expect(reopened.verno).toBe(19);
+    expect(reopened.verno).toBe(20);
     expect(await readSentinels(reopened)).toEqual(migratedSentinels);
     expect(await Promise.all(Object.keys(CLIENTS_V1_STORES).map((store) => reopened.table(store).count())))
       .toEqual([0, 0, 0, 0, 0]);
@@ -178,7 +178,7 @@ describe('clients v1 additive database upgrade', () => {
     const retried = new TabsDB(name);
     databases.push(retried);
     await retried.open();
-    expect(retried.verno).toBe(19);
+    expect(retried.verno).toBe(20);
     expect(await readSentinels(retried)).toMatchObject({
       client: { id: 'client-sentinel', name: 'Sentinel client' },
       project: { id: 'project-sentinel', name: 'Sentinel project', clientId: 'client-sentinel' },

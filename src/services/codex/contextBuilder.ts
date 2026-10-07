@@ -16,6 +16,7 @@ import { codexDesktopClient } from './desktopClient';
 import { decodeDataUrlBytes, decodeDataUrlText } from '../../utils/fileData';
 import { getFileCategory, isTextFile } from '../../utils/fileType';
 import { codexSessionService } from './sessionService';
+import { isGithubDocumentPath } from '../github/identity';
 import type { CodexScope } from './sessionTypes';
 import type { CodexPermissionProfile } from './types';
 
@@ -131,7 +132,7 @@ export async function captureCodexScope(input: ScopeInput): Promise<CodexScope> 
   if (input.selectedText) sections.push(`[SELECTED TEXT ${input.selectionFrom ?? '?'}..${input.selectionTo ?? '?'}]\n${input.selectedText}`);
 
   let document: CodexScope['document'];
-  if (workspace?.currentFile) {
+  if (workspace?.currentFile && !isGithubDocumentPath(workspace.currentFile.path)) {
     const file = workspace.currentFile;
     const content = input.editor && !input.editor.isDestroyed
       ? JSON.stringify(input.editor.getJSON()) : file.content;

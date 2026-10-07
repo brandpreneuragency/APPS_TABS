@@ -23,6 +23,8 @@ mod codex;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod commands;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
+mod github;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod terminal;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod tray;
@@ -169,6 +171,26 @@ fn run_production() {
             take_pending_open_file,
             commands::secrets::legacy_ai_preference,
             commands::secrets::legacy_ai_cleanup,
+            commands::github::github_credential_status,
+            commands::github::github_credential_put,
+            commands::github::github_credential_delete,
+            commands::github::github_transport_request,
+            commands::github::github_session_generation,
+            commands::github::github_allocate_write_authority,
+            commands::github::github_current_write_authority,
+            commands::github::github_note_write_epoch,
+            commands::github::github_device_start,
+            commands::github::github_device_poll,
+            commands::github::github_device_cancel,
+            commands::github::github_auth_probe_pending,
+            commands::github::github_auth_commit_pending,
+            commands::github::github_auth_discard_pending,
+            commands::github::github_auth_has_access,
+            commands::github::github_auth_logout,
+            commands::github::github_auth_refresh,
+            commands::github::github_cache_seal,
+            commands::github::github_cache_open,
+            commands::github::github_open_device_login,
             commands::terminal::terminal_create,
             commands::terminal::terminal_write,
             commands::terminal::terminal_resize,

@@ -13,6 +13,7 @@ import { FileViewerPanel } from '../fileViewer/FileViewerPanel';
 import { RightPanelSubheader } from '../sidebar/RightPanelSubheader';
 import { TerminalPanel } from '../terminal/TerminalPanel';
 import { SettingsDocument } from '../settings/SettingsDocument';
+import { GithubAssistantNotice, GithubAssistantSidebar, GithubWorkspace } from '../github/GithubWorkspace';
 import { useTaskStore } from '../../stores/taskStore';
 import { resolveTaskAssistantBinding } from '../../stores/taskAssistantBinding';
 import {
@@ -132,7 +133,14 @@ function UniversalWorkspaceShell({
     activeCRMPage,
   });
 
-  const assistantBody = fileViewerOpen ? (
+  const assistantBody = mode === 'github' ? (
+    <>
+      <div id="right-panel-subheader-wrapper" className="right-panel-subheader-wrapper">
+        <GithubAssistantNotice />
+      </div>
+      <GithubAssistantSidebar />
+    </>
+  ) : fileViewerOpen ? (
     <div className="assistant-file-viewer-wrapper">
       <FileViewerPanel />
     </div>
@@ -166,7 +174,7 @@ function UniversalWorkspaceShell({
       assistantWrapperOpen={assistantWrapperOpen}
       wrappersSwapped={wrappersSwapped}
       assistantWrapperWidthVw={assistantWrapperWidth}
-      assistantContentId={fileViewerOpen ? 'file-viewer-panel' : 'ai-sidebar-panel'}
+      assistantContentId={mode !== 'github' && fileViewerOpen ? 'file-viewer-panel' : 'ai-sidebar-panel'}
       contextPanelVisible={contextPanelVisible}
       primary={layout.primary}
       // Always pass body so CSS-hidden assistant keeps chat/file-viewer mounted.
@@ -187,6 +195,7 @@ function resolveModeLayout(args: {
     crm: boolean;
     forms: boolean;
     settings: boolean;
+    github: boolean;
   };
   contextPanelWidth: number;
   activeTaskPage: string;
@@ -207,6 +216,10 @@ function resolveModeLayout(args: {
   // Settings: section components own PrimaryWorkspaceContent via SettingsPanels.
   if (mode === 'settings') {
     return { primary: <SettingsDocument /> };
+  }
+
+  if (mode === 'github') {
+    return { primary: <GithubWorkspace /> };
   }
 
   if (mode === 'documents') {

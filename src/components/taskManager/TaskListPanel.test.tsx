@@ -195,14 +195,14 @@ describe('TaskListPanel', () => {
     vi.setSystemTime(new Date(2026, 8, 15, 23, 59, 58));
     try {
       const view = render(<TaskListPanel />);
-      expect(screen.getByText('Sep 15. Tue. 23:59:58')).toBeInTheDocument();
+      expect(screen.getByText('15 EYLÜL, SALI - 23:59:58')).toBeInTheDocument();
 
       act(() => vi.advanceTimersByTime(2000));
-      expect(screen.getByText('Sep 16. Wed. 00:00:00')).toBeInTheDocument();
+      expect(screen.getByText('16 EYLÜL, ÇŞMBA - 00:00:00')).toBeInTheDocument();
 
       activeTaskPage = 'calendar';
       view.rerender(<TaskListPanel />);
-      expect(screen.queryByText('Sep 16. Wed. 00:00:00')).not.toBeInTheDocument();
+      expect(screen.queryByText('16 EYLÜL, ÇŞMBA - 00:00:00')).not.toBeInTheDocument();
     } finally {
       vi.useRealTimers();
     }

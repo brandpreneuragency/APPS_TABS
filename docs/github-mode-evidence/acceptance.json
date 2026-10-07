@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "at": "2026-10-06T09:02:42.126580+00:00",
+  "verdict": "VERIFIED WITH DEFERRED ITEMS",
+  "completion_scope": "Requested source/frontend implementation and acceptance; native Windows/live GitHub NOT RUN",
+  "plan_commit": "0c77bea0eeef12c22cf2ab74c1bfcbd4be9a3564",
+  "baseline_commit": "fdf1af2f8e5c66e60136bc34b18be4bef33a289f",
+  "manager": "openai-codex/gpt-6.1-sol-900k/high",
+  "review_count": 1,
+  "correction_rounds_used": 2,
+  "mandatory_source_frontend_blockers": [],
+  "phases_completed": [
+    "1",
+    "2",
+    "3"
+  ],
+  "checks": [
+    {
+      "check": "npm run check",
+      "command": "NODE_OPTIONS=--no-experimental-webstorage npm run check",
+      "status": "passed",
+      "exit_code": 0,
+      "test_files": 103,
+      "tests": 686,
+      "lint_errors": 0,
+      "lint_warnings": 11,
+      "typecheck": "passed",
+      "build": "passed",
+      "manager_rerun": true,
+      "log": "docs/github-mode-evidence/frontend-check.log"
+    },
+    {
+      "check": "production probes",
+      "status": "passed",
+      "exit_code": 0,
+      "passed": 16,
+      "total": 16,
+      "fixture_not_live": true,
+      "evidence": "docs/github-mode-evidence/production-probes.json"
+    },
+    {
+      "check": "focused core/provider regressions",
+      "status": "passed",
+      "exit_code": 0,
+      "files": 12,
+      "tests": 65,
+      "log": "docs/github-mode-evidence/core-regressions.log"
+    },
+    {
+      "check": "git diff --check",
+      "status": "passed",
+      "exit_code": 0
+    },
+    {
+      "check": "Linux cargo fmt --check",
+      "status": "passed",
+      "exit_code": 0,
+      "log": "docs/github-mode-evidence/cargo-fmt.log"
+    },
+    {
+      "check": "Linux cargo check --offline",
+      "status": "blocked_environment",
+      "exit_code": 101,
+      "reason": "Missing aes-gcm in crates cache/index; no compile performed",
+      "log": "docs/github-mode-evidence/cargo-check-offline.log"
+    },
+    {
+      "check": "Windows cargo fmt/check/test and Tauri runtime",
+      "status": "NOT RUN",
+      "reason": "Target Windows not available on ATLAS; not replaced by npm build"
+    },
+    {
+      "check": "Live OAuth/GitHub and external AI requests",
+      "status": "NOT RUN",
+      "reason": "No registration/login/live mutation or provider egress authorized"
+    },
+    {
+      "check": "Native registration/capability source audit",
+      "status": "passed_source_only",
+      "native_commands": 20,
+      "unregistered": 0,
+      "capability_changes": false
+    },
+    {
+      "check": "Final source evidence hashes and report links",
+      "status": "passed",
+      "hash_mismatches": 0,
+      "broken_links": 0
+    }
+  ],
+  "report": "docs/github-mode-acceptance.md",
+  "oauth_guide": "docs/github-mode-oauth-setup.md",
+  "committed": false,
+  "pushed": false,
+  "deployed": false,
+  "installer_created": false
+}

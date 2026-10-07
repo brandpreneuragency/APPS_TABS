@@ -15,6 +15,8 @@ import { useAIStore } from '../../stores/aiStore';
 import { isMockProviderId } from '../../services/providers/mockProviders';
 import { useMockProviderService } from '../../services/providers/useMockProviderService';
 import { useStreamingChat } from '../../hooks/useStreamingChat';
+import type { GithubAiMessageContext } from '../../hooks/useStreamingChat';
+import { useGithubStore } from '../../stores/githubStore';
 import { useWorkspaceStore, flattenTree, findNodeByFullPath } from '../../stores/workspaceStore';
 import type { TreeNode } from '../../stores/workspaceStore';
 import { readBinaryFile, getMetadata, basename, getExt } from '../../services/fs-adapter';
@@ -40,6 +42,8 @@ interface ChatInputProps {
   replyToMessage?: ChatMessage | null;
   onClearReply?: () => void;
   editor?: Editor | null;
+  /** Reuses this composer with a strict, target-bound GitHub context. */
+  githubMode?: boolean;
 }
 
 /** Max height for the chat input box, expressed as 50vw in pixels. */
@@ -137,7 +141,7 @@ const TASK_BUILT_INS: PromptOption[] = [
   },
 ];
 
-export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, replyToMessage, onClearReply, editor }: ChatInputProps) {
+export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, replyToMessage, onClearReply, editor, githubMode = false }: ChatInputProps) {
   const { t } = useTranslation();
   const accentColor = 'var(--c-accent-2)';
   const [value, setValue] = useState('');
@@ -149,6 +153,27 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const [sendError, setSendError] = useState('');
   const sendLockRef = useRef(false);
   const [quickPrompts, setQuickPrompts] = useState<QuickPrompt[]>([]);
+  const githubPreparation = useGithubStore((state) => state.preparedAi);
+  const [githubInputOverride, setGithubInputOverride] = useState<{
+    preparation: NonNullable<typeof githubPreparation>;
+    value: string;
+  } | null>(null);
+  const inputValue = githubMode
+    ? githubPreparation && !githubPreparation.blocked
+      ? githubInputOverride?.preparation === githubPreparation
+        ? githubInputOverride.value
+        : t(`github.aiPrompt.${githubPreparation.purpose}`)
+      : ''
+    : value;
+  const setInputValue = useCallback((next: string) => {
+    if (!githubMode) {
+      setValue(next);
+      return;
+    }
+    if (githubPreparation && !githubPreparation.blocked) {
+      setGithubInputOverride({ preparation: githubPreparation, value: next });
+    }
+  }, [githubMode, githubPreparation]);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -193,9 +218,12 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const cliRun = useCliProviderService();
   const mockRun = useMockProviderService();
   const threads = useChatStore((state) => state.threads);
+  const currentChatContext = useChatStore((state) => state.currentContext);
   const newChat = useChatStore((state) => state.newChat);
   const setEmptyThreadOrigin = useChatStore((state) => state.setEmptyThreadOrigin);
   const activeThread = threads.find((thread) => thread.id === threadId);
+  const githubContextReady = !githubMode || (currentChatContext?.workspaceId === workspaceId
+    && !currentChatContext.taskId && !currentChatContext.settingsTab);
   const [preferredProvider, setPreferredProvider] = useState<ChatProviderId>('codex');
   const threadOrigin = activeThread?.origin;
   const providerLocked = threadOrigin === 'legacy_api';
@@ -279,11 +307,22 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   }, []);
 
   const handleSend = useCallback(async () => {
-    const trimmed = value.trim();
+    const trimmed = inputValue.trim();
     if ((!trimmed && attachments.length === 0) || (!desktop && !mockSelected) || sendLockRef.current) return;
+    if (githubMode && (!githubPreparation || githubPreparation.blocked || !githubPreparation.packet || mockSelected)) return;
     sendLockRef.current = true;
     setSendError('');
-    const toSend = attachments.slice();
+    const toSend = githubMode ? [] : attachments.slice();
+    const githubDispatch: GithubAiMessageContext | undefined = githubMode && githubPreparation?.packet && !githubPreparation.blocked
+      ? {
+          accountId: githubPreparation.accountId,
+          repoId: githubPreparation.repoId,
+          ref: githubPreparation.ref,
+          private: githubPreparation.private,
+          purpose: githubPreparation.purpose,
+          packet: githubPreparation.packet,
+        }
+      : undefined;
     const replyData = replyToMessage
       ? {
           id: replyToMessage.id,
@@ -292,9 +331,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
           sender: replyToMessage.role === 'user' ? 'You' : 'Assistant',
         }
       : undefined;
-    setValue('');
+    setInputValue('');
     setAttachments([]);
-    onClearReply?.();
+    if (!githubMode) onClearReply?.();
     userHeightRef.current = 0;
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -302,21 +341,22 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     try {
       await sendMessage(
         desktop && !trimmed ? t('codex.reviewAttachments') : trimmed,
-        selectedText?.text,
-        selectedText?.from,
-        selectedText?.to,
+        githubMode ? undefined : selectedText?.text,
+        githubMode ? undefined : selectedText?.from,
+        githubMode ? undefined : selectedText?.to,
         toSend.length ? toSend : undefined,
         false,
-        replyData
+        githubMode ? undefined : replyData,
+        githubDispatch,
       );
     } catch (err) {
-      setValue(trimmed);
+      setInputValue(trimmed);
       setAttachments(toSend);
       setSendError(err instanceof Error ? err.message : 'Could not send message');
     } finally {
       sendLockRef.current = false;
     }
-  }, [value, attachments, desktop, mockSelected, sendMessage, selectedText, replyToMessage, onClearReply, t]);
+  }, [inputValue, attachments, desktop, mockSelected, sendMessage, selectedText, replyToMessage, onClearReply, t, githubMode, githubPreparation, setInputValue]);
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionOpen) {
@@ -381,9 +421,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (cliSelected) {
+    if (githubMode || cliSelected) {
       e.target.value = '';
-      useUIStore.getState().showToast(t('cliChat.attachmentsUnavailable'), 'error');
+      if (!githubMode) useUIStore.getState().showToast(t('cliChat.attachmentsUnavailable'), 'error');
       return;
     }
     const files = Array.from(e.target.files ?? []);
@@ -509,7 +549,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   };
 
   const handleDragOver = (e: ReactDragEvent<HTMLDivElement>) => {
-    if (cliSelected) return;
+    if (githubMode || cliSelected) return;
     const types = e.dataTransfer.types;
     if (types.includes('application/x-tabs-tree-node') || types.includes('text/plain')) {
       e.preventDefault();
@@ -526,7 +566,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const handleDrop = (e: ReactDragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setDragOver(false);
-    if (cliSelected) return;
+    if (githubMode || cliSelected) return;
     const raw = e.dataTransfer.getData('application/x-tabs-tree-node');
     let fullPath: string | undefined;
     let kind: 'file' | 'directory' | undefined;
@@ -558,9 +598,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
   const handleChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
     const next = e.target.value;
-    setValue(next);
+    setInputValue(next);
     handleInput();
-    if (cliSelected) {
+    if (githubMode || cliSelected) {
       setMentionOpen(false);
       setMentionStart(null);
       return;
@@ -636,13 +676,14 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     };
   }, [mentionOpen, activeFolderId, indexedFolderId, rootNode, ensureSubtreeLoaded, activeWorkspaceId]);
 
-  const canSend = (desktop || mockSelected) && !ownRun && (value.trim().length > 0 || attachments.length > 0);
+  const canSend = (desktop || mockSelected) && !ownRun && (inputValue.trim().length > 0 || attachments.length > 0)
+    && (!githubMode || (githubContextReady && !!githubPreparation && !githubPreparation.blocked && !!githubPreparation.packet && !mockSelected));
   const promptOptions: PromptOption[] = mode === 'task' ? [...TASK_BUILT_INS, ...quickPrompts] : quickPrompts;
 
   return (
     <div style={{ flexShrink: 0, padding: 0, height: 'fit-content' }}>
       {sendError && <p role="alert" style={{ padding: '4px 12px' }}>{sendError}</p>}
-      {selectedText && (
+      {!githubMode && selectedText && (
         <div style={{ marginBottom: 8, fontSize: 'var(--fs-sm)', color: accentColor, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 12px', display: 'flex', alignItems: 'center', gap: 8 }}>
           <span className="med">{t('chat.context')}</span>
           <span className="trunc italic subtle" style={{ flex: 1, minWidth: 0 }}>
@@ -661,7 +702,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
         </div>
       )}
 
-      {replyToMessage && (
+      {!githubMode && replyToMessage && (
         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 10px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
           <Reply size={12} style={{ color: accentColor, flexShrink: 0 }} />
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, overflow: 'hidden' }}>
@@ -700,7 +741,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
           onMouseDown={handleResizeStart}
           title="Drag up to expand"
         />
-        {attachments.length > 0 && (
+        {!githubMode && attachments.length > 0 && (
           <AttachmentPreviewList>
             {attachments.map((att, i) => (
               <AttachmentPreviewItem
@@ -726,16 +767,16 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
         <ComposerTextarea
           id="chat-input"
           ref={textareaRef}
-          value={value}
+          value={inputValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
-          placeholder={queryAIPlaceholder || t('chat.askPlaceholder', { name: activeAgent.name })}
-          aria-label={t('chat.askPlaceholder', { name: activeAgent.name })}
+          placeholder={githubMode ? t('github.aiComposerPlaceholder') : queryAIPlaceholder || t('chat.askPlaceholder', { name: activeAgent.name })}
+          aria-label={githubMode ? t('github.aiComposerLabel') : t('chat.askPlaceholder', { name: activeAgent.name })}
           rows={1}
           style={{ padding: '18px 18px 0' }}
         />
 
-        {mentionOpen && (
+        {!githubMode && mentionOpen && (
           <div ref={mentionRef} className="drop chat-mention-dropup" style={{ left: 12, right: 12, bottom: '100%', marginBottom: 0, maxHeight: 240, overflowY: 'auto' }}>
             {indexing ? (
               <div className="subtle" style={{ padding: '8px 12px', fontSize: 'var(--fs-sm)' }}>{t('chat.indexing')}</div>
@@ -765,7 +806,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
         <ComposerRow className="chat-input-bottom-row">
           <div className="chat-input-bottom-col chat-input-bottom-col--left">
-            <div className="chat-input-bottom-col chat-input-bottom-col--tools">
+            {!githubMode && <div className="chat-input-bottom-col chat-input-bottom-col--tools">
               <input
                 ref={fileInputRef}
                 type="file"
@@ -838,9 +879,10 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                   </div>
                 )}
               </div>
-            </div>
+            </div>}
 
-            <ChatModelControls providerId={selectedProvider} providerLocked={providerLocked} switchingLocked={ownRun}
+            <ChatModelControls providerId={selectedProvider} providerLocked={providerLocked}
+              switchingLocked={ownRun || (githubMode && !githubContextReady)}
               threadId={threadId} workspaceId={workspaceId} onSelectModel={handleModelSelect} />
           </div>
 

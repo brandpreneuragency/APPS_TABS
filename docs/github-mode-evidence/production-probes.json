@@ -1,0 +1,168 @@
+{
+  "tag": "final-acceptance",
+  "at": "2026-10-06T08:53:31.792Z",
+  "sourceHashes": {
+    "src/services/github/gitPack.ts": "4d9fd0ca5914a36cb700ec1746cb9f9874407aebad2a5ee405884fd76f3a8750",
+    "src/services/github/persistence.ts": "2d2767b6e95bc2f63470b9521935fe59f30a2eb7a60966c18d69502070be8f10",
+    "src/services/github/commit.ts": "3f26724d1b93b1457077165835ee139d9abec881572117357533f7ee51fb0c99",
+    "src/services/github/gitProtocol.ts": "6992cbcb91e3004b21f2c1f4097f90a1a73f83575a1d17bc8df708b88d1f0bdc",
+    "src/services/github/phase2.ts": "80c4c6626a9a62ed15646901db7889d102c91bcf3bed7557831a937901cb407e",
+    "src/services/github/api.ts": "d7736bf03666d5a48a71e34fe64f0aff901f148c9f27cf0ed81ef736716cce3c",
+    "src/services/github/binary.ts": "178791ee946f14c8ac38c110f24e8ae878a0061250d6706381e3fd0b24128e2c",
+    "src/services/github/search.ts": "936e72410a960186dd065794e81914c123ccb046d3c9db5b8d856284a79341e7",
+    "src/services/github/lifecycle.ts": "90faf74ce1e74942f01eb18ca17ff378f8a71e5cee57e3fa8e4ade24c0021389",
+    "src/services/github/aiEgress.ts": "6f065ef307d148e4958051c41dd41737e1ee8e4a14855a2cd72637fad5f76756",
+    "src/services/github/transport.ts": "8cc7b85c4dec02bf48990511e8097cd2e3837a079f39fde226099a36d7197bec",
+    "src/services/providers/sessionService.ts": "9d6db502f882133a830ed003ce394154fea04f1e076d45b645b43e45884fed9a",
+    "src/services/codex/sessionService.ts": "9dc6784383c1185f435b59256e3bfa6d8dafce44bf0325d183554053c669f575",
+    "src/hooks/useStreamingChat.ts": "15267a1091e8474f7cf5d8ec218785f23dd1a05b9fcf3948b7f05ede70e36809",
+    "src-tauri/src/github.rs": "f9cfe35191115d6897272cd51a85f7139b65551b1db40ef768343336b00b3de7",
+    "src-tauri/src/commands/github.rs": "07933849370dad18a09bb32c3b51c1d48eaf31fc9d0ed0b8d07c6967ca517ed5"
+  },
+  "results": [
+    {
+      "id": "advertisement-race",
+      "expected": "nonempty refs/heads/main",
+      "observed": {
+        "refs": [
+          {
+            "sha": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "name": "refs/heads/main"
+          }
+        ],
+        "empty": false
+      },
+      "passed": true
+    },
+    {
+      "id": "utf8-ref-framing",
+      "encodedLength": 131,
+      "actualLength": 131,
+      "passed": true
+    },
+    {
+      "id": "git-pack-ascii-interop",
+      "passed": true,
+      "exitCode": 0,
+      "stderr": "",
+      "fixture": "/home/admin/.hermes/cache/scratch/tabs-pack-final-acceptance-ascii-if9xoO"
+    },
+    {
+      "id": "git-pack-ascii-paths",
+      "passed": true,
+      "paths": [
+        "dir.md",
+        "dir/file.md"
+      ],
+      "expectedCommit": "52a3f19b1609424195baa11e8f3ba67a89ce3c31"
+    },
+    {
+      "id": "git-pack-unicode-interop",
+      "passed": true,
+      "exitCode": 0,
+      "stderr": "",
+      "fixture": "/home/admin/.hermes/cache/scratch/tabs-pack-final-acceptance-unicode-7gwv43"
+    },
+    {
+      "id": "git-pack-unicode-paths",
+      "passed": true,
+      "paths": [
+        "dir.md",
+        "dir/file.md",
+        "\"\\356\\200\\200.txt\"",
+        "\"\\360\\237\\230\\200.txt\""
+      ],
+      "expectedCommit": "7e4d876fb1a03aa18060745aff9aeb6b1957eef6"
+    },
+    {
+      "id": "draft-cas-concurrency",
+      "successfulWrites": 1,
+      "versions": [
+        2
+      ],
+      "passed": true,
+      "storedText": "edit A"
+    },
+    {
+      "id": "empty-file-initial-commit",
+      "passed": true,
+      "observedStatus": "sent",
+      "calls": 3
+    },
+    {
+      "id": "existing-executable-mode",
+      "passed": true,
+      "observedStatus": "sent",
+      "observedTreeModes": [
+        {
+          "path": "run.sh",
+          "mode": "100755"
+        }
+      ],
+      "fixtureOriginalMode": "100755"
+    },
+    {
+      "id": "binary-not-lossy-text",
+      "passed": true,
+      "observedKind": "binary",
+      "observedText": null
+    },
+    {
+      "id": "draft-search-overlay",
+      "passed": true,
+      "observedMatches": []
+    },
+    {
+      "id": "repo-create-intent-readback",
+      "passed": true,
+      "observedStatus": "mismatch"
+    },
+    {
+      "id": "provider-persisted-thread-binding",
+      "passed": true,
+      "runnerCalled": false,
+      "privateAHistoryLeakedToB": false,
+      "refusedContext": "Error: GitHub provider thread does not match the consented repository. Previously sent content cannot be recalled.",
+      "scope": "Real CLI service with explicit fixture IPC; no external AI call"
+    },
+    {
+      "id": "provider-matching-consented-positive",
+      "passed": true,
+      "runnerCalls": 1,
+      "scope": "Explicit fixture IPC, not a real provider success"
+    },
+    {
+      "id": "native-safe-media-header-ipc",
+      "passed": true,
+      "observed": {
+        "rpcKeys": [
+          "method",
+          "url",
+          "timeoutMs",
+          "body",
+          "auth",
+          "bodyEncoding",
+          "accept",
+          "contentType",
+          "apiVersion",
+          "headers",
+          "callerEpoch",
+          "authorityToken"
+        ],
+        "headerKeys": [
+          "Content-Type",
+          "Accept"
+        ]
+      },
+      "scope": "Actual JS native adapter; IPC stub only; Rust/Windows not executed"
+    },
+    {
+      "id": "browser-compression",
+      "observed": {
+        "status": "completed",
+        "size": 131120
+      },
+      "passed": true
+    }
+  ]
+}

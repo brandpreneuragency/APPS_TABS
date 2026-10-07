@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, Folder, List, PanelLeftClose, PanelLeftOpen, Settings, TerminalSquare, Users } from 'lucide-react';
+import { CalendarDays, FileText, Folder, GitBranch, List, PanelLeftClose, PanelLeftOpen, Settings, TerminalSquare, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { enterClients } from '../../services/clients/navigation';
 import { useUIStore } from '../../stores/uiStore';
@@ -6,6 +6,7 @@ import { useUIStore } from '../../stores/uiStore';
 export function ModeNavigation() {
   const { t } = useTranslation();
   const taskMode = useUIStore((state) => state.taskMode);
+  const githubMode = useUIStore((state) => state.githubMode);
   const crmMode = useUIStore((state) => state.crmMode);
   const activeView = useUIStore((state) => state.activeView);
   const taskPage = useUIStore((state) => state.activeTaskPage);
@@ -13,8 +14,8 @@ export function ModeNavigation() {
   const terminalOpen = useUIStore((state) => state.terminalPanelOpen);
   const navigationCollapsed = useUIStore((state) => state.navigationCollapsed);
   const setNavigationCollapsed = useUIStore((state) => state.setNavigationCollapsed);
-  const settingsActive = !taskMode && !crmMode && activeView === 'settings';
-  const docsActive = !taskMode && !crmMode && !settingsActive;
+  const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
+  const docsActive = !githubMode && !taskMode && !crmMode && !settingsActive;
 
   return (
     <nav className="mode-navigation" aria-label={t('navigation.modes')}>
@@ -48,6 +49,11 @@ export function ModeNavigation() {
           ui.setContextPanelOpen('documents', true);
         }}>
         <FileText size={15} /><span>{t('navigation.docs')}</span>
+      </button>
+      <span className="mode-navigation-separator" aria-hidden="true">|</span>
+      <button id="nav-btn-github" type="button" className="header-mode" aria-pressed={githubMode}
+        onClick={() => useUIStore.getState().setGithubMode(!githubMode)}>
+        <GitBranch size={15} /><span>{t('navigation.github')}</span>
       </button>
       <span className="mode-navigation-separator" aria-hidden="true">|</span>
         <button id="nav-btn-tasks" type="button" className="header-mode" aria-pressed={taskMode && taskPage === 'list'}

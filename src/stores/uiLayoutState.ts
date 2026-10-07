@@ -6,7 +6,7 @@
  * via temporary compatibility mirrors in uiStore.
  */
 
-export type WorkspaceMode = 'documents' | 'tasks' | 'crm' | 'forms' | 'settings';
+export type WorkspaceMode = 'documents' | 'github' | 'tasks' | 'crm' | 'forms' | 'settings';
 
 export type ContextPanelOpenByMode = {
   documents: boolean;
@@ -14,6 +14,7 @@ export type ContextPanelOpenByMode = {
   crm: boolean;
   forms: boolean;
   settings: boolean;
+  github: boolean;
 };
 
 export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
@@ -22,6 +23,7 @@ export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
   crm: true,
   forms: true,
   settings: true,
+  github: true,
 };
 
 export const ASSISTANT_WRAPPER_WIDTH_MIN_VW = 15;
@@ -90,6 +92,7 @@ export function selectCanSwapWrappers(state: WrapperVisibility): boolean {
 }
 
 export type ModeRoutingState = {
+  githubMode?: boolean;
   taskMode: boolean;
   crmMode: boolean;
   activeCRMPage: string;
@@ -97,6 +100,7 @@ export type ModeRoutingState = {
 };
 
 export function selectActiveWorkspaceMode(state: ModeRoutingState): WorkspaceMode {
+  if (state.githubMode) return 'github';
   if (state.taskMode) return 'tasks';
   if (state.crmMode && state.activeCRMPage === 'forms') return 'forms';
   if (state.crmMode) return 'crm';
@@ -154,6 +158,10 @@ export function mergeContextPanelOpenByMode(
       partial?.settings ??
       fallbacks.settings ??
       DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.settings,
+    github:
+      partial?.github ??
+      fallbacks.github ??
+      DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.github,
   };
 }
 
@@ -206,7 +214,7 @@ function parseContextPanelOpenByMode(raw: unknown): Partial<ContextPanelOpenByMo
   if (typeof obj !== 'object' || obj === null) return undefined;
   const rec = obj as Record<string, unknown>;
   const out: Partial<ContextPanelOpenByMode> = {};
-  for (const key of ['documents', 'tasks', 'crm', 'forms', 'settings'] as const) {
+  for (const key of ['documents', 'tasks', 'crm', 'forms', 'settings', 'github'] as const) {
     if (key in rec) out[key] = Boolean(rec[key]);
   }
   return out;
