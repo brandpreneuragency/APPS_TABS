@@ -26,7 +26,7 @@ function submissionLabel(fields: Record<string, unknown>): string {
 
 function timeLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString('tr-TR', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -90,7 +90,7 @@ export default function FormsDashboardPage() {
 
   if (forms.length === 0) {
     return (
-      <div className="forms-page forms-page--scroll">
+      <div className="ui-panel-body forms-page forms-page--scroll">
         <FormsEmptyState
           icon={LayoutDashboard}
           title="No forms yet"
@@ -98,10 +98,10 @@ export default function FormsDashboardPage() {
           action={
             <button
               type="button"
-              className="forms-action-btn forms-action-btn--primary"
+              className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
               onClick={() => setActiveFormsPage('list')}
             >
-              Go to Forms <ArrowRight size={14} />
+              Go to Forms <ArrowRight />
             </button>
           }
         />
@@ -110,7 +110,7 @@ export default function FormsDashboardPage() {
   }
 
   return (
-    <div className="forms-page forms-page--scroll">
+    <div className="ui-panel-body forms-page forms-page--scroll">
       <div className="forms-page-head">
         <h2 className="forms-page-title">Forms Dashboard</h2>
         <p className="forms-page-subtitle">
@@ -153,17 +153,17 @@ export default function FormsDashboardPage() {
       </div>
 
       {/* Recent submissions */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <div className="forms-spread">
           <p className="forms-section-title">
-            <Inbox size={14} /> Recent submissions
+            <Inbox /> Recent submissions
           </p>
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={() => setActiveFormsPage('submissions')}
           >
-            View all <ArrowRight size={13} />
+            View all <ArrowRight />
           </button>
         </div>
         {recentSubmissions.length === 0 ? (
@@ -201,17 +201,17 @@ export default function FormsDashboardPage() {
       </div>
 
       {/* Active forms */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <div className="forms-spread">
           <p className="forms-section-title">
-            <FileInput size={14} /> Active forms
+            <FileInput /> Active forms
           </p>
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={() => setActiveFormsPage('list')}
           >
-            All forms <ArrowRight size={13} />
+            All forms <ArrowRight />
           </button>
         </div>
         {activeForms.length === 0 ? (
@@ -225,20 +225,20 @@ export default function FormsDashboardPage() {
               const legit = subs.length - spam;
               const rate = legit > 0 ? Math.round((converted / legit) * 100) : 0;
               return (
-                <div key={form.id} className="forms-form-card" onClick={() => openForm(form.id)}>
+                <div key={form.id} className="ui-card forms-form-card" onClick={() => openForm(form.id)}>
                   <div className="forms-form-card-head">
                     <span className="forms-form-card-name">{form.name}</span>
                     <StatusBadge status={form.status} />
                   </div>
                   <div className="forms-form-card-meta">
                     <span className="forms-form-card-meta-item">
-                      <Inbox size={11} /> {subs.length} submissions
+                      <Inbox /> {subs.length} submissions
                     </span>
                     <span className="forms-form-card-meta-item">
-                      <Target size={11} /> {rate}% converted
+                      <Target /> {rate}% converted
                     </span>
                     <span className="forms-form-card-meta-item">
-                      <ShieldOff size={11} /> {spam} spam
+                      <ShieldOff /> {spam} spam
                     </span>
                   </div>
                 </div>

@@ -51,7 +51,7 @@ export function ContextWindowPanel() {
       <div className="context-window-popover-card">
         <div className="context-window-popover-header">
           <div className="context-window-popover-heading">
-            <Cpu size={14} className="context-window-header-icon" />
+            <Cpu  className="ui-icon context-window-header-icon" />
             <span className="context-window-popover-title">
               {t('contextWindow.title', 'Context Window')}
             </span>
@@ -68,7 +68,7 @@ export function ContextWindowPanel() {
     <div className="context-window-popover-card">
       <div className="context-window-popover-header">
         <div className="context-window-popover-heading">
-          <Cpu size={14} className="context-window-header-icon" />
+          <Cpu  className="ui-icon context-window-header-icon" />
           <div className="context-window-popover-heading-copy">
             <span className="context-window-popover-title">
               {t('contextWindow.title', 'Context Window')}

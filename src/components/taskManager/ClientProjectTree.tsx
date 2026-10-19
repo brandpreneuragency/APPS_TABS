@@ -215,14 +215,14 @@ export function ClientProjectTree() {
         >
           <button
             type="button"
-            className="client-tree-chevron"
+            className="ui-icon-button client-tree-chevron"
             aria-label={expanded ? `Collapse ${client.name}` : `Expand ${client.name}`}
             onClick={(event) => {
               event.stopPropagation();
               toggleClient(client.id);
             }}
           >
-            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+            {expanded ? <ChevronDown /> : <ChevronRight />}
           </button>
           <span className="client-tree-dot" style={{ background: projectDotColor(client.color) }} />
           <button
@@ -234,11 +234,11 @@ export function ClientProjectTree() {
           </button>
           <button
             type="button"
-            className="client-tree-delete-btn"
+            className="ui-icon-button client-tree-delete-btn"
             aria-label={`${t('explorer.delete')} ${client.name}`}
             onClick={(event) => requestDelete(event, { kind: 'client', id: client.id, name: client.name })}
           >
-            <Trash2 size={12} />
+            <Trash2 />
           </button>
           <AddNewProjectButton
             clientId={client.id}
@@ -278,11 +278,11 @@ export function ClientProjectTree() {
         </button>
         <button
           type="button"
-          className="client-tree-delete-btn"
+          className="ui-icon-button client-tree-delete-btn"
           aria-label={`${t('explorer.delete')} ${clientName} ${project.name}`}
           onClick={(event) => requestDelete(event, { kind: 'project', id: project.id, name: project.name })}
         >
-          <Trash2 size={12} />
+          <Trash2 />
         </button>
       </div>
     );
@@ -290,7 +290,7 @@ export function ClientProjectTree() {
 
   return (
     <div className="client-tree">
-      <div className="client-tree-header">
+      <div className="ui-toolbar client-tree-header">
         <span className="client-tree-header-label">{t('tasks.clients')}</span>
         <AddNewClientButton />
       </div>

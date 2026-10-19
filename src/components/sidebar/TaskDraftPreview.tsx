@@ -217,7 +217,7 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
 
       {status === 'applied' && (
         <div className="row-xs" style={{ fontSize: 'var(--fs-sm)', color: '#15803d' }}>
-          <Check size={12} />
+          <Check className="ui-icon"  />
           {savedBatch?.undoneAt ? 'Undone' : 'Applied'}
         </div>
       )}
@@ -232,28 +232,28 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
         <div className="row gap-2" style={{ justifyContent: 'flex-end' }}>
           {highRisk && (
             <span className="row-xs subtle" style={{ fontSize: 'var(--fs-sm)', color: '#b45309' }}>
-              <AlertTriangle size={12} />
+              <AlertTriangle className="ui-icon"  />
               Destructive/bulk confirm required
             </span>
           )}
-          <button type="button" onClick={handleReject} className="btn" style={{ fontSize: 'var(--fs-sm)' }}>
+          <button type="button" onClick={handleReject} className="ui-button btn" style={{ fontSize: 'var(--fs-sm)' }}>
             Reject
           </button>
           <button
             type="button"
             onClick={handleApply}
-            className="btn-brand"
+            className="ui-button ui-button--primary btn-brand"
             style={{ fontSize: 'var(--fs-sm)', opacity: isApplying ? 0.6 : 1 }}
             disabled={isApplying}
           >
             {highRisk && !confirmRisk ? (
               <>
-                <AlertTriangle size={12} />
+                <AlertTriangle className="ui-icon"  />
                 Confirm Apply
               </>
             ) : (
               <>
-                <Check size={12} />
+                <Check className="ui-icon"  />
                 Apply
               </>
             )}
@@ -272,9 +272,9 @@ export function TaskDraftPreview({ messageId, draft, status }: TaskDraftPreviewP
         </div>
       )}
       {canUndo && (
-        <button type="button" className="btn" disabled={isUndoing} onClick={() => { void handleUndo(savedBatch.id); }}
+        <button type="button" className="ui-button btn" disabled={isUndoing} onClick={() => { void handleUndo(savedBatch.id); }}
           style={{ marginTop: 8, fontSize: 'var(--fs-sm)' }}>
-          <Undo2 size={12} /> Undo
+          <Undo2 className="ui-icon"  /> Undo
         </button>
       )}
     </div>

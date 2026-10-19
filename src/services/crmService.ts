@@ -7,6 +7,7 @@
 
 import { nanoid } from 'nanoid';
 import { crmFormsDb, isCrmDataEmpty } from '../data/crmFormsDb';
+import { insertKanbanCard } from './kanbanOrder';
 import {
   SEED_COMPANIES,
   SEED_CONTACTS,
@@ -351,11 +352,26 @@ export async function createDeal(
 export async function updateDeal(
   id: string,
   updates: Partial<CRMDeal>,
+  beforeId?: string | null,
 ): Promise<CRMDeal | undefined> {
-  const existing = await crmFormsDb.crmDeals.get(id);
-  if (!existing) return undefined;
-  const next: CRMDeal = { ...existing, ...updates, id, updatedAt: nowIso() };
-  await crmFormsDb.crmDeals.put(next);
+  const change = await crmFormsDb.transaction('rw', crmFormsDb.crmDeals, async () => {
+    const existing = await crmFormsDb.crmDeals.get(id);
+    if (!existing) return undefined;
+    let next: CRMDeal = { ...existing, ...updates, id, updatedAt: nowIso() };
+    if (beforeId !== undefined) {
+      const peers = await crmFormsDb.crmDeals.where('stage').equals(next.stage).toArray();
+      const ordered = insertKanbanCard(peers, next, beforeId);
+      const changed = ordered.filter((deal) => deal.id === id || peers.find((peer) => peer.id === deal.id)?.order !== deal.order)
+        .map((deal) => ({ ...deal, updatedAt: next.updatedAt }));
+      await crmFormsDb.crmDeals.bulkPut(changed);
+      next = changed.find((deal) => deal.id === id) ?? next;
+    } else {
+      await crmFormsDb.crmDeals.put(next);
+    }
+    return { existing, next };
+  });
+  if (!change) return undefined;
+  const { existing, next } = change;
   if (updates.stage && updates.stage !== existing.stage) {
     await recordActivity({
       type: 'deal_stage_changed',
@@ -377,8 +393,9 @@ export async function updateDeal(
 export async function setDealStage(
   id: string,
   stage: CRMDealStage,
+  beforeId?: string | null,
 ): Promise<CRMDeal | undefined> {
-  return updateDeal(id, { stage });
+  return updateDeal(id, { stage }, beforeId);
 }
 
 export async function deleteDeal(id: string): Promise<void> {

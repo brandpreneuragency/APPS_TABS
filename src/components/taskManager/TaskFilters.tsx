@@ -26,11 +26,12 @@ export function TaskFilters({ selectedProjectId, selectedDueDate, onProjectChang
   return (
     <div
       id="task-filters"
+      className="ui-toolbar"
       style={{
         display: 'flex',
-        height: '32px',
-        borderBottom: '1px solid var(--layout-border)',
-        background: 'var(--left-bg)',
+        height: 'var(--control-height-sm)',
+        borderBottom: '1px solid var(--c-border-1)',
+        background: 'var(--c-background-3)',
         alignItems: 'center',
       }}
     >

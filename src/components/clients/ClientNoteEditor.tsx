@@ -92,22 +92,22 @@ function ClientNoteEditorForm({
     onClose();
   };
 
-  return <section className="clients-note-editor" aria-labelledby="clients-note-editor-title">
+  return <section className="ui-card clients-note-editor" aria-labelledby="clients-note-editor-title">
     <h2 id="clients-note-editor-title">{note ? t('clients.editNote') : t('clients.createNote')}</h2>
     <form className="clients-editor-form" onSubmit={(event) => { event.preventDefault(); void publish(); }}>
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.noteTitle')}</span>
-        <input type="text" maxLength={200} value={draft.value.title}
+        <input className="ui-input" type="text" maxLength={200} value={draft.value.title}
           onChange={(event) => change({ ...draft.value, title: event.currentTarget.value })} />
       </label>
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.noteBody')}</span>
-        <textarea rows={8} maxLength={100_000} value={draft.value.bodyText}
+        <textarea className="ui-input" rows={8} maxLength={100_000} value={draft.value.bodyText}
           onChange={(event) => change({ ...draft.value, bodyText: event.currentTarget.value })} />
       </label>
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.noteKind')}</span>
-        <select value={draft.value.kind} onChange={(event) => change({
+        <select className="ui-input" value={draft.value.kind} onChange={(event) => change({
           ...draft.value, kind: event.currentTarget.value as NoteDraftValue['kind'],
         })}>
           <option value="note">{t('clients.noteKindInternal')}</option>
@@ -117,9 +117,9 @@ function ClientNoteEditorForm({
         </select>
       </label>
       {draft.value.kind === 'note' && <p className="clients-note-internal-label">{t('clients.internalNote')}</p>}
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.occurredAt')}</span>
-        <input type="datetime-local" required value={dateValue}
+        <input className="ui-input" type="datetime-local" required value={dateValue}
           aria-invalid={dateInvalid}
           onChange={(event) => {
             const value = event.currentTarget.value;
@@ -130,9 +130,9 @@ function ClientNoteEditorForm({
           }} />
       </label>
       {dateInvalid && <p role="alert" className="clients-error">{t('clients.invalidDate')}</p>}
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.associatedPerson')}</span>
-        <select value={draft.value.contactId ?? ''} onChange={(event) => {
+        <select className="ui-input" value={draft.value.contactId ?? ''} onChange={(event) => {
           const contactId = event.currentTarget.value || null;
           change({ ...draft.value, contactId });
         }}>
@@ -157,21 +157,21 @@ function ClientNoteEditorForm({
             : autosave.status === 'saved' ? t('clients.draftSaved')
               : autosave.status === 'error' ? t('clients.saveError') : t('clients.saveIdle')}
         </span>
-        {autosave.status === 'error' && <button type="button" className="clients-link-button"
+        {autosave.status === 'error' && <button type="button" className="ui-button clients-link-button"
           disabled={discarding || publishing} onClick={() => void autosave.retry()}>{t('clients.retry')}</button>}
         {publishError && <>
           <span role="alert" className="clients-error">{t('clients.publishFailed')}</span>
-          <button type="button" className="clients-link-button" disabled={publishing}
+          <button type="button" className="ui-button clients-link-button" disabled={publishing}
             onClick={() => void publish()}>{t('clients.retry')}</button>
         </>}
         {discardError && <p role="alert" className="clients-error">{t('clients.discardFailed')}</p>}
       </div>
       <div className="clients-editor-actions">
-        <button type="button" className="clients-button" disabled={publishing || discarding}
+        <button type="button" className="ui-button clients-button" disabled={publishing || discarding}
           onClick={onClose}>{t('clients.cancelKeepDraft')}</button>
-        <button type="button" className="clients-button" disabled={publishing || discarding}
+        <button type="button" className="ui-button clients-button" disabled={publishing || discarding}
           onClick={() => setDiscardConfirm(true)}>{t('clients.discardDraft')}</button>
-        <button type="submit" className="clients-button clients-button--primary" disabled={publishing || discarding}>
+        <button type="submit" className="ui-button clients-button ui-button--primary clients-button--primary" disabled={publishing || discarding}>
           {publishing ? t('clients.saveSaving') : t('clients.saveNote')}
         </button>
       </div>
@@ -201,9 +201,9 @@ function ClientNoteEditorForm({
         <p id="clients-note-discard-title" className="med">{t('clients.discardDraft')}</p>
         <p id="clients-note-discard-message" className="med">{t('clients.discardDraftConfirm')}</p>
         <div className="clients-editor-actions clients-confirm-actions">
-          <button ref={cancelDiscardRef} type="button" className="btn-xs" disabled={discarding}
+          <button ref={cancelDiscardRef} type="button" className="ui-button btn-xs" disabled={discarding}
             onClick={() => setDiscardConfirm(false)}>{t('confirm.cancel')}</button>
-          <button type="button" className="btn-xs semibold" disabled={discarding}
+          <button type="button" className="ui-button btn-xs semibold" disabled={discarding}
             onClick={() => void discard()}>{t('clients.discardDraft')}</button>
         </div>
       </div>

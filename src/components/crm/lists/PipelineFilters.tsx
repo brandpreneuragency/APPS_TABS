@@ -44,7 +44,7 @@ export function PipelineFilters() {
 
       <div className="crm-list-filters">
         <select
-          className="crm-list-filter-select"
+          className="ui-input crm-list-filter-select"
           value={filters.deal.stage ?? ''}
           onChange={(e) => setDealFilters({ stage: (e.target.value || undefined) as CRMDealStage | undefined })}
         >
@@ -53,7 +53,7 @@ export function PipelineFilters() {
           ))}
         </select>
         <select
-          className="crm-list-filter-select"
+          className="ui-input crm-list-filter-select"
           value={filters.deal.ownerId ?? ''}
           onChange={(e) => setDealFilters({ ownerId: e.target.value || undefined })}
         >
@@ -62,7 +62,7 @@ export function PipelineFilters() {
           ))}
         </select>
         <div className="crm-list-search">
-          <input
+          <input className="ui-input"
             type="text"
             placeholder="Search deals…"
             value={filters.deal.search ?? ''}
@@ -75,18 +75,18 @@ export function PipelineFilters() {
         <>
           <div className="crm-list-section-label">Saved views</div>
           <div className="crm-saved-views">
-            <button
+            <button data-active={!activeSavedViewId}
               type="button"
-              className={`crm-saved-view-item${!activeSavedViewId ? ' crm-saved-view-item--active' : ''}`}
+              className={"ui-list-row " + (`crm-saved-view-item${!activeSavedViewId ? ' crm-saved-view-item--active' : ''}`)}
               onClick={() => applySavedView(null)}
             >
               All deals
             </button>
             {dealSavedViews.map((v) => (
-              <button
+              <button data-active={activeSavedViewId === v.id}
                 key={v.id}
                 type="button"
-                className={`crm-saved-view-item${activeSavedViewId === v.id ? ' crm-saved-view-item--active' : ''}`}
+                className={"ui-list-row " + (`crm-saved-view-item${activeSavedViewId === v.id ? ' crm-saved-view-item--active' : ''}`)}
                 onClick={() => applySavedView(v.id)}
               >
                 {v.name}
@@ -99,10 +99,10 @@ export function PipelineFilters() {
       <div className="crm-list-section-label">By stage</div>
       <div className="crm-quick-filters">
         {STAGE_OPTIONS.filter((o) => o.value).map((o) => (
-          <button
+          <button data-active={filters.deal.stage === o.value}
             key={o.value}
             type="button"
-            className={`crm-quick-filter${filters.deal.stage === o.value ? ' crm-quick-filter--active' : ''}`}
+            className={"ui-button " + (`crm-quick-filter${filters.deal.stage === o.value ? ' crm-quick-filter--active' : ''}`)}
             onClick={() => setDealFilters({ stage: (filters.deal.stage === o.value ? undefined : o.value) as CRMDealStage | undefined })}
           >
             {o.label} · {stageCounts[o.value ?? ''] ?? 0}

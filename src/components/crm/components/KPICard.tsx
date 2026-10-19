@@ -13,19 +13,19 @@ interface KPICardProps {
 
 export function KPICard({ label, value, delta, deltaPositive, icon: Icon }: KPICardProps) {
   return (
-    <div className="crm-kpi-card">
+    <div className="ui-card crm-kpi-card">
       <div className="crm-kpi-card-top">
         <span className="crm-kpi-card-label">{label}</span>
         {Icon && (
           <span className="crm-kpi-card-icon">
-            <Icon size={15} />
+            <Icon />
           </span>
         )}
       </div>
       <div className="crm-kpi-card-value">{value}</div>
       {delta && (
         <div className={`crm-kpi-card-delta${deltaPositive ? ' crm-kpi-card-delta--up' : ' crm-kpi-card-delta--down'}`}>
-          {deltaPositive ? <TrendingUp size={11} /> : <TrendingDown size={11} />}
+          {deltaPositive ? <TrendingUp /> : <TrendingDown />}
           <span>{delta}</span>
         </div>
       )}

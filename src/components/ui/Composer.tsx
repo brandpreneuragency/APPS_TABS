@@ -84,7 +84,7 @@ export const ComposerIconButton = forwardRef<HTMLButtonElement, ButtonHTMLAttrib
     <button
       ref={ref}
       type="button"
-      className={cx('btn-icon composer-tool-button', className)}
+      className={"ui-icon-button " + (cx('btn-icon composer-tool-button', className))}
       {...props}
     />
   )
@@ -124,10 +124,10 @@ export function ComposerSendButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="btn-send"
+      className="ui-icon-button ui-button--primary ui-button--round btn-send"
       title={title}
     >
-      <ArrowUp size={14} />
+      <ArrowUp className="ui-icon"  />
     </button>
   );
 }

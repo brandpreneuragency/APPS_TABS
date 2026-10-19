@@ -22,7 +22,7 @@
   padding: 0;
   border-bottom: 0;
   flex-shrink: 0;
-  height: 32px;
+  height: var(--control-height-sm);
 }
 
 .file-viewer-header-left {
@@ -64,7 +64,7 @@
   font-weight: 500;
   border: 1px solid var(--c-border-1);
   background: var(--c-background-3);
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
   cursor: pointer;
   transition: background-color 0.15s;
   white-space: nowrap;
@@ -78,27 +78,6 @@
   pointer-events: none;
 }
 
-.file-viewer-close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  box-sizing: border-box;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-.file-viewer-close-btn:hover {
-  background: transparent;
-  color: var(--c-text-1);
-}
 
 .file-viewer-content {
   flex: 1;
@@ -131,7 +110,7 @@
 .file-viewer-actions {
   display: flex;
   justify-content: center;
-  padding: 12px 16px 12px;
+  padding: var(--c-space-2);
   border-top: 0;
   background: var(--c-background-2);
   flex-shrink: 0;
@@ -253,17 +232,21 @@
 .file-viewer-download-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 6px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   font-size: var(--fs-sm);
   font-weight: 500;
-  background: var(--c-accent-center-panel);
+  background: var(--c-background-3);
   color: #fff;
+  text-align: left;
   text-decoration: none;
   transition: opacity 0.15s;
 }
 .file-viewer-download-btn:hover {
+  background-color: var(--c-accent-2);
   opacity: 0.9;
 }
 
@@ -316,7 +299,7 @@
   padding: 0;
   border-bottom: 0;
   flex-shrink: 0;
-  height: 32px;
+  height: var(--control-height-sm);
 }
 :root .file-viewer-header-left {
   display: flex;
@@ -353,7 +336,7 @@
   font-weight: 500;
   border: 1px solid var(--c-border-1);
   background: var(--c-background-3);
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
   cursor: pointer;
   transition: background-color 0.15s;
   white-space: nowrap;
@@ -365,27 +348,6 @@
   opacity: 0.4;
   cursor: not-allowed;
   pointer-events: none;
-}
-:root .file-viewer-close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  box-sizing: border-box;
-  border-radius: var(--radius-sm);
-  border: none;
-  background: transparent;
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-:root .file-viewer-close-btn:hover {
-  background: transparent;
-  color: var(--c-text-1);
 }
 :root .file-viewer-content {
   flex: 1;
@@ -417,7 +379,7 @@
 :root .file-viewer-actions {
   display: flex;
   justify-content: center;
-  padding: 12px 16px 12px;
+  padding: var(--c-space-2);
   border-top: 0;
   background: var(--c-background-2);
   flex-shrink: 0;
@@ -489,16 +451,20 @@
 :root .file-viewer-download-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 6px;
   padding: 8px 12px;
   border-radius: var(--radius-sm);
   font-size: var(--fs-sm);
   font-weight: 500;
-  background: var(--c-accent-center-panel);
+  background: var(--c-background-3);
   color: #fff;
+  text-align: left;
   text-decoration: none;
   transition: opacity 0.15s;
 }
 :root .file-viewer-download-btn:hover {
+  background-color: var(--c-accent-2);
   opacity: 0.9;
 }

@@ -123,4 +123,36 @@ describe('TaskQuickCreate', () => {
     expect(onClose).not.toHaveBeenCalled();
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
+
+  it('hides assignment pickers and creates a task in the requested project column', async () => {
+    const user = userEvent.setup();
+    render(<TaskQuickCreate projectId="p-other" />);
+    expect(screen.queryByRole('button', { name: 'tasks.selectClient' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'tasks.selectProject' })).not.toBeInTheDocument();
+    await user.type(screen.getByRole('textbox'), 'Project task');
+    await user.click(screen.getByRole('button', { name: 'tasks.createTask' }));
+    expect(createTask).toHaveBeenCalledWith('Project task', { projectId: 'p-other', date: undefined });
+  });
+
+  it('submits the compact form with Enter', async () => {
+    const user = userEvent.setup();
+    render(<TaskQuickCreate projectId="p-web" date="2026-10-19" />);
+
+    await user.type(screen.getByRole('textbox'), '  Ship update  {Enter}');
+
+    expect(createTask).toHaveBeenCalledTimes(1);
+    expect(createTask).toHaveBeenCalledWith('Ship update', { projectId: 'p-web', date: '2026-10-19' });
+  });
+
+  it('cancels without creating a task', async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+    render(<TaskQuickCreate onClose={onClose} />);
+
+    await user.type(screen.getByRole('textbox'), 'Unfinished task');
+    await user.click(screen.getByRole('button', { name: 'confirm.cancel' }));
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(createTask).not.toHaveBeenCalled();
+  });
 });

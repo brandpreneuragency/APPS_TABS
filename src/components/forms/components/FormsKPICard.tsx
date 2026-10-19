@@ -18,12 +18,12 @@ export function FormsKPICard({ label, value, delta, deltaTone = 'neutral', icon:
         : 'forms-kpi-card-delta';
 
   return (
-    <div className="forms-kpi-card">
+    <div className="ui-card forms-kpi-card">
       <div className="forms-kpi-card-row">
         <span className="forms-kpi-card-label">{label}</span>
         {Icon ? (
           <span className="forms-kpi-card-icon">
-            <Icon size={15} />
+            <Icon />
           </span>
         ) : null}
       </div>

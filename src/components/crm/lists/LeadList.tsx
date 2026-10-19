@@ -85,8 +85,8 @@ export function LeadList({ onAddLead }: LeadListProps) {
   return (
     <div className="crm-list-content-wrap" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div className="crm-list-search">
-        <Search size={13} className="crm-list-search-icon" />
-        <input
+        <Search className="crm-list-search-icon" />
+        <input className="ui-input"
           type="text"
           placeholder="Search leads…"
           value={filters.lead.search ?? ''}
@@ -97,7 +97,7 @@ export function LeadList({ onAddLead }: LeadListProps) {
       <div className="crm-list-filters">
         <div className="crm-list-filter-row">
           <select
-            className="crm-list-filter-select"
+            className="ui-input crm-list-filter-select"
             value={filters.lead.status ?? ''}
             onChange={(e) => setLeadFilters({ status: (e.target.value || undefined) as CRMLeadStatus | undefined })}
           >
@@ -106,7 +106,7 @@ export function LeadList({ onAddLead }: LeadListProps) {
             ))}
           </select>
           <select
-            className="crm-list-filter-select"
+            className="ui-input crm-list-filter-select"
             value={filters.lead.scoreBand ?? ''}
             onChange={(e) => setLeadFilters({ scoreBand: (e.target.value || undefined) as CRMLeadScoreBand | undefined })}
           >
@@ -129,10 +129,10 @@ export function LeadList({ onAddLead }: LeadListProps) {
         const isActive = lead.id === activeLeadId;
         const company = leadCompanyLabel(lead, companies);
         return (
-          <button
+          <button data-active={isActive}
             key={lead.id}
             type="button"
-            className={`crm-list-item${isActive ? ' crm-list-item--active' : ''}`}
+            className={"ui-list-row " + (`crm-list-item${isActive ? ' crm-list-item--active' : ''}`)}
             onClick={() => setActiveLeadId(lead.id)}
           >
             <div className="crm-list-item-row">
@@ -151,8 +151,8 @@ export function LeadList({ onAddLead }: LeadListProps) {
       })}
 
       {onAddLead && (
-        <button type="button" className="crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddLead} style={{ marginTop: 6 }}>
-          <Plus size={13} /> Add lead
+        <button type="button" className="ui-button crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddLead} style={{ marginTop: 6 }}>
+          <Plus /> Add lead
         </button>
       )}
     </div>

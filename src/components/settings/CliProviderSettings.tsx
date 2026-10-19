@@ -58,10 +58,10 @@ export function CliProviderSettings({
     finally { setBusy(false); }
   }
 
-  return <div className="codex-provider-detail">
+  return <div className="codex-provider-detail ui-page-body">
     <div className="codex-provider-detail__inner">
       <header className="codex-provider-header">
-        <span className="codex-provider-header__icon" aria-hidden="true"><TerminalSquare size={20} /></span>
+        <span className="codex-provider-header__icon" aria-hidden="true"><TerminalSquare size="var(--c-icon-1)" /></span>
         <div className="codex-provider-header__copy">
           <h2>{name}</h2>
           <p>{t('cliProviders.description', { provider: name })}</p>
@@ -72,7 +72,7 @@ export function CliProviderSettings({
         </span>
       </header>
 
-      <section className="codex-card" aria-labelledby={`cli-${providerId}-connection`}>
+      <section className="codex-card ui-card" aria-labelledby={`cli-${providerId}-connection`}>
         <div className="codex-card__head">
           <div>
             <h3 id={`cli-${providerId}-connection`}>{t('codex.connection')}</h3>
@@ -91,7 +91,7 @@ export function CliProviderSettings({
             </p>}
           </div>
           <div className="codex-actions">
-            <button type="button" className="btn btn--secondary" disabled={state?.loading}
+            <button type="button" className="ui-button" disabled={state?.loading}
               onClick={() => void onRefresh(providerId)}>{t('cliProviders.refresh')}</button>
           </div>
           {status !== 'signedIn' && <div className="cli-provider-login">
@@ -105,7 +105,7 @@ export function CliProviderSettings({
         </p>}
       </section>
 
-      <section className="codex-card" aria-labelledby={`cli-${providerId}-models`}>
+      <section className="codex-card ui-card" aria-labelledby={`cli-${providerId}-models`}>
         <div className="codex-card__head codex-card__head--models">
           <div>
             <h3 id={`cli-${providerId}-models`}>{t('codex.models')}</h3>
@@ -123,8 +123,8 @@ export function CliProviderSettings({
         {models.length > 0 ? <>
           <div className="codex-model-toolbar">
             <label className="codex-model-search">
-              <Search size={15} aria-hidden="true" />
-              <input className="ctrl" type="search" aria-label={t('codex.searchModels')} value={modelSearch}
+              <Search size="var(--c-icon-1)" aria-hidden="true" />
+              <input className="ui-input" type="search" aria-label={t('codex.searchModels')} value={modelSearch}
                 onChange={(event) => setModelSearch(event.target.value)} placeholder={t('codex.searchModels')} />
             </label>
           </div>
@@ -137,7 +137,7 @@ export function CliProviderSettings({
                     <strong>{model.displayName}</strong>
                     {model.isDefault && <span className="codex-model-tag">{t('codex.nativeDefault')}</span>}
                     {selectedModel?.id === model.id && <span className="codex-model-tag codex-model-tag--selected">
-                      <Check size={11} />{t('codex.selectedModel')}
+                      <Check size="var(--c-icon-1)" />{t('codex.selectedModel')}
                     </span>}
                   </div>
                   {model.id !== model.displayName && <span className="codex-model-row__id">{model.id}</span>}
@@ -168,7 +168,7 @@ export function CliProviderSettings({
         )}</p>}
       </section>
 
-      {shownModels.length > 0 && <section className="codex-card" aria-labelledby={`cli-${providerId}-preferences`}>
+      {shownModels.length > 0 && <section className="codex-card ui-card" aria-labelledby={`cli-${providerId}-preferences`}>
         <div className="codex-card__head">
           <div>
             <h3 id={`cli-${providerId}-preferences`}>{t('codex.preferences')}</h3>
@@ -176,9 +176,9 @@ export function CliProviderSettings({
           </div>
         </div>
         <div className="codex-preferences-grid">
-          <label htmlFor={`cli-${providerId}-default-model`}>
+          <label className="ui-field" htmlFor={`cli-${providerId}-default-model`}>
             <span>{t('codex.defaultModel')}</span>
-            <select id={`cli-${providerId}-default-model`} className="ctrl" value={selectedModel?.id ?? ''}
+            <select id={`cli-${providerId}-default-model`} className="ui-input" value={selectedModel?.id ?? ''}
               disabled={busy}
               onChange={(event) => {
                 const modelId = event.target.value;

@@ -17,7 +17,7 @@ import '../forms.css';
 
 function dateLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, {
+    return new Date(iso).toLocaleDateString('tr-TR', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
@@ -166,26 +166,26 @@ export default function FormsTemplatesPage() {
   // --- Render ------------------------------------------------------------
 
   return (
-    <div className="forms-page forms-page--scroll">
+    <div className="ui-panel-body forms-page forms-page--scroll">
       <div className="forms-page-head">
         <h2 className="forms-page-title">Templates</h2>
         <p className="forms-page-subtitle">User-saved templates only — no built-in library in MVP.</p>
       </div>
 
       {/* Save existing form as template */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Save size={14} /> Save existing form as template
+          <Save /> Save existing form as template
         </p>
         <p className="forms-section-hint">
           Pick a form and name the template. The form’s fields, steps, logic, style and embed config are
           snapshotted into the template.
         </p>
         <div className="forms-settings-row">
-          <div className="forms-field-group">
+          <div className="ui-field forms-field-group">
             <label className="forms-field-group-label">Source form</label>
             <select
-              className="forms-select"
+              className="ui-input forms-select"
               value={saveFromFormId}
               onChange={(e) => setSaveFromFormId(e.target.value)}
               disabled={forms.length === 0}
@@ -201,22 +201,22 @@ export default function FormsTemplatesPage() {
               )}
             </select>
           </div>
-          <div className="forms-field-group">
+          <div className="ui-field forms-field-group">
             <label className="forms-field-group-label">Template name</label>
             <div className="forms-row">
               <input
-                className="forms-input"
+                className="ui-input forms-input"
                 value={saveFromName}
                 onChange={(e) => setSaveFromName(e.target.value)}
                 placeholder="e.g. Newsletter signup template"
               />
               <button
                 type="button"
-                className="forms-action-btn forms-action-btn--primary"
+                className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
                 onClick={handleSaveFormAsTemplate}
                 disabled={!saveFromFormId}
               >
-                <Save size={14} /> Save
+                <Save /> Save
               </button>
             </div>
           </div>
@@ -252,18 +252,18 @@ export default function FormsTemplatesPage() {
           <div className="forms-preview-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="forms-preview-modal-head">
               <div className="forms-row">
-                <Eye size={15} />
+                <Eye />
                 <span className="forms-page-title">{previewTarget.name}</span>
               </div>
               <button
                 type="button"
-                className="forms-action-btn forms-action-btn--ghost"
+                className="ui-icon-button forms-action-btn forms-action-btn--ghost"
                 onClick={() => setPreviewTarget(null)}
               >
-                <X size={15} />
+                <X />
               </button>
             </div>
-            <div className="forms-preview-modal-body">
+            <div className="ui-panel-body forms-preview-modal-body">
               {previewTarget.description ? (
                 <p className="forms-section-hint" style={{ marginBottom: 10 }}>
                   {previewTarget.description}
@@ -273,7 +273,7 @@ export default function FormsTemplatesPage() {
                 {previewTarget.schema.fields.filter((f) => f.type !== 'submit').length} fields ·
                 saved {dateLabel(previewTarget.createdAt)}
               </p>
-              <div className="forms-section" style={{ padding: 0, border: 'none' }}>
+              <div className="ui-card forms-section" style={{ border: 'none' }}>
                 {previewTarget.schema.fields.map((f) => (
                   <div className="forms-field-row" key={f.id}>
                     <span className="forms-field-label">
@@ -282,7 +282,7 @@ export default function FormsTemplatesPage() {
                     </span>
                     <span className="forms-field-value">
                       <span className="forms-row" style={{ gap: 8 }}>
-                        <FileText size={12} className="forms-muted" />
+                        <FileText className="forms-muted" />
                         <span>{FIELD_TYPE_LABEL[f.type] ?? f.type}</span>
                         {f.disabledInPublishedEmbed ? (
                           <span className="forms-muted">(disabled in published embed)</span>
@@ -305,26 +305,26 @@ export default function FormsTemplatesPage() {
               <span className="forms-page-title">Rename template</span>
               <button
                 type="button"
-                className="forms-action-btn forms-action-btn--ghost"
+                className="ui-icon-button forms-action-btn forms-action-btn--ghost"
                 onClick={() => setRenameTarget(null)}
               >
-                <X size={15} />
+                <X />
               </button>
             </div>
-            <div className="forms-preview-modal-body forms-stack">
-              <div className="forms-field-group">
+            <div className="ui-panel-body forms-preview-modal-body forms-stack">
+              <div className="ui-field forms-field-group">
                 <label className="forms-field-group-label">Name</label>
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   value={renameName}
                   onChange={(e) => setRenameName(e.target.value)}
                   autoFocus
                 />
               </div>
-              <div className="forms-field-group">
+              <div className="ui-field forms-field-group">
                 <label className="forms-field-group-label">Description (optional)</label>
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   value={renameDesc}
                   onChange={(e) => setRenameDesc(e.target.value)}
                 />
@@ -332,14 +332,14 @@ export default function FormsTemplatesPage() {
               <div className="forms-actions">
                 <button
                   type="button"
-                  className="forms-action-btn forms-action-btn--primary"
+                  className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
                   onClick={confirmRename}
                 >
-                  <Save size={14} /> Save
+                  <Save /> Save
                 </button>
                 <button
                   type="button"
-                  className="forms-action-btn forms-action-btn--ghost"
+                  className="ui-button forms-action-btn forms-action-btn--ghost"
                   onClick={() => setRenameTarget(null)}
                 >
                   Cancel
@@ -356,18 +356,18 @@ export default function FormsTemplatesPage() {
           <div className="forms-preview-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="forms-preview-modal-head">
               <div className="forms-row">
-                <AlertTriangle size={15} style={{ color: 'var(--c-danger)' }} />
+                <AlertTriangle style={{ color: 'var(--c-danger)' }} />
                 <span className="forms-page-title">Delete template</span>
               </div>
               <button
                 type="button"
-                className="forms-action-btn forms-action-btn--ghost"
+                className="ui-icon-button forms-action-btn forms-action-btn--ghost"
                 onClick={() => setConfirmDelete(null)}
               >
-                <X size={15} />
+                <X />
               </button>
             </div>
-            <div className="forms-preview-modal-body forms-stack">
+            <div className="ui-panel-body forms-preview-modal-body forms-stack">
               <p className="forms-section-hint">
                 Delete “{confirmDelete.name}”? This cannot be undone. Forms already created from this
                 template are not affected.
@@ -375,14 +375,14 @@ export default function FormsTemplatesPage() {
               <div className="forms-actions">
                 <button
                   type="button"
-                  className="forms-action-btn forms-action-btn--danger"
+                  className="ui-button forms-action-btn ui-button--danger forms-action-btn--danger"
                   onClick={() => void handleDelete(confirmDelete)}
                 >
-                  <Trash2 size={14} /> Delete
+                  <Trash2 /> Delete
                 </button>
                 <button
                   type="button"
-                  className="forms-action-btn forms-action-btn--ghost"
+                  className="ui-button forms-action-btn forms-action-btn--ghost"
                   onClick={() => setConfirmDelete(null)}
                 >
                   Cancel

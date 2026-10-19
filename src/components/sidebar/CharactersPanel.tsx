@@ -35,7 +35,7 @@ function AgentForm({
           style={{
             display: 'block',
             fontSize: 'var(--fs-xs)',
-            color: 'var(--c-text-2)',
+            color: 'var(--c-text-3)',
             marginBottom: 6,
           }}
         >
@@ -46,7 +46,7 @@ function AgentForm({
           value={form.name}
           onChange={(e) => onChange('name', e.target.value)}
           placeholder={t('sidebar.agentNamePlaceholder')}
-          className="ctrl w-full"
+          className="ui-input w-full"
           style={{ fontSize: 'var(--fs-sm)' }}
         />
       </div>
@@ -57,7 +57,7 @@ function AgentForm({
           style={{
             display: 'block',
             fontSize: 'var(--fs-xs)',
-            color: 'var(--c-text-2)',
+            color: 'var(--c-text-3)',
             marginBottom: 6,
           }}
         >
@@ -68,7 +68,7 @@ function AgentForm({
           onChange={(e) => onChange('systemPrompt', e.target.value)}
           placeholder="Describe how this agent should behave..."
           rows={4}
-          className="ctrl w-full"
+          className="ui-input w-full"
           style={{ fontSize: 'var(--fs-sm)', resize: 'none', lineHeight: 1.625 }}
         />
       </div>
@@ -79,7 +79,7 @@ function AgentForm({
           style={{
             display: 'block',
             fontSize: 'var(--fs-xs)',
-            color: 'var(--c-text-2)',
+            color: 'var(--c-text-3)',
             marginBottom: 6,
           }}
         >
@@ -89,7 +89,7 @@ function AgentForm({
           value={form.avatarUrl}
           onChange={(e) => onChange('avatarUrl', e.target.value)}
           placeholder="https://..."
-          className="ctrl w-full"
+          className="ui-input w-full"
           style={{ fontSize: 'var(--fs-sm)' }}
         />
       </div>
@@ -98,14 +98,14 @@ function AgentForm({
         <button
           onClick={onSave}
           disabled={!form.name.trim()}
-          className="btn-brand flex-1"
+          className="ui-button ui-button--primary btn-brand flex-1"
           style={{ justifyContent: 'center', padding: '6px 0' }}
         >
           Save
         </button>
         <button
           onClick={onCancel}
-          className="btn subtle"
+          className="ui-button btn subtle"
           style={{ fontSize: 'var(--fs-xs)' }}
         >
           Cancel
@@ -206,9 +206,9 @@ function AgentAccordionItem({
       >
         <div className="row gap-3 min-w-0">
           {expanded ? (
-            <ChevronDown size={15} className="subtle shrink-0" />
+            <ChevronDown  className="ui-icon subtle shrink-0" />
           ) : (
-            <ChevronRight size={15} className="subtle shrink-0" />
+            <ChevronRight  className="ui-icon subtle shrink-0" />
           )}
           <div
             className="shrink-0 overflow-h"
@@ -229,7 +229,7 @@ function AgentAccordionItem({
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
-              <User size={12} style={{ color: 'var(--c-accent-center-panel)' }} />
+              <User className="ui-icon"  style={{ color: 'var(--c-accent-1)' }} />
             )}
           </div>
           <span
@@ -240,9 +240,8 @@ function AgentAccordionItem({
           </span>
           {active && (
             <Check
-              size={12}
-              className="shrink-0"
-              style={{ color: 'var(--c-accent-center-panel)' }}
+              className="ui-icon shrink-0"
+              style={{ color: 'var(--c-accent-1)' }}
             />
           )}
         </div>
@@ -311,11 +310,11 @@ function AgentAccordionItem({
               className="row-xs"
               style={{
                 fontSize: 'var(--fs-xs)',
-                color: active ? 'var(--c-text-2)' : 'var(--c-accent-center-panel)',
+                color: active ? 'var(--c-text-3)' : 'var(--c-accent-1)',
                 fontWeight: 500,
                 padding: '0px 8px',
                 width: 'fit-content',
-                height: 32,
+                height: 'var(--control-height-sm)',
                 borderRadius: 'var(--radius-sm)',
                 border: '1px solid var(--c-border-1)',
                 background: 'transparent',
@@ -332,7 +331,7 @@ function AgentAccordionItem({
             >
               {active ? (
                 <>
-                  <Check size={12} /> Active
+                  <Check className="ui-icon"  /> Active
                 </>
               ) : (
                 'Set Active'
@@ -347,11 +346,10 @@ function AgentAccordionItem({
                     e.stopPropagation();
                     onDelete();
                   }}
-                  className="btn-icon"
-                  style={{ padding: 4 }}
+                  className="ui-icon-button btn-icon"
                   title="Delete agent"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 className="ui-icon"  />
                 </button>
               )}
             </div>
@@ -536,7 +534,7 @@ export function CharactersPanel() {
             onClick={startAdd}
             className="new-agent-btn"
           >
-            <Plus size={16} />
+            <Plus className="ui-icon"  />
             New Agent
           </button>
         )}

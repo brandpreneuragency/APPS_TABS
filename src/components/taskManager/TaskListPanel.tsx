@@ -61,7 +61,7 @@ export function TaskListPanel() {
             </div>
           </div>
         )}
-        <div id="task-list-content" className="task-scope-content ai-scroll">
+        <div id="task-list-content" className="ui-panel-body task-scope-content ai-scroll">
           <div hidden={activeTab !== 'list'}>
             {filteredTasks.length === 0 && <p className="task-scope-empty">{t('navigation.noTasks')}</p>}
             {(['today', 'thisWeek', 'notYet', 'completed'] as const).flatMap((category) => groupedTasks[category]).map((task) => (

@@ -73,10 +73,10 @@ export function CodexSettings() {
   }
 
   return (
-    <div className="codex-provider-detail">
+    <div className="codex-provider-detail codex-provider-detail--codex ui-page-body">
       <div className="codex-provider-detail__inner">
         <header className="codex-provider-header">
-          <span className="codex-provider-header__icon" aria-hidden="true"><TerminalSquare size={20} /></span>
+          <span className="codex-provider-header__icon" aria-hidden="true"><TerminalSquare size="var(--c-icon-1)" /></span>
           <div className="codex-provider-header__copy">
             <h2>{t('codex.title')}</h2>
             <p>{t('codex.description')}</p>
@@ -87,7 +87,7 @@ export function CodexSettings() {
           </span>
         </header>
 
-        <section className="codex-card" aria-labelledby="codex-connection-heading">
+        <section className="codex-card ui-card" aria-labelledby="codex-connection-heading">
           <div className="codex-card__head">
             <div>
               <h3 id="codex-connection-heading">{t('codex.connection')}</h3>
@@ -105,34 +105,34 @@ export function CodexSettings() {
               {executablePath && <p className="codex-connection-summary__path" title={executablePath}>{executablePath}</p>}
             </div>
             <div className="codex-actions">
-              <button type="button" className={connection ? 'btn btn--secondary' : 'btn-brand'} disabled={busy}
+              <button type="button" className={connection ? 'ui-button' : 'ui-button ui-button--primary'} disabled={busy}
                 onClick={() => void run(async () => {
                   if (connection) await codexSessionService.disconnect();
                   await codexSessionService.connect(await codexSessionService.defaultWorkspace(), path.trim() || undefined);
                   setLogin(null);
                   await db.settings.put({ key: 'codexExecutablePath', value: path.trim() });
                 })}>{connection ? t('codex.reconnect') : t('codex.connect')}</button>
-              {!connection && <button type="button" className="btn btn--secondary" disabled={busy}
+              {!connection && <button type="button" className="ui-button" disabled={busy}
                 onClick={() => void run(async () => {
                   const started = await codexDesktopClient.beginLogin(await codexSessionService.defaultWorkspace(), path.trim() || undefined);
                   setLogin(started);
                 })}>{t('codex.signIn')}</button>}
-              {connection && <button type="button" className="btn btn--secondary" disabled={busy}
+              {connection && <button type="button" className="ui-button" disabled={busy}
                 onClick={() => void run(() => codexSessionService.disconnect())}>{t('codex.disconnect')}</button>}
             </div>
             {login && !connection && <div className="codex-login-flow">
-              <label htmlFor="codex-login-url">{t('codex.openLogin')}</label>
-              <input id="codex-login-url" className="ctrl" readOnly value={login.authUrl}
+              <label className="ui-field" htmlFor="codex-login-url">{t('codex.openLogin')}</label>
+              <input id="codex-login-url" className="ui-input" readOnly value={login.authUrl}
                 onFocus={(event) => event.currentTarget.select()} />
               <div className="codex-actions">
-                <button type="button" className="btn btn--secondary" disabled={busy}
+                <button type="button" className="ui-button" disabled={busy}
                   onClick={() => void run(() => navigator.clipboard.writeText(login.authUrl))}>{t('codex.copyLink')}</button>
-                <button type="button" className="btn-brand" disabled={busy}
+                <button type="button" className="ui-button ui-button--primary" disabled={busy}
                   onClick={() => void run(async () => {
                     await codexSessionService.connect(await codexSessionService.defaultWorkspace(), path.trim() || undefined);
                     setLogin(null);
                   })}>{t('codex.finishedSignIn')}</button>
-                <button type="button" className="btn btn--secondary" disabled={busy}
+                <button type="button" className="ui-button" disabled={busy}
                   onClick={() => void run(async () => {
                     await codexDesktopClient.cancelLogin(login.epoch, login.loginId);
                     setLogin(null);
@@ -140,15 +140,15 @@ export function CodexSettings() {
               </div>
             </div>}
             <details className="codex-advanced-setup">
-              <summary><ChevronDown size={14} aria-hidden="true" />{t('codex.advancedSetup')}</summary>
+              <summary><ChevronDown size="var(--c-icon-1)" aria-hidden="true" />{t('codex.advancedSetup')}</summary>
               <div className="codex-advanced-setup__body">
-                <label htmlFor="codex-executable-path">{t('codex.path')}</label>
+                <label className="ui-field" htmlFor="codex-executable-path">{t('codex.path')}</label>
                 <p>{t('codex.pathHint')}</p>
                 <div className="codex-path-controls">
-                  <input id="codex-executable-path" className="ctrl" value={path}
+                  <input id="codex-executable-path" className="ui-input" value={path}
                     onChange={(event) => setPath(event.target.value)}
                     placeholder={t('codex.pathPlaceholder')} autoComplete="off" />
-                  <button type="button" className="btn btn--secondary" disabled={busy}
+                  <button type="button" className="ui-button" disabled={busy}
                     onClick={() => void run(async () => {
                       const found = await codexDesktopClient.discover(path.trim() || undefined);
                       setDiscovery(found);
@@ -161,7 +161,7 @@ export function CodexSettings() {
           {(error || serviceError) && <p className="codex-error" role="alert">{error || serviceError}</p>}
         </section>
 
-        <section className="codex-card" aria-labelledby="codex-models-heading">
+        <section className="codex-card ui-card" aria-labelledby="codex-models-heading">
           <div className="codex-card__head codex-card__head--models">
             <div>
               <h3 id="codex-models-heading">{t('codex.models')}</h3>
@@ -179,8 +179,8 @@ export function CodexSettings() {
           {connection && models.length > 0 ? <>
             <div className="codex-model-toolbar">
               <label className="codex-model-search">
-                <Search size={15} aria-hidden="true" />
-                <input className="ctrl" type="search" aria-label={t('codex.searchModels')} value={modelSearch}
+                <Search size="var(--c-icon-1)" aria-hidden="true" />
+                <input className="ui-input" type="search" aria-label={t('codex.searchModels')} value={modelSearch}
                   onChange={(event) => setModelSearch(event.target.value)} placeholder={t('codex.searchModels')} />
               </label>
             </div>
@@ -192,7 +192,7 @@ export function CodexSettings() {
                     <div className="codex-model-row__title">
                       <strong>{model.displayName}</strong>
                       {model.isDefault && <span className="codex-model-tag">{t('codex.nativeDefault')}</span>}
-                      {chosen?.id === model.id && <span className="codex-model-tag codex-model-tag--selected"><Check size={11} />{t('codex.selectedModel')}</span>}
+                      {chosen?.id === model.id && <span className="codex-model-tag codex-model-tag--selected"><Check size="var(--c-icon-1)" />{t('codex.selectedModel')}</span>}
                     </div>
                     {model.id !== model.displayName && <span className="codex-model-row__id">{model.id}</span>}
                   </div>
@@ -214,7 +214,7 @@ export function CodexSettings() {
           </> : <p className="codex-model-empty">{connection ? t('codex.noModels') : t('codex.connectForModels')}</p>}
         </section>
 
-        {connection && shownModels.length > 0 && <section className="codex-card" aria-labelledby="codex-preferences-heading">
+        {connection && shownModels.length > 0 && <section className="codex-card ui-card" aria-labelledby="codex-preferences-heading">
           <div className="codex-card__head">
             <div>
               <h3 id="codex-preferences-heading">{t('codex.preferences')}</h3>
@@ -222,9 +222,9 @@ export function CodexSettings() {
             </div>
           </div>
           <div className="codex-preferences-grid">
-            <label htmlFor="codex-default-model">
+            <label className="ui-field" htmlFor="codex-default-model">
               <span>{t('codex.defaultModel')}</span>
-              <select id="codex-default-model" className="ctrl" value={chosen?.id ?? ''}
+              <select id="codex-default-model" className="ui-input" value={chosen?.id ?? ''}
                 onChange={(event) => {
                   setModelId(event.target.value);
                   setEffort('');
@@ -236,9 +236,9 @@ export function CodexSettings() {
                 {shownModels.map((model) => <option key={model.id} value={model.id}>{model.displayName}</option>)}
               </select>
             </label>
-            <label htmlFor="codex-default-effort">
+            <label className="ui-field" htmlFor="codex-default-effort">
               <span>{t('codex.reasoning')}</span>
-              <select id="codex-default-effort" className="ctrl"
+              <select id="codex-default-effort" className="ui-input"
                 value={chosen?.reasoningEfforts.includes(effort) ? effort : ''}
                 disabled={!chosen?.reasoningEfforts.length}
                 onChange={(event) => {

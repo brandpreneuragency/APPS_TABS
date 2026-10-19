@@ -24,8 +24,8 @@ afterEach(cleanup);
 describe('ModeNavigation', () => {
   it('keeps all controls visible in the requested order across view changes', () => {
     render(<ModeNavigation />);
-    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'github', 'tasks', 'calendar', 'projects', 'clients'];
-    for (const name of ['navigation.calendar', 'navigation.projects', 'navigation.taskList', 'navigation.docs', 'navigation.github', 'navigation.clients']) {
+    const expected = ['left-navbar', 'settings', 'terminal', 'documents', 'github', 'tasks', 'calendar', 'notes', 'projects', 'clients'];
+    for (const name of ['navigation.calendar', 'navigation.notes', 'navigation.projects', 'navigation.taskList', 'navigation.docs', 'navigation.github', 'navigation.clients']) {
       fireEvent.click(screen.getByRole('button', { name }));
       expect(screen.getAllByRole('button').map((button) => button.id)).toEqual(expected.map((id) => `nav-btn-${id}`));
       expect(screen.getByRole('button', { name })).toHaveAttribute('aria-pressed', 'true');

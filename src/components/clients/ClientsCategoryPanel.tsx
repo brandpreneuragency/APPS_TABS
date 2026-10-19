@@ -47,7 +47,7 @@ export function ClientsCategoryPanel() {
   };
 
   return (
-    <section className="clients-category-panel" aria-label={t('clients.categoryNavigation')}>
+    <section className="ui-panel-body clients-category-panel" aria-label={t('clients.categoryNavigation')}>
       <header className="clients-category-heading">
         <span className="clients-category-eyebrow">{t('navigation.clients')}</span>
         <h2 className="clients-category-identity" title={identity}>{identity}</h2>
@@ -57,13 +57,13 @@ export function ClientsCategoryPanel() {
         {categories.map(({ id, label, icon: Icon }) => {
           const disabled = id === 'profile' && profileDisabled;
           return (
-            <button key={id} id={`clients-category-${id}`} type="button" role="tab" className="clients-category-tab"
+            <button key={id} id={`clients-category-${id}`} type="button" role="tab" className="ui-list-row clients-category-tab"
               aria-selected={category === id} aria-controls="clients-workspace-category"
               aria-describedby={disabled ? 'clients-profile-disabled-reason' : undefined}
               title={disabled ? t('clients.profileNeedsBrand') : undefined}
               tabIndex={tabStopCategory === id ? 0 : -1} disabled={disabled}
               onClick={() => setCategory(id)}>
-              <Icon size={15} aria-hidden="true" />
+              <Icon aria-hidden="true" />
               <span>{t(label)}</span>
             </button>
           );

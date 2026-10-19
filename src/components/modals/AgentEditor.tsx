@@ -72,47 +72,47 @@ export function AgentEditor() {
           <button
             id="agent-editor-close-btn"
             onClick={close}
-            className="modal-close"
+            className="ui-icon-button modal-close"
           >
-            <X size={18} />
+            <X className="ui-icon"  />
           </button>
         </div>
 
         <div className="modal-body col">
           <div>
-            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-2)', marginBottom: 6 }}>Agent Name</label>
+            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-3)', marginBottom: 6 }}>Agent Name</label>
             <input
               id="agent-name-input"
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={t('sidebar.agentNamePlaceholder')}
-              className="ctrl w-full"
+              className="ui-input w-full"
               style={{ fontSize: 'var(--fs-sm)' }}
             />
           </div>
 
           <div>
-            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-2)', marginBottom: 6 }}>Avatar URL (optional)</label>
+            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-3)', marginBottom: 6 }}>Avatar URL (optional)</label>
             <input
               id="agent-avatar-input"
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.target.value)}
               placeholder="https://..."
-              className="ctrl w-full"
+              className="ui-input w-full"
               style={{ fontSize: 'var(--fs-sm)' }}
             />
           </div>
 
           <div>
-            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-2)', marginBottom: 6 }}>System Prompt</label>
+            <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-xs)', color: 'var(--c-text-3)', marginBottom: 6 }}>System Prompt</label>
             <textarea
               id="agent-prompt-textarea"
               value={systemPrompt}
               onChange={(e) => setSystemPrompt(e.target.value)}
               rows={6}
               placeholder="Describe how this agent should behave..."
-              className="ctrl w-full"
+              className="ui-input w-full"
               style={{ fontSize: 'var(--fs-sm)', resize: 'none', lineHeight: 1.625 }}
             />
           </div>
@@ -122,7 +122,7 @@ export function AgentEditor() {
               id="agent-editor-save-btn"
               onClick={handleSave}
               disabled={!name.trim()}
-              className="btn-brand flex-1"
+              className="ui-button ui-button--primary btn-brand flex-1"
               style={{ fontSize: 'var(--fs-sm)', padding: '8px 12px', opacity: !name.trim() ? 0.4 : 1 }}
             >
               {editingAgent ? 'Save Changes' : 'Create Agent'}
@@ -131,23 +131,17 @@ export function AgentEditor() {
               <button
                 id="agent-editor-delete-btn"
                 onClick={handleDelete}
-                className="btn-icon"
-                style={{
-                  width: 40,
-                  border: '1px solid rgba(239,68,68,0.3)',
-                  borderRadius: 'var(--radius-sm)',
-                  color: 'var(--c-danger)',
-                  transition: 'background-color 0.15s, color 0.15s',
-                }}
+                className="ui-icon-button btn-icon"
+                style={{ border: 'none', borderRadius: 'var(--radius-sm)', color: 'var(--c-danger)', transition: 'background-color 0.15s, color 0.15s' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.color = '#ef4444'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--c-danger)'; }}
               >
-                <Trash2 size={15} />
+                <Trash2 className="ui-icon"  />
               </button>
             )}
             <button
               onClick={close}
-              className="btn"
+              className="ui-button btn"
               style={{ fontSize: 'var(--fs-sm)' }}
             >
               Cancel

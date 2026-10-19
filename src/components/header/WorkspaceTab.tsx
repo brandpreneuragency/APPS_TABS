@@ -170,11 +170,11 @@ export function WorkspaceTab({
             title={t('tabs.renameTab') ?? 'Rename'}
             placeholder={t('tabs.tabNamePlaceholder') ?? 'Name'}
             className="txt-xs med bg-transparent outline-none w-24"
-            style={{ borderBottom: '1px solid var(--c-accent-center-panel)' }}
+            style={{ borderBottom: '1px solid var(--c-border-2)' }}
           />
         ) : (
           <>
-            <FileText size={12} className="mr-1 flex-shrink-0" />
+            <FileText  className="ui-icon mr-1 flex-shrink-0" />
             <span className="txt-xs med trunc">
               {label.slice(0, charLimit)}{label.length > charLimit ? '…' : ''}
             </span>
@@ -185,7 +185,7 @@ export function WorkspaceTab({
                   width: 6,
                   height: 6,
                   borderRadius: 'var(--radius-full)',
-                  background: 'var(--c-accent-center-panel)',
+                  background: 'var(--c-accent-1)',
                   marginLeft: 4,
                   flexShrink: 0,
                 }}
@@ -203,9 +203,9 @@ export function WorkspaceTab({
             e.stopPropagation();
             if (hasDirtyFile) { setConfirmClose(true); } else { onClose(); }
           }}
-          className="tab-close"
+          className="ui-icon-button tab-close"
         >
-          <X size={12} />
+          <X className="ui-icon"  />
         </button>
       </>
 

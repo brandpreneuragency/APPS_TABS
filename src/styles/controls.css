@@ -1,0 +1,229 @@
+/* Shared UI roles. Values belong exclusively to tokens.css.
+ * Use these roles on controls; feature classes supply placement and behavior.
+ * An icon is not an image/chart. Authored document/form content stays separate.
+ */
+:root :is(svg.lucide, svg.icon-base, svg.ui-icon) {
+  width: var(--c-icon-1);
+  height: var(--c-icon-1);
+  min-width: var(--c-icon-1);
+  min-height: var(--c-icon-1);
+  flex: 0 0 auto;
+  stroke-width: var(--icon-stroke);
+}
+
+:root :is(.ui-button, .ui-icon-button) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-family: var(--c-font-1);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+}
+:root .ui-button {
+  width: auto;
+  min-width: 0;
+  height: var(--c-sq-button);
+  min-height: var(--c-sq-button);
+  padding: 0 var(--c-space-1);
+  gap: var(--c-gap-0);
+  flex-shrink: 0;
+  white-space: nowrap;
+  color: var(--c-text-3);
+  background: var(--c-background-3);
+}
+:root .ui-button:not(:disabled):hover {
+  color: var(--c-text-1);
+  background: var(--c-background-4);
+}
+:root .ui-button--compact {
+  height: var(--c-sq-button);
+  min-height: var(--c-sq-button);
+  padding-inline: var(--c-gap-1);
+}
+:root .ui-icon-button {
+  width: var(--c-sq-button);
+  height: var(--c-sq-button);
+  min-width: var(--c-sq-button);
+  min-height: var(--c-sq-button);
+  max-width: var(--c-sq-button);
+  max-height: var(--c-sq-button);
+  flex: 0 0 var(--c-sq-button);
+  padding: 0;
+  gap: 0;
+  color: var(--c-text-3);
+  background: transparent;
+}
+:root .ui-icon-button:not(:disabled):hover {
+  color: var(--c-text-1);
+  background: transparent;
+}
+:root :is(.ui-button, .ui-icon-button):is([aria-pressed='true'], [data-active='true']) {
+  color: var(--c-text-1);
+}
+:root .ui-button--primary {
+  background: var(--c-accent-2);
+  color: var(--c-text-1);
+}
+:root .ui-button--primary:not(:disabled):hover {
+  background: var(--c-accent-1);
+  color: var(--c-text-1);
+}
+:root .ui-button--danger {
+  color: var(--c-danger);
+  background: color-mix(in srgb, var(--c-danger) 12%, transparent);
+}
+:root .ui-button--danger:not(:disabled):hover {
+  color: var(--c-danger);
+  background: color-mix(in srgb, var(--c-danger) 20%, transparent);
+}
+:root .ui-button--ghost,
+:root .ui-button--ghost:not(:disabled):hover {
+  background: transparent;
+}
+:root .ui-button--round {
+  border-radius: var(--radius-full);
+}
+:root :is(.ui-button, .ui-icon-button):focus-visible {
+  outline: var(--focus-width) solid var(--c-border-2);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+:root :is(.ui-button, .ui-icon-button):disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+
+:root .ui-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: var(--control-height-sm);
+  min-height: var(--control-height-sm);
+  padding: 0 var(--c-space-1);
+  border: var(--border-width) solid var(--c-border-1);
+  border-radius: var(--radius-sm);
+  color: var(--c-text-1);
+  font-family: var(--c-font-1);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+}
+:root .ui-input,
+:root textarea.ui-input:is(:hover, :focus, :focus-visible) {
+  background: var(--c-background-3);
+}
+:root textarea.ui-input {
+  height: auto;
+  min-height: var(--composer-min-height);
+  padding-block: var(--c-space-1);
+  resize: vertical;
+}
+/* Field focus is borderless in every theme, including legacy/inline styles.
+ * Keep border widths to avoid moving content and preserve default surfaces.
+ * Buttons, check/radio/range/color controls and authored forms keep their states.
+ */
+:root :is(input, textarea, select, [contenteditable]):not(:where(
+  [type='button'], [type='submit'], [type='reset'], [type='checkbox'],
+  [type='radio'], [type='range'], [type='color'], [contenteditable='false'],
+  .forms-embed-root *, .forms-builder-form *
+)):focus {
+  border-color: transparent !important;
+  outline: none !important;
+}
+:root :is(.codex-model-search, .clients-file-picker):focus-within {
+  border-color: transparent !important;
+  outline: none !important;
+  color: var(--c-text-1);
+}
+/* Retain system focus visibility when Windows High Contrast is active. */
+@media (forced-colors: active) {
+  :root :is(input, textarea, select, [contenteditable]):not(:where(
+    [type='button'], [type='submit'], [type='reset'], [type='checkbox'],
+    [type='radio'], [type='range'], [type='color'], [contenteditable='false'],
+    .forms-embed-root *, .forms-builder-form *
+  )):focus-visible,
+  :root :is(.codex-model-search, .clients-file-picker):focus-within {
+    outline: var(--focus-width) solid CanvasText !important;
+    outline-offset: calc(-1 * var(--focus-width));
+  }
+}
+:root .ui-input:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+:root .ui-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--c-gap-1);
+  color: var(--c-text-3);
+  font-size: var(--fs-sm);
+}
+
+/* A role owns its inset. Avoid applying body and card roles to nested wrappers
+ * around the same content. Scrolling is opt-in: only the actual viewport owns it. */
+:root :is(.ui-page-body, .ui-panel-body) {
+  min-width: 0;
+  min-height: 0;
+  padding: var(--c-space-1);
+}
+:root .ui-toolbar {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: var(--control-height-sm);
+  min-height: var(--control-height-sm);
+  flex-shrink: 0;
+  gap: var(--c-gap-1);
+  padding: 0 var(--c-space-0);
+}
+:root .ui-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--c-space-1);
+  padding: var(--c-space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--c-background-3);
+}
+:root .ui-list-row {
+  display: flex;
+  align-items: center;
+  gap: var(--c-space-0);
+  width: 100%;
+  min-width: 0;
+  min-height: var(--control-height-sm);
+  height: auto;
+  padding: var(--c-gap-1) var(--c-space-1);
+  border: 0;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-family: var(--c-font-1);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-sm);
+  background: transparent;
+  color: var(--c-text-3);
+}
+:root .ui-list-row:not(:disabled):hover {
+  background: transparent;
+  color: var(--c-text-1);
+}
+:root .ui-list-row:is([aria-selected='true'], [aria-current='page'], [data-active='true']) {
+  background: var(--c-background-1);
+  color: var(--c-text-1);
+}
+:root .ui-list-row:focus-visible {
+  background: var(--c-background-2);
+  color: var(--c-text-1);
+  outline: var(--focus-width) solid var(--c-border-2);
+  outline-offset: calc(-1 * var(--focus-width));
+}
+:root .ui-list-row:disabled {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}

@@ -1,5 +1,36 @@
 # AGENTS.md — TABS Repository Guide
 
+## Task routing and development records
+
+- **Small, certain, low-risk change:** take the shortest safe path: inspect the
+  target and relevant existing edits, change it, run only proportionate permitted
+  checks, and report briefly. Do not open or update a development log, plan or
+  task card, scan work history, or create a branch/worktree/PR just for this edit.
+  No record means no tracking note, not unsaved code or skipped safety checks.
+- **Clearly named continuation:** use the selected development record without
+  asking again. Read only relevant context and confirm it against current files
+  and Git state where available; a summary is not execution evidence.
+- **Uncertain size, risk or record, or unexpected growth:** before editing or
+  expanding scope, ask Burak which route to use: small change/no record, a relevant
+  existing record (show actual filenames), or a new development record. Ask once
+  for the unresolved choice, not at every iteration. Few changed lines do not
+  make data, security or broad behavioral changes low-risk.
+- **Multi-session development:** reuse a clearly matching existing workstream
+  document in place; otherwise create one meaningfully named Markdown file at
+  `docs/work/<topic>.md` only when the real work starts. Keep the same file across
+  days and agents; do not create per-session summaries or duplicate TASKS lists.
+- Keep goal/scope, acceptance, current state, key decisions, blockers and the next
+  concrete step at the top. Append brief dated iteration notes for meaningful
+  milestones: actual agent/tool, changes and real checks/results or NOT RUN.
+  Update at milestones, direction changes and before pausing/handoff; reconcile
+  the current section instead of making the next agent read the whole history.
+  Mark completion and remaining limits in place; do not auto-move old records.
+- These project-local routes replace blanket Kanban-per-task defaults for direct
+  local work by any agent. Do not duplicate this work in a central queue. Existing
+  dispatched tasks retain their assigned lifecycle; preserve their references
+  rather than migrating them. Records grant no commit, push, deployment or system
+  authority. Respect any explicit task-specific verification hold below.
+
 ## Purpose and precedence
 
 This file applies to the entire repository. It defines the default working rules for coding agents; a more specific `AGENTS.md` in a subdirectory overrides it for that subtree.
@@ -18,8 +49,8 @@ actions, installations and external sharing require explicit task-specific scope
 BRAIN is read-only through tools/delegates; VAULT is excluded. Only when work
 involves cross-project outputs, plans, owner context, ATLAS or system operations,
 read `../../AGENTS.md` and relevant destination rules. Local outputs use
-MOTHER/WORKSPACE; durable context/inbox/Work use ATLAS_MEMORY, not BRAIN
-(systems/methods/patterns). Self-contained local work needs no VPS connection.
+MOTHER/WORKSPACE; durable owner records use ATLAS_MEMORY; working material uses
+ATLAS_ROOT/WORKSPACE/work, not BRAIN (systems/methods/patterns). Self-contained local work needs no VPS connection.
 
 Do not revive deleted Hermes, VPS, `server/`, `deploy/`, or hosted-web requirements from git history unless the user explicitly asks to restore them.
 
@@ -134,6 +165,9 @@ Shell workspace modes are local only: Documents, Tasks, CRM (including Forms), S
 
 ### Styling
 
+- Before UI work, read [the UI contract](src/styles/README.md) and inspect the current
+  owner-edited styles. Use its role-based defaults and exceptions; do not restore
+  older colors, spacing or control sizes from a build or historical snapshot.
 - Reuse tokens from `src/styles/tokens.css` and existing feature classes before adding new values.
 - Keep structural styles in scoped feature CSS; inline styles only for dynamic geometry or CSS variables.
 - Audit `min-width: 0`, `min-height: 0`, overflow ownership, and responsive behavior when changing nested layouts.

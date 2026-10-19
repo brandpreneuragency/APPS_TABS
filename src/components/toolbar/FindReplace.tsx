@@ -86,8 +86,8 @@ export function FindReplace({ editor, anchorRef }: FindReplaceProps) {
     <div id="find-replace-panel" className="drop" style={{ position: 'fixed', top: position.top, left: position.left, width: 320, padding: 12, zIndex: 9999 }}>
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
         <span className="label semibold">Find & Replace</span>
-        <button onClick={close} className="tt-primary">
-          <X size={14} />
+        <button onClick={close} className="ui-icon-button tt-primary">
+          <X className="ui-icon"  />
         </button>
       </div>
 
@@ -99,7 +99,7 @@ export function FindReplace({ editor, anchorRef }: FindReplaceProps) {
             value={findText}
             onChange={(e) => setFindText(e.target.value)}
             placeholder="Find..."
-            className="ctrl-sm flex-1"
+            className="ui-input flex-1"
           />
           <span id="find-replace-count" className="label nowrap">
             {matchCount > 0 ? `${currentMatch + 1}/${matchCount}` : '0/0'}
@@ -107,16 +107,16 @@ export function FindReplace({ editor, anchorRef }: FindReplaceProps) {
           <button
             id="find-replace-prev"
             onClick={() => setCurrentMatch((v) => Math.max(0, v - 1))}
-            className="tt-primary"
+            className="ui-icon-button tt-primary"
           >
-            <ChevronUp size={14} />
+            <ChevronUp className="ui-icon"  />
           </button>
           <button
             id="find-replace-next"
             onClick={() => setCurrentMatch((v) => Math.min(matchCount - 1, v + 1))}
-            className="tt-primary"
+            className="ui-icon-button tt-primary"
           >
-            <ChevronDown size={14} />
+            <ChevronDown className="ui-icon"  />
           </button>
         </div>
 
@@ -126,21 +126,21 @@ export function FindReplace({ editor, anchorRef }: FindReplaceProps) {
             value={replaceText}
             onChange={(e) => setReplaceText(e.target.value)}
             placeholder="Replace with..."
-            className="ctrl-sm flex-1"
+            className="ui-input flex-1"
           />
           <button
             id="find-replace-btn"
             onClick={handleReplace}
-            className="nowrap" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-accent-center-panel)', fontWeight: 500, textDecoration: 'none' }}
+            className="ui-button nowrap" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-accent-1)', fontWeight: 500, textDecoration: 'none' }}
           >
             Replace
           </button>
           <button
             id="find-replace-all-btn"
             onClick={handleReplaceAll}
-            className="row-xs nowrap" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-accent-center-panel)', fontWeight: 500 }}
+            className="ui-button row-xs nowrap" style={{ fontSize: 'var(--fs-xs)', color: 'var(--c-accent-1)', fontWeight: 500 }}
           >
-            <Replace size={12} />
+            <Replace className="ui-icon"  />
             All
           </button>
         </div>

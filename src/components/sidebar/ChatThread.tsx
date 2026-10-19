@@ -1,12 +1,10 @@
 import { useEffect, useRef } from 'react';
+import { Sparkles } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
 import { useTranslation } from 'react-i18next';
 import { useChatStore } from '../../stores/chatStore';
 import { useCodexService } from '../../services/codex/useCodexService';
 import { useCliProviderService } from '../../services/providers/useCliProviderService';
-import { useMockProviderService } from '../../services/providers/useMockProviderService';
-import { isMockProviderId } from '../../services/providers/mockProviders';
-import { MockChatShowcase } from './MockChatShowcase';
 import { UserMessage } from './UserMessage';
 import { AssistantMessage } from './AssistantMessage';
 import { ToolCallBubble } from './ToolCallBubble';
@@ -21,21 +19,17 @@ interface ChatThreadProps {
 
 export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) {
   const { t } = useTranslation();
-  const { getActiveThreadMessages, activeThreadId, threads } = useChatStore();
+  const { getActiveThreadMessages, activeThreadId } = useChatStore();
   const codex = useCodexService();
   const cliRun = useCliProviderService();
-  const mockRun = useMockProviderService();
   const messages = getActiveThreadMessages();
   const codexStreaming = Boolean(codex.activeRunId && codex.activeAppThreadId === activeThreadId);
   const cliStreaming = Boolean(cliRun && cliRun.appThreadId === activeThreadId);
-  const mockStreaming = Boolean(mockRun && mockRun.appThreadId === activeThreadId);
-  const isStreaming = codexStreaming || cliStreaming || mockStreaming;
+  const isStreaming = codexStreaming || cliStreaming;
   const streamingMessageId = codexStreaming
     ? [...messages].reverse().find((message) => message.role === 'assistant'
       && message.id.startsWith(`codex:assistant:${codex.activeRunId}:`))?.id
-    : cliStreaming ? `cli:assistant:${cliRun?.runId}`
-      : mockStreaming ? `mock:assistant:${mockRun?.runId}` : undefined;
-  const activeOrigin = threads.find((thread) => thread.id === activeThreadId)?.origin;
+    : cliStreaming ? `cli:assistant:${cliRun?.runId}` : undefined;
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -45,9 +39,6 @@ export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) 
   }, [messages, isStreaming]);
 
   if (messages.length === 0) {
-    if (activeThreadId && isMockProviderId(activeOrigin)) {
-      return <MockChatShowcase threadId={activeThreadId} />;
-    }
     return (
       <div
         id="chat-empty-state"
@@ -61,9 +52,7 @@ export function ChatThread({ taskId, editor, onReplyMessage }: ChatThreadProps) 
         }}
       >
         <div style={{ textAlign: 'center' }}>
-          <div style={{ width: 40, height: 40, borderRadius: 'var(--radius-full)', background: 'var(--c-background-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-            <span style={{ color: 'var(--c-accent-center-panel)', fontSize: 'var(--font-fluid-12)' }}>✦</span>
-          </div>
+          <Sparkles className="chat-empty-state-symbol" aria-hidden="true" />
           <p className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>
             {taskId ? 'Ask about this task...' : t('chat.startConversation')}
           </p>

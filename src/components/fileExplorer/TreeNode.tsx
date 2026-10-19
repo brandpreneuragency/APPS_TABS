@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
 import {
   ChevronRight, ChevronDown, Folder, FolderOpen, File,
   MoreHorizontal, SquarePlus, SquareSlash, Pencil, Trash2,
@@ -7,6 +7,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useWorkspaceStore, type TreeNode as TreeNodeType } from '../../stores/workspaceStore';
 import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { TreeDropZone } from './TreeDropZone';
 
 interface TreeNodeProps {
   node: TreeNodeType;
@@ -47,6 +48,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
   const activeWs = workspaces.find((w) => w.id === activeWorkspaceId);
   const expandedPaths = activeWs?.expandedPaths ?? [];
   const selectedTreePath = activeWs?.selectedTreePath ?? null;
+  const isActiveFile = node.kind === 'file' && activeWs?.currentFile?.path === node.fullPath;
 
   const expanded = (searchActive && node.kind === 'directory') || expandedPaths.includes(node.path);
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
@@ -310,34 +312,34 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
       <li
         data-tree-node
         tabIndex={0}
-        className={`tree-node group relative select-none${isDragOver ? '' : ''}`}
+        className="tree-node group relative select-none"
         style={{
           '--tree-depth': depth,
-          ...(depth === 0 && node.kind === 'directory' ? {} : { minHeight: 32 }),
+          ...(depth === 0 && node.kind === 'directory' ? {} : { minHeight: 'var(--control-height-sm)' }),
           borderRadius: 'var(--radius-sm)',
           padding: 0,
-          backgroundColor: selectedTreePath === node.path
-            ? 'var(--c-background-3)'
-            : 'transparent',
+          backgroundColor: selectedTreePath === node.path ? 'var(--c-background-1)' : 'transparent',
           fontSize: 'var(--fs-xs)',
           color: 'var(--c-text-1)',
           cursor: 'default',
-          ...(isDragOver ? { outline: '2px solid var(--c-accent-center-panel)', outlineOffset: -2 } : {}),
         } as unknown as React.CSSProperties}
         draggable
         onKeyDown={handleKeyDown}
         onContextMenu={handleContextMenu}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
         {/* Row content */}
         <div className="row-xs" style={{
-          height: 32,
+          height: 'var(--control-height-sm)',
           paddingLeft: 6 + depth * 12,
           paddingRight: 6,
+          backgroundColor: selectedTreePath === node.path ? 'var(--c-background-1)' : 'transparent',
+          borderRadius: '6px',
+          ...(isDragOver ? { outline: '2px solid var(--c-border-2)', outlineOffset: -2 } : {}),
         }}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
           onMouseEnter={() => setShowKebab(true)}
           onMouseLeave={() => setShowKebab(false)}
           onClick={handleClick}
@@ -346,17 +348,17 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
           {node.kind === 'directory' ? (
             <>
               <span className="shrink-0 subtle" style={{ width: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                {expanded ? <ChevronDown className="ui-icon" /> : <ChevronRight className="ui-icon" />}
               </span>
               {expanded
-                ? <FolderOpen size={13} className="shrink-0" style={{ color: selectedTreePath === node.path ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />
-                : <Folder size={13} className="shrink-0" style={{ color: selectedTreePath === node.path ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />
+                ? <FolderOpen className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />
+                : <Folder className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />
               }
             </>
           ) : (
             <>
               <span className="shrink-0" style={{ width: 14 }} />
-              <File size={13} className="shrink-0" style={{ color: selectedTreePath === node.path ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />
+              <File className="ui-icon shrink-0" style={{ color: isActiveFile ? 'var(--c-text-1)' : 'var(--c-text-3)' }} />
             </>
           )}
 
@@ -365,8 +367,8 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
               ref={inputRef}
               title={t('explorer.rename')}
               placeholder={node.name}
-              className="ctrl-xs flex-1 min-w-0"
-              style={{ marginLeft: 4, borderColor: 'var(--c-accent-center-panel)' }}
+              className="ui-input ctrl-xs flex-1 min-w-0"
+              style={{ marginLeft: 4 }}
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={handleInputKey}
@@ -377,7 +379,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
             <span className="trunc flex-1 min-w-0" style={{
               marginLeft: 4,
               fontWeight: 500,
-              color: selectedTreePath === node.path ? 'var(--c-accent-1)' : 'var(--c-text-2)'
+              color: selectedTreePath === node.path ? 'var(--c-text-1)' : 'var(--c-text-3)'
             }}>{node.name}</span>
           )}
 
@@ -387,8 +389,8 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
               <button
                 ref={kebabRef}
                 type="button"
-                className="btn-icon"
-                style={{ width: 24, height: 24, minWidth: 24, minHeight: 24, marginRight: 4 }}
+               className="ui-icon-button btn-icon"
+                style={{ marginRight: 4 }}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (contextMenu) {
@@ -400,7 +402,7 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
                 title="Options"
                 aria-label="Options"
               >
-                <MoreHorizontal size={11} />
+                <MoreHorizontal className="ui-icon" />
               </button>
             </>
           )}
@@ -408,28 +410,28 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
 
         {/* Nested children container */}
         {node.kind === 'directory' && expanded && (
-          <ul className="tree-children" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <ul className="tree-children" style={{ display: 'flex', flexDirection: 'column', listStyle: 'none', padding: 0, margin: 0 }}>
             {/* Inline new-file / new-folder input */}
             {inlineInput && inlineInput.mode !== 'rename' && (
               <li
                 className="tree-node row-xs"
                 style={{
-                  '--tree-depth': depth + 1, height: 32, paddingLeft: 6 + (depth + 1) * 12, paddingRight: 6,
+                  '--tree-depth': depth + 1, height: 'var(--control-height-sm)', paddingLeft: 6 + (depth + 1) * 12, paddingRight: 6,
                   fontSize: 'var(--fs-xs)',
                   color: 'var(--c-text-1)',
                 } as React.CSSProperties}
               >
                 <span className="shrink-0" style={{ width: 14 }} />
                 {inlineInput.mode === 'new-file'
-                  ? <File size={13} className="shrink-0 subtle" />
-                  : <Folder size={13} className="shrink-0" style={{ color: 'var(--c-text-2)' }} />
+                  ? <File className="ui-icon shrink-0 subtle" />
+                  : <Folder className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />
                 }
                 <input
                   ref={inputRef}
                   title={inlineInput.mode === 'new-file' ? t('explorer.newFileName') : t('explorer.newFolderName')}
                   placeholder={inlineInput.mode === 'new-file' ? t('explorer.filenamePlaceholder') : t('explorer.folderPlaceholder')}
-                  className="ctrl-xs flex-1 min-w-0"
-                  style={{ marginLeft: 4, marginRight: 12, borderColor: 'var(--c-accent-center-panel)' }}
+                  className="ui-input ctrl-xs flex-1 min-w-0"
+                  style={{ marginLeft: 4, marginRight: 12 }}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyDown={handleInputKey}
@@ -438,8 +440,12 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
               </li>
             )}
             {node.children && node.children.map((child) => (
-              <TreeNode key={child.fullPath} node={child} depth={depth + 1} searchActive={searchActive} />
+              <Fragment key={child.fullPath}>
+                <TreeDropZone targetDirFullPath={node.fullPath} depth={depth + 1} />
+                <TreeNode node={child} depth={depth + 1} searchActive={searchActive} />
+              </Fragment>
             ))}
+            <TreeDropZone targetDirFullPath={node.fullPath} depth={depth + 1} />
           </ul>
         )}
       </li>
@@ -455,20 +461,20 @@ export function TreeNode({ node, depth, searchActive = false }: TreeNodeProps) {
           {node.kind === 'directory' && (
             <>
               <button type="button" onClick={startNewFile} className="drop-item">
-                <SquarePlus size={12} /> {t('explorer.newFile')}
+                <SquarePlus className="ui-icon" /> {t('explorer.newFile')}
               </button>
               <button type="button" onClick={startNewFolder} className="drop-item">
-                <SquareSlash size={12} /> {t('explorer.newFolder')}
+                <SquareSlash className="ui-icon" /> {t('explorer.newFolder')}
               </button>
             </>
           )}
           <button type="button" onClick={startRename}
             className="drop-item">
-            <Pencil size={12} /> {t('explorer.rename')}
+            <Pencil className="ui-icon" /> {t('explorer.rename')}
           </button>
           <button type="button" onClick={() => { setContextMenu(null); setConfirmDelete(true); }}
             className="drop-item" style={{ color: '#EF4444' }}>
-            <Trash2 size={12} /> {t('explorer.delete')}
+            <Trash2 className="ui-icon" /> {t('explorer.delete')}
           </button>
         </div>
       )}

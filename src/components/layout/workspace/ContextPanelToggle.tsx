@@ -14,13 +14,14 @@ const CONTEXT_PANEL_NOUN: Record<WorkspaceMode, string> = {
   forms: 'Forms list',
   settings: 'Settings list',
   github: 'repository files',
+  notes: 'notes',
 };
 
 interface ContextPanelToggleProps {
   mode?: WorkspaceMode;
   /** When false (e.g. Task Projects, CRM Pipeline), control is hidden. */
   available?: boolean;
-  /** Icon size in px. Defaults to 12 for toolbars, 16 for the header. */
+  /** @deprecated UI icons follow the shared c-icon-1 token. */
   iconSize?: number;
   variant?: 'toolbar' | 'header';
   /** Override the default `context-panel-toggle-${mode}` id when the control is duplicated. */
@@ -33,7 +34,7 @@ interface ContextPanelToggleProps {
 export function ContextPanelToggle({
   mode: modeProp,
   available: availableProp,
-  iconSize,
+
   variant = 'toolbar',
   id: idProp,
 }: ContextPanelToggleProps) {
@@ -47,7 +48,7 @@ export function ContextPanelToggle({
 
   if (!available) {
     if (variant === 'header') {
-      return <span className="ai-toggle-btn" aria-hidden="true" style={{ visibility: 'hidden' }} />;
+      return <span className="ui-icon-button ai-toggle-btn" aria-hidden="true" style={{ visibility: 'hidden' }} />;
     }
     return null;
   }
@@ -56,7 +57,7 @@ export function ContextPanelToggle({
   const label = mode === 'github'
     ? t(open ? 'github.hideRepositoryPanel' : 'github.showRepositoryPanel')
     : open ? `Hide ${noun}` : `Show ${noun}`;
-  const resolvedIconSize = iconSize ?? (variant === 'header' ? 16 : 12);
+
   const className =
     variant === 'header'
       ? `ai-toggle-btn${open ? ' ai-toggle-btn--on' : ''}`
@@ -66,14 +67,14 @@ export function ContextPanelToggle({
     <button
       id={idProp ?? `context-panel-toggle-${mode}`}
       type="button"
-      className={className}
+      className={"ui-icon-button " + (className)}
       onMouseDown={variant === 'header' ? (event) => event.stopPropagation() : undefined}
       onClick={() => toggleContextPanel(mode)}
       title={label}
       aria-label={label}
       aria-pressed={open}
     >
-      <PanelLeft size={resolvedIconSize} />
+      <PanelLeft className="ui-icon"  />
     </button>
   );
 }

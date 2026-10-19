@@ -6,7 +6,7 @@
  * via temporary compatibility mirrors in uiStore.
  */
 
-export type WorkspaceMode = 'documents' | 'github' | 'tasks' | 'crm' | 'forms' | 'settings';
+export type WorkspaceMode = 'documents' | 'github' | 'tasks' | 'crm' | 'forms' | 'settings' | 'notes';
 
 export type ContextPanelOpenByMode = {
   documents: boolean;
@@ -15,6 +15,7 @@ export type ContextPanelOpenByMode = {
   forms: boolean;
   settings: boolean;
   github: boolean;
+  notes: boolean;
 };
 
 export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
@@ -24,6 +25,7 @@ export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
   forms: true,
   settings: true,
   github: true,
+  notes: false,
 };
 
 export const ASSISTANT_WRAPPER_WIDTH_MIN_VW = 15;
@@ -105,6 +107,7 @@ export function selectActiveWorkspaceMode(state: ModeRoutingState): WorkspaceMod
   if (state.crmMode && state.activeCRMPage === 'forms') return 'forms';
   if (state.crmMode) return 'crm';
   if (state.activeView === 'settings') return 'settings';
+  if (state.activeView === 'notes') return 'notes';
   return 'documents';
 }
 
@@ -128,6 +131,7 @@ export function selectIsContextPanelAvailable(
   state: ModeRoutingState & { activeTaskPage: string },
 ): boolean {
   const mode = selectActiveWorkspaceMode(state);
+  if (mode === 'notes') return false;
   if (mode === 'tasks') return state.activeTaskPage !== 'projects';
   if (mode === 'crm') return state.activeCRMPage !== 'pipeline' && state.activeCRMPage !== 'projects';
   return true;
@@ -162,6 +166,7 @@ export function mergeContextPanelOpenByMode(
       partial?.github ??
       fallbacks.github ??
       DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.github,
+    notes: partial?.notes ?? fallbacks.notes ?? DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.notes,
   };
 }
 
@@ -214,7 +219,7 @@ function parseContextPanelOpenByMode(raw: unknown): Partial<ContextPanelOpenByMo
   if (typeof obj !== 'object' || obj === null) return undefined;
   const rec = obj as Record<string, unknown>;
   const out: Partial<ContextPanelOpenByMode> = {};
-  for (const key of ['documents', 'tasks', 'crm', 'forms', 'settings', 'github'] as const) {
+  for (const key of ['documents', 'tasks', 'crm', 'forms', 'settings', 'github', 'notes'] as const) {
     if (key in rec) out[key] = Boolean(rec[key]);
   }
   return out;

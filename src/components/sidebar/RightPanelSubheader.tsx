@@ -145,7 +145,7 @@ export function RightPanelSubheader({
         >
           <button
             type="button"
-            className={`tbar-btn ${contextWindowOpen ? 'tbar-btn--on' : ''}`}
+            className={"ui-icon-button " + (`tbar-btn ${contextWindowOpen ? 'tbar-btn--on' : ''}`)}
             onClick={toggleContextWindow}
             title="Context window"
             aria-label="Context window"
@@ -178,7 +178,7 @@ export function RightPanelSubheader({
               setAgentOpen((open) => !open);
             }}
           >
-            <User size={12} />
+            <User className="ui-icon"  />
             <span className="trunc">{activeAgent.name}</span>
           </button>
           {agentOpen && (
@@ -215,7 +215,7 @@ export function RightPanelSubheader({
         >
           <button
             type="button"
-            className="tbar-btn"
+            className="ui-icon-button tbar-btn"
             onClick={() => {
               setContextSummaryOpen(false);
               setContextWindowOpen(false);
@@ -223,15 +223,15 @@ export function RightPanelSubheader({
             }}
             title="Chat history"
           >
-            <Clock size={12} />
+            <Clock className="ui-icon"  />
           </button>
           <button
             type="button"
-            className="tbar-btn"
+            className="ui-icon-button tbar-btn"
             onClick={handleNewChat}
             title="New chat"
           >
-            <Plus size={12} />
+            <Plus className="ui-icon"  />
           </button>
           {historyOpen && (
             <div className="chat-history-dropdown">
@@ -247,14 +247,14 @@ export function RightPanelSubheader({
                   <span className="trunc">{thread.title}</span>
                   <button
                     type="button"
-                    className="chat-history-delete"
+                    className="ui-icon-button chat-history-delete"
                     title="Delete chat"
                     onClick={(e) => {
                       e.stopPropagation();
                       deleteThread(thread.id);
                     }}
                   >
-                    <X size={12} />
+                    <X className="ui-icon"  />
                   </button>
                 </div>
               ))}

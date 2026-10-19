@@ -13,7 +13,7 @@ export function FormsEmptyState({ icon: Icon, title, subtitle, action }: FormsEm
     <div className="forms-empty-state">
       {Icon ? (
         <span className="forms-empty-state-icon">
-          <Icon size={22} />
+          <Icon />
         </span>
       ) : null}
       <p className="forms-empty-state-title">{title}</p>

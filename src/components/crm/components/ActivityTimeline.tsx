@@ -43,7 +43,7 @@ function formatRelative(iso: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
 }
 
 interface ActivityTimelineProps {
@@ -66,7 +66,7 @@ export function ActivityTimeline({ activities, showTimestamp = true, emptyText =
           <div key={activity.id} className="crm-timeline-item">
             <div className="crm-timeline-rail">
               <span className="crm-timeline-icon">
-                <Icon size={13} />
+                <Icon />
               </span>
             </div>
             <div className="crm-timeline-body">

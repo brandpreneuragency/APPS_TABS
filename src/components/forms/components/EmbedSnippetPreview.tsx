@@ -40,10 +40,10 @@ export function EmbedSnippetPreview({ snippet, language = 'html', label }: Embed
         <button
           type="button"
           onClick={handleCopy}
-          className={`forms-snippet-copy${copied ? ' forms-snippet-copy--done' : ''}`}
+          className={"ui-button " + (`forms-snippet-copy${copied ? ' forms-snippet-copy--done' : ''}`)}
           title={copied ? 'Copied' : 'Copy to clipboard'}
         >
-          {copied ? <Check size={12} /> : <Copy size={12} />}
+          {copied ? <Check /> : <Copy />}
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>

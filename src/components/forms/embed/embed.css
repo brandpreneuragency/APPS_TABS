@@ -209,11 +209,11 @@
   padding: 10px 12px;
 }
 
-.forms-embed-input--minimal:hover:not(:disabled):not(:focus) {
+.forms-embed-input--minimal:not(textarea):hover:not(:disabled):not(:focus) {
   background: color-mix(in srgb, var(--tabs-form-primary) 18%, transparent);
 }
 
-.forms-embed-input--minimal:focus {
+.forms-embed-input--minimal:not(textarea):focus {
   background: var(--tabs-form-field-bg);
 }
 

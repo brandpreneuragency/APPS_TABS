@@ -131,8 +131,8 @@ export function generateTaskSummary(
     `- **Date:** ${task.date}`,
     `- **Project:** ${projectName ?? '—'}`,
     `- **Assignees:** ${task.assignees.join(', ') || '—'}`,
-    `- **Created:** ${new Date(task.createdAt).toLocaleString()}`,
-    `- **Updated:** ${new Date(task.updatedAt).toLocaleString()}`,
+    `- **Created:** ${new Date(task.createdAt).toLocaleString('tr-TR')}`,
+    `- **Updated:** ${new Date(task.updatedAt).toLocaleString('tr-TR')}`,
     '',
     '## Comments',
   ];
@@ -141,7 +141,7 @@ export function generateTaskSummary(
     lines.push('_No comments yet._');
   } else {
     for (const c of comments) {
-      const date = new Date(c.createdAt).toLocaleString();
+      const date = new Date(c.createdAt).toLocaleString('tr-TR');
       lines.push(`- **${date}:** ${c.text}`);
       if (c.attachmentDataUrl) {
         lines.push('  - Attachment: [local file]');

@@ -43,8 +43,8 @@ export function CompanyList({ onAddCompany }: CompanyListProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div className="crm-list-search">
-        <Search size={13} className="crm-list-search-icon" />
-        <input
+        <Search className="crm-list-search-icon" />
+        <input className="ui-input"
           type="text"
           placeholder="Search companies…"
           value={filters.company.search ?? ''}
@@ -54,7 +54,7 @@ export function CompanyList({ onAddCompany }: CompanyListProps) {
 
       <div className="crm-list-filter-row">
         <select
-          className="crm-list-filter-select"
+          className="ui-input crm-list-filter-select"
           value={filters.company.industry ?? ''}
           onChange={(e) => setCompanyFilters({ industry: e.target.value || undefined })}
         >
@@ -78,15 +78,15 @@ export function CompanyList({ onAddCompany }: CompanyListProps) {
         const companyContacts = contacts.filter((c) => c.companyId === company.id).length;
         const companyLeads = leads.filter((l) => l.companyId === company.id).length;
         return (
-          <button
+          <button data-active={isActive}
             key={company.id}
             type="button"
-            className={`crm-list-item${isActive ? ' crm-list-item--active' : ''}`}
+            className={"ui-list-row " + (`crm-list-item${isActive ? ' crm-list-item--active' : ''}`)}
             onClick={() => setActiveCompanyId(company.id)}
           >
             <div className="crm-list-item-row">
               <span className="crm-list-item-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                <Building2 size={12} className="subtle" />
+                <Building2 className="subtle" />
                 {company.name}
               </span>
               <span className="crm-list-item-sub">{formatRelative(company.lastActivityAt)}</span>
@@ -106,8 +106,8 @@ export function CompanyList({ onAddCompany }: CompanyListProps) {
       })}
 
       {onAddCompany && (
-        <button type="button" className="crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddCompany} style={{ marginTop: 6 }}>
-          <Plus size={13} /> Add company
+        <button type="button" className="ui-button crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddCompany} style={{ marginTop: 6 }}>
+          <Plus /> Add company
         </button>
       )}
     </div>

@@ -50,8 +50,8 @@ export function ConfirmDialog({ message, onConfirm, onCancel, onSave, confirmLab
             id="confirm-cancel-btn"
             type="button"
             onClick={onCancel}
-            className="btn-xs"
-            style={{ background: 'transparent', border: '1px solid var(--c-border-1)', color: 'var(--c-text-2)' }}
+            className="ui-button btn-xs"
+            style={{ background: 'transparent', border: '1px solid var(--c-border-1)', color: 'var(--c-text-3)' }}
           >
             {t('confirm.cancel')}
           </button>
@@ -59,7 +59,7 @@ export function ConfirmDialog({ message, onConfirm, onCancel, onSave, confirmLab
             id="confirm-delete-btn"
             type="button"
             onClick={onConfirm}
-            className="btn-xs semibold"
+            className="ui-button btn-xs semibold"
             style={{ background: 'var(--c-background-3)', color: 'var(--c-text-1)', border: 'none' }}
           >
             {resolvedConfirmLabel}
@@ -69,7 +69,7 @@ export function ConfirmDialog({ message, onConfirm, onCancel, onSave, confirmLab
               id="confirm-save-btn"
               type="button"
               onClick={onSave}
-              className="btn-brand semibold"
+              className="ui-button ui-button--primary btn-brand semibold"
             >
               {t('confirm.save')}
             </button>

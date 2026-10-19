@@ -46,6 +46,12 @@ interface SelectionState {
 }
 
 export type SidebarTab = 'chat' | 'actions' | 'characters' | 'models';
+export type AppTheme = 'default' | 'purple-neon';
+
+function applyTheme(theme: AppTheme): void {
+  if (theme === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.dataset.theme = theme;
+}
 
 /** Active sub-page within the CRM module (owned by uiStore so the shell can switch panels).
  *  'forms' hosts the merged Forms sub-module (list/builder/submissions/templates/settings),
@@ -61,9 +67,11 @@ export type SettingsSubTab = 'tools' | 'actions' | 'appearance' | 'agents';
 /** Legacy Settings sub-tab id kept for deep-link compatibility (maps to `tools`). */
 export type LegacySettingsSubTab = SettingsSubTab | 'models';
 /** Which doc-mode tab is active: a normal document or the special Settings doc. */
-export type DocActiveView = 'document' | 'settings';
+export type DocActiveView = 'document' | 'settings' | 'notes';
 
 interface UIStore {
+  theme: AppTheme;
+  setTheme: (theme: AppTheme) => Promise<void>;
   // ── Logical two-wrapper layout ─────────────────────────────────────
   primaryWrapperOpen: boolean;
   assistantWrapperOpen: boolean;
@@ -277,6 +285,13 @@ export function selectIsContextPanelAvailable(
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
+  theme: 'default',
+  setTheme: async (theme) => {
+    // Save before applying so a failed write cannot masquerade as a saved choice.
+    await db.settings.put({ key: 'theme', value: theme });
+    applyTheme(theme);
+    set({ theme });
+  },
   toasts: [],
 
   showToast: (message, type = 'error') => {
@@ -556,9 +571,15 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   setActiveView: (v) => {
     // Entering documents or settings in doc mode ensures primary open.
-    set({ activeView: v, githubMode: false, primaryWrapperOpen: true });
+    set({ activeView: v, githubMode: false, primaryWrapperOpen: true,
+      ...(v === 'notes' ? { taskMode: false, crmMode: false } : {}),
+    });
     persistLayoutKeys({ primaryWrapperOpen: true });
     void db.settings.put({ key: 'githubMode', value: false });
+    if (v === 'notes') {
+      void db.settings.put({ key: 'taskMode', value: false });
+      void db.settings.put({ key: 'crmMode', value: false });
+    }
   },
 
   setActiveSettingsSubTab: (tab) =>
@@ -710,11 +731,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
     void i18n.changeLanguage(lang);
     document.documentElement.lang = lang;
 
-    // Legacy named themes (e.g. cyberpunk) are no longer supported — force default.
-    if (themeSetting?.value != null && themeSetting.value !== 'default') {
+    // Preserve the legacy fallback; only explicitly supported themes opt in.
+    const theme: AppTheme = themeSetting?.value === 'purple-neon' ? 'purple-neon' : 'default';
+    if (themeSetting?.value != null && themeSetting.value !== theme) {
       void db.settings.put({ key: 'theme', value: 'default' });
     }
-    document.documentElement.removeAttribute('data-theme');
+    applyTheme(theme);
 
     const githubModeValue = githubModeSetting ? Boolean(githubModeSetting.value) : false;
     const crmModeStored = crmModeSetting ? Boolean(crmModeSetting.value) : false;
@@ -775,6 +797,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
     persistLayoutKeys(layout);
 
     set({
+      theme,
       primaryWrapperOpen: layout.primaryWrapperOpen,
       assistantWrapperOpen: layout.assistantWrapperOpen,
       wrappersSwapped: layout.wrappersSwapped,

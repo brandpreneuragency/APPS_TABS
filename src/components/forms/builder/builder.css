@@ -1,7 +1,7 @@
 /* =========================================================
  * Form Builder scoped styles.
  * Imported once by FormBuilder.tsx.
- * Token-driven (reuses --c-*, --fs-*, --radius-*, --shadow-*).
+ * Token-driven (reuses --c-*, --fs-*, --radius-*); application chrome stays flat.
  * All classes are prefixed `forms-builder-*` to avoid clashes.
  * Mirrors TaskDetailPanel spacing/radius + forms.css rhythm.
  * The BUILDER UI uses app tokens. The published/preview form
@@ -24,9 +24,6 @@
 .forms-builder-toolbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  height: 44px;
-  padding: 0 12px;
   border-bottom: 1px solid var(--c-border-1);
   background: var(--c-background-1);
   flex-shrink: 0;
@@ -35,31 +32,9 @@
 .forms-builder-title-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   min-width: 0;
   flex: 1 1 auto;
-}
-
-.forms-builder-title-input {
-  min-width: 0;
-  max-width: 320px;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  outline: none;
-  transition: border-color 0.15s, background-color 0.15s;
-}
-.forms-builder-title-input:hover {
-  background: var(--c-background-2);
-}
-.forms-builder-title-input:focus {
-  border-color: var(--c-accent-center-panel);
-  background: var(--c-background-1);
 }
 
 .forms-builder-toolbar-spacer { flex: 1 1 auto; }
@@ -67,7 +42,7 @@
 .forms-builder-toolbar-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   flex-shrink: 0;
 }
 
@@ -77,41 +52,12 @@
   flex-wrap: nowrap;
   gap: 0;
   border-bottom: 1px solid var(--c-border-1);
-  padding: 0 12px;
+  padding: var(--c-space-1);
   flex-shrink: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
 .forms-builder-tabs::-webkit-scrollbar { display: none; }
-
-.forms-builder-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  height: 34px;
-  padding: 0 12px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: color 0.15s, border-color 0.15s, background-color 0.15s;
-  white-space: nowrap;
-}
-.forms-builder-tab:hover {
-  color: var(--c-text-1);
-  background: var(--c-background-2);
-}
-.forms-builder-tab--active,
-.forms-builder-tab--active:hover {
-  color: var(--c-accent-center-panel);
-  border-bottom-color: var(--c-accent-center-panel);
-  background: transparent;
-}
 
 /* ---------- Tab body ---------- */
 .forms-builder-body {
@@ -153,9 +99,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  height: 34px;
-  padding: 0 10px;
   border-bottom: 1px solid var(--c-border-1);
   flex-shrink: 0;
 }
@@ -170,36 +113,16 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 10px;
 }
 
 /* ---------- Field palette ---------- */
 .forms-builder-palette-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-palette-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  font-weight: 500;
   text-align: left;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-.forms-builder-palette-btn:hover {
-  background: var(--c-background-3);
-  color: var(--c-text-1);
-  border-color: var(--c-border-1);
 }
 .forms-builder-palette-btn-icon {
   display: flex;
@@ -209,12 +132,12 @@
   flex-shrink: 0;
 }
 .forms-builder-palette-btn:hover .forms-builder-palette-btn-icon {
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
 }
 .forms-builder-palette-hint {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
-  padding: 6px 4px 0;
+  color: var(--c-text-3);
+  padding: var(--c-space-1);
   line-height: 1.4;
 }
 
@@ -222,8 +145,7 @@
 .forms-builder-canvas {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 14px;
+  gap: var(--c-gap-1);
   max-width: 720px;
   margin: 0 auto;
   width: 100%;
@@ -232,7 +154,7 @@
 .forms-builder-step-sep {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   margin: 6px 0 2px;
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -256,27 +178,14 @@
   overflow: hidden;
   transition: border-color 0.15s;
 }
-.forms-builder-field-wrap--expanded {
-  border-color: var(--c-accent-center-panel);
-}
 
-.forms-builder-field-card {
+
+.forms-builder-field-card.ui-card {
   display: flex;
+  flex-direction: row;
   align-items: flex-start;
-  gap: 10px;
-  padding: 10px 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  background: transparent;
   cursor: pointer;
   transition: background-color 0.15s;
-}
-.forms-builder-field-wrap:not(.forms-builder-field-wrap--expanded) .forms-builder-field-card:hover {
-  background: var(--c-background-2);
-}
-.forms-builder-field-wrap--expanded .forms-builder-field-card {
-  border-bottom: 1px solid var(--c-border-1);
-  background: var(--c-background-1);
 }
 
 .forms-builder-field-card-chevron {
@@ -301,10 +210,7 @@
   cursor: default;
 }
 .forms-builder-field-details .forms-builder-inspector-section {
-  padding: 10px 12px;
-}
-.forms-builder-field-card--active {
-  background: var(--c-background-1);
+  padding: var(--c-space-1);
 }
 .forms-builder-field-card--disabled {
   opacity: 0.65;
@@ -324,7 +230,7 @@
 }
 .forms-builder-field-card--active .forms-builder-field-card-icon {
   background: rgba(35, 114, 68, 0.1);
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
 }
 
 .forms-builder-field-card-body {
@@ -332,7 +238,7 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-field-card-label {
   font-size: var(--fs-sm);
@@ -340,7 +246,7 @@
   color: var(--c-text-1);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   word-break: break-word;
 }
 .forms-builder-field-card-required {
@@ -349,10 +255,10 @@
 }
 .forms-builder-field-card-meta {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   flex-wrap: wrap;
 }
 .forms-builder-field-card-name {
@@ -364,29 +270,8 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 2px;
+  gap: var(--c-gap-1);
   flex-shrink: 0;
-}
-.forms-builder-field-card-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--c-text-2);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-.forms-builder-field-card-btn:hover {
-  background: var(--c-background-2);
-  color: var(--c-text-1);
-}
-.forms-builder-field-card-btn--danger:hover {
-  color: var(--c-danger);
 }
 
 .forms-builder-canvas-empty {
@@ -394,10 +279,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 48px 16px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   text-align: center;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   border: 1px dashed var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-2);
@@ -407,8 +292,8 @@
 .forms-builder-inspector-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 12px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border-bottom: 1px solid var(--c-border-1);
 }
 .forms-builder-inspector-section:last-child { border-bottom: none; }
@@ -423,12 +308,12 @@
 .forms-builder-options-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-option-row {
   display: grid;
   grid-template-columns: 1fr 1fr auto;
-  gap: 6px;
+  gap: var(--c-gap-1);
   align-items: center;
 }
 .forms-builder-option-row input {
@@ -437,10 +322,10 @@
 
 .forms-builder-inline-hint {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   line-height: 1.4;
-  padding: 6px 8px;
-  border-left: 2px solid var(--c-warning);
+  padding: var(--c-space-1);
+
   background: rgba(245, 158, 11, 0.08);
   border-radius: var(--radius-sm);
 }
@@ -465,12 +350,12 @@
 .forms-builder-control-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-color-input {
   width: 100%;
   height: 30px;
-  padding: 2px;
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-1);
@@ -484,8 +369,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 12px;
   border-bottom: 1px solid var(--c-border-1);
   background: var(--c-background-2);
   flex-shrink: 0;
@@ -497,36 +380,12 @@
   overflow: hidden;
   background: var(--c-background-1);
 }
-.forms-builder-preview-toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  width: fit-content;
-  height: 28px;
-  padding: 0 10px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-.forms-builder-preview-toggle-btn:hover {
-  color: var(--c-text-1);
-  background: var(--c-background-2);
-}
-.forms-builder-preview-toggle-btn--active {
-  background: var(--c-accent-center-panel);
-  color: #fff;
-}
 
 .forms-builder-preview-stage {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 20px;
+  padding: var(--c-space-1);
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -662,17 +521,16 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-rule {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto auto auto;
-  gap: 8px;
+  gap: var(--c-gap-1);
   align-items: center;
-  padding: 10px;
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-1);
@@ -689,13 +547,13 @@
 .forms-builder-utm-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 6px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-utm-item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-1);
@@ -713,9 +571,9 @@
 .forms-builder-step-row {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 8px;
+  gap: var(--c-gap-1);
   align-items: center;
-  padding: 8px 0;
+  padding: var(--c-space-1);
   border-bottom: 1px solid var(--c-border-1);
 }
 .forms-builder-step-row:last-child { border-bottom: none; }
@@ -732,10 +590,9 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-preview {
   border: 1px solid var(--c-border-1);
@@ -750,7 +607,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 10px;
+  padding: var(--c-space-1);
   border-bottom: 1px solid var(--c-border-1);
   background: var(--c-background-2);
   font-size: var(--fs-xs);
@@ -783,10 +640,6 @@
   }
   .forms-builder-palette-btn span { display: none; }
   .forms-builder-palette-hint { display: none; }
-  .forms-builder-palette-btn {
-    justify-content: center;
-    padding: 0;
-  }
 }
 @media (max-width: 760px) {
   .forms-builder-style {
@@ -809,7 +662,7 @@
 .forms-builder-checkbox-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-sm);
   color: var(--c-text-1);
   cursor: pointer;
@@ -818,7 +671,7 @@
   width: 15px;
   height: 15px;
   cursor: pointer;
-  accent-color: var(--c-accent-center-panel);
+  accent-color: var(--c-accent-1);
   flex-shrink: 0;
 }
 /* ---------- Submissions tab ---------- */
@@ -826,8 +679,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 14px;
   border-bottom: 1px solid var(--c-border-1);
   background: var(--c-background-2);
   flex-shrink: 0;
@@ -840,13 +691,13 @@
 .forms-builder-submission-summary {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--c-gap-1);
   min-width: 0;
 }
 .forms-builder-submission-summary-item {
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-xs);
   min-width: 0;
 }
@@ -864,15 +715,15 @@
 }
 .forms-builder-submission-time {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   white-space: nowrap;
 }
 .forms-builder-submission-status {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   height: 20px;
-  padding: 0 8px;
+  padding: var(--c-space-1);
   border-radius: var(--radius-full);
   font-size: var(--fs-xs);
   font-weight: 600;
@@ -882,18 +733,16 @@
 }
 .forms-builder-submission-status--new {
   background: var(--c-background-2);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   border-color: var(--c-border-1);
 }
 .forms-builder-submission-status--converted {
   background: rgba(34, 197, 94, 0.12);
   color: var(--c-success);
-  border-color: rgba(34, 197, 94, 0.3);
 }
 .forms-builder-submission-status--spam {
   background: rgba(239, 68, 68, 0.12);
   color: var(--c-danger);
-  border-color: rgba(239, 68, 68, 0.3);
 }
 
 /* ---------- Settings tab ---------- */
@@ -908,10 +757,9 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: var(--c-gap-1);
   max-width: 760px;
   width: 100%;
   margin: 0 auto;
@@ -919,8 +767,8 @@
 .forms-builder-disabled-panel {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  padding: 12px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border: 1px dashed var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-2);
@@ -929,13 +777,13 @@
 .forms-builder-disabled-panel > div {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--c-gap-1);
   min-width: 0;
 }
 .forms-builder-status-control {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 
 /* ---------- Preview overlay (full-screen) ---------- */
@@ -946,36 +794,4 @@
   background: var(--c-overlay);
   display: flex;
   flex-direction: column;
-}
-
-@media (max-width: 760px) {
-  .forms-builder-settings-scroll {
-    padding: 14px 14px;
-  }
-}
-
-/* =========================================================
- * Appended: narrow-width graceful degradation.
- * The build tab already collapses at 980px (paletteâ†’icons)
- * and the style tab stacks at 760px. These additions only tighten padding/gaps at very
- * narrow panel or viewport widths so the canvas stays usable.
- * No existing rules rewritten; only new blocks appended.
- * ========================================================= */
-
-@container main-panel (max-width: 520px) {
-  .forms-builder-canvas { padding: 10px; }
-  .forms-builder-toolbar { gap: 6px; padding: 0 8px; }
-  .forms-builder-title-input { max-width: 100%; }
-  .forms-builder-settings-scroll { padding: 12px; }
-  .forms-builder-logic { padding: 12px; }
-  .forms-builder-embed { padding: 12px; }
-}
-
-@media (max-width: 480px) {
-  .forms-builder-canvas { padding: 10px; }
-  .forms-builder-toolbar { gap: 6px; padding: 0 8px; }
-  .forms-builder-title-input { max-width: 100%; }
-  .forms-builder-settings-scroll { padding: 12px; }
-  .forms-builder-logic { padding: 12px; }
-  .forms-builder-embed { padding: 12px; }
 }

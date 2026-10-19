@@ -7,7 +7,7 @@
 .right-panel-subheader-wrapper {
   flex: 0 0 auto;
   min-width: 0;
-  padding: 6px;
+  padding: var(--c-space-1);
 }
 
 .chat-window-wrapper,
@@ -21,11 +21,18 @@
 }
 
 .chat-window-wrapper {
-  padding: 0 10px;
+  padding-left: var(--c-space-0);
+  padding-right: 0;
 }
 
 .chat-window {
   padding: 0;
+}
+
+#scroll-ai {
+  padding: var(--c-space-1);
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 /*CHAT THREAD*/
@@ -69,26 +76,6 @@
 .composer-left--fill {
   flex: 1;
   min-width: 0;
-}
-.composer-tool-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  box-sizing: border-box;
-}
-.composer-tool-button:hover {
-  background: transparent;
-}
-.composer-attach-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  flex-shrink: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 .composer-search-active {
   background: var(--c-background-4);
@@ -167,7 +154,7 @@
   border: 1px solid var(--c-border-1) !important;
   padding: 4px;
   background: var(--c-background-2) !important;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+
 }
 #chat-input-card .drop-item {
   background-color: transparent;
@@ -218,8 +205,8 @@
   content: '';
   width: 8px;
   height: 2px;
-  border-top: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
+  border-top: 1px solid var(--c-border-2);
+  border-bottom: 1px solid var(--c-border-2);
   opacity: 0.6;
 }
 #chat-input-card .composer-resize-handle:hover::before {
@@ -281,35 +268,6 @@
   gap: 8px;
   flex-shrink: 0;
 }
-:root .composer-tool-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  box-sizing: border-box;
-}
-:root .composer-tool-button:hover {
-  background: transparent;
-}
-:root .composer-attach-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  flex-shrink: 0;
-  padding: 0;
-  box-sizing: border-box;
-  color: var(--c-text-3);
-}
-:root .composer-attach-button:hover {
-  color: var(--c-text-2);
-}
-:root .composer-attach-button:focus-visible {
-  color: var(--c-accent-3);
-  outline: 1px solid var(--c-accent-3);
-  outline-offset: 1px;
-}
 :root .composer-search-active {
   background: var(--c-background-4);
   border-radius: var(--radius-sm);
@@ -365,7 +323,7 @@
 :root .streaming-cursor::after {
   content: '\25CB';
   animation: blink 1s step-end infinite;
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
 }
 @keyframes blink {
   0%, 100% {
@@ -385,7 +343,7 @@
   transition: outline-color 0.12s ease, background-color 0.12s ease;
 }
 .composer-dropzone--active {
-  outline: 2px dashed var(--c-accent-2);
+  outline: 2px dashed var(--c-border-2);
   outline-offset: -4px;
   background: var(--c-background-4);
 }
@@ -393,3 +351,8 @@
   z-index: 50;
 }
 
+.chat-empty-state-symbol {
+  display: block;
+  margin: 0 auto var(--c-space-3);
+  color: var(--c-accent-1);
+}

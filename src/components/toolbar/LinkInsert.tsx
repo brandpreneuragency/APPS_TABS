@@ -49,8 +49,8 @@ export function LinkInsert({ editor, onClose }: LinkInsertProps) {
     >
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
         <span className="label semibold">Insert Link</span>
-        <button onClick={onClose} className="tt-primary">
-          <X size={14} />
+        <button onClick={onClose} className="ui-icon-button tt-primary">
+          <X className="ui-icon"  />
         </button>
       </div>
 
@@ -62,14 +62,14 @@ export function LinkInsert({ editor, onClose }: LinkInsertProps) {
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && insert()}
           placeholder="https://example.com"
-          className="ctrl-sm"
+          className="ui-input"
         />
         <div className="row">
           {existing && (
             <button
               id="link-insert-remove"
               onClick={remove}
-              className="btn-xs flex-1"
+              className="ui-button btn-xs flex-1"
               style={{ border: '1px solid var(--c-border-1)' }}
             >
               Remove
@@ -79,7 +79,7 @@ export function LinkInsert({ editor, onClose }: LinkInsertProps) {
             id="link-insert-submit"
             onClick={insert}
             disabled={!url.trim() && !existing}
-            className="btn-brand flex-1"
+            className="ui-button ui-button--primary btn-brand flex-1"
             style={(!url.trim() && !existing) ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
           >
             {existing ? 'Update' : 'Insert'}

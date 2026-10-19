@@ -29,7 +29,7 @@ export function ContextWindowRing({ size = 18 }: { size?: number }) {
       role="img"
       aria-label={hasData ? `Context window ${pct}% used` : 'Context window usage unknown'}
     >
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <svg className="ui-icon" viewBox={`0 0 ${size} ${size}`}>
         <circle
           className="ctx-ring-track"
           cx={size / 2}

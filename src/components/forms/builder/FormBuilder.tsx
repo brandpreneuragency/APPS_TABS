@@ -74,13 +74,13 @@ export default function FormBuilder() {
           action={
             <button
               type="button"
-              className="forms-action-btn forms-action-btn--primary"
+              className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
               onClick={() => {
                 void createForm();
                 setActiveBuilderTab('build');
               }}
             >
-              <FilePlus2 size={15} /> New form
+              <FilePlus2 /> New form
             </button>
           }
         />
@@ -133,10 +133,10 @@ export default function FormBuilder() {
   return (
     <div className="forms-builder">
       {/* Toolbar */}
-      <div className="forms-builder-toolbar">
+      <div className="ui-toolbar forms-builder-toolbar">
         <div className="forms-builder-title-wrap">
           <input
-            className="forms-builder-title-input"
+            className="ui-input forms-builder-title-input"
             value={activeForm.name}
             onChange={(e) => void updateForm(activeForm.id, { name: e.target.value })}
             placeholder="Untitled form"
@@ -147,43 +147,43 @@ export default function FormBuilder() {
         <div className="forms-builder-toolbar-actions">
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={handleSave}
             disabled={justSaved}
           >
-            <Save size={15} /> {justSaved ? 'Saved' : 'Save'}
+            <Save /> {justSaved ? 'Saved' : 'Save'}
           </button>
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={() => setPreviewing((p) => !p)}
             aria-pressed={previewing}
           >
-            <Eye size={15} /> Preview
+            <Eye /> Preview
           </button>
           {isTemplateMode ? (
             <button
               type="button"
-              className="forms-action-btn forms-action-btn--primary"
+              className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
               onClick={() => void handleCreateFromTemplate()}
             >
-              <FilePlus2 size={15} /> Create form
+              <FilePlus2 /> Create form
             </button>
           ) : activeForm.status === 'published' ? (
             <button
               type="button"
-              className="forms-action-btn"
+              className="ui-button forms-action-btn"
               onClick={handlePublishOrArchive}
             >
-              <Archive size={15} /> Archive
+              <Archive /> Archive
             </button>
           ) : (
             <button
               type="button"
-              className="forms-action-btn forms-action-btn--primary"
+              className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
               onClick={handlePublishOrArchive}
             >
-              <Send size={15} /> Publish
+              <Send /> Publish
             </button>
           )}
         </div>
@@ -197,9 +197,10 @@ export default function FormBuilder() {
             type="button"
             role="tab"
             aria-selected={activeBuilderTab === tab.key}
-            className={`forms-builder-tab${
+            data-active={activeBuilderTab === tab.key}
+            className={"ui-button " + (`forms-builder-tab${
               activeBuilderTab === tab.key ? ' forms-builder-tab--active' : ''
-            }`}
+            }`)}
             onClick={() => setActiveBuilderTab(tab.key)}
           >
             {tab.label}
@@ -247,32 +248,32 @@ function FormPreviewOverlay({ form, previewMode, setPreviewMode, onClose }: Form
 
   return (
     <div className="forms-builder-preview-overlay" role="dialog" aria-label="Form preview">
-      <div className="forms-builder-preview-bar">
+      <div className="ui-toolbar forms-builder-preview-bar">
         <div className="forms-builder-preview-toggle">
           {PREVIEW_MODES.map((m) => {
             const Icon = m.icon;
             const isActive = previewMode === m.key;
             return (
-              <button
+              <button data-active={isActive}
                 key={m.key}
                 type="button"
                 title={m.label}
-                className={`forms-builder-preview-toggle-btn${
+                className={"ui-button " + (`forms-builder-preview-toggle-btn${
                   isActive ? ' forms-builder-preview-toggle-btn--active' : ''
-                }`}
+                }`)}
                 onClick={() => setPreviewMode(m.key)}
               >
-                <Icon size={14} /> <span>{m.label}</span>
+                <Icon /> <span>{m.label}</span>
               </button>
             );
           })}
         </div>
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--ghost"
+          className="ui-button forms-action-btn forms-action-btn--ghost"
           onClick={onClose}
         >
-          <X size={15} /> Close preview
+          <X /> Close preview
         </button>
       </div>
       <div className="forms-builder-preview-stage">

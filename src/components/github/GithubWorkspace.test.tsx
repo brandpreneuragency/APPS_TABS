@@ -1,4 +1,5 @@
 import 'fake-indexeddb/auto';
+import { useState } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -13,6 +14,8 @@ import { createMemorySecureStore } from '../../services/github/testing/memorySec
 import type { GithubClock, GithubTransportRequest } from '../../services/github/types';
 import { createGithubStore } from '../../stores/githubStore';
 import { useChatStore } from '../../stores/chatStore';
+import { useUIStore } from '../../stores/uiStore';
+import { LeftNarrowSidebar } from '../layout/LeftNarrowSidebar';
 import { GithubAssistantNotice, GithubWorkspace } from './GithubWorkspace';
 
 const runtime = vi.hoisted(() => ({ isTauri: true }));
@@ -264,9 +267,17 @@ async function createIsolatedStore(
   return { database, name, requests, secureStore, transport, fixture, nativeSession, service, store: createGithubStore(service) };
 }
 
+function FixtureWorkspace({ store }: { store: ReturnType<typeof createGithubStore> }) {
+  const [navigationContainer, setNavigationContainer] = useState<HTMLDivElement | null>(null);
+  return <>
+    <LeftNarrowSidebar githubNavigationRef={setNavigationContainer} />
+    <GithubWorkspace store={store} navigationContainer={navigationContainer} />
+  </>;
+}
+
 async function connectAndOpenNotes(context: Awaited<ReturnType<typeof createIsolatedStore>>) {
   const user = userEvent.setup();
-  const view = render(<GithubWorkspace store={context.store} />);
+  const view = render(<FixtureWorkspace store={context.store} />);
   const clientId = await screen.findByRole('textbox', { name: 'GitHub OAuth App Client ID' });
   await user.type(clientId, 'Iv1.fixture1234');
   await user.click(screen.getByRole('button', { name: 'Save Client ID' }));
@@ -324,6 +335,7 @@ function contentsWrites(context: Awaited<ReturnType<typeof createIsolatedStore>>
 
 beforeEach(async () => {
   runtime.isTauri = true;
+  useUIStore.setState({ ...useUIStore.getInitialState(), githubMode: true });
   await i18n.changeLanguage('en');
 });
 
@@ -337,12 +349,61 @@ afterEach(async () => {
 });
 
 describe('GitHub Phase 1 rendered workspace', () => {
+  it('places repositories in the app navigation, repository content on the left, and only file content in the center', async () => {
+    const context = await createIsolatedStore();
+    const { user } = await connectAndOpenNotes(context);
+    const navigation = screen.getByRole('navigation', { name: 'Repositories' });
+    const repositoryPanel = screen.getByRole('complementary', { name: 'Repository files' });
+    const center = screen.getByRole('region', { name: 'GitHub' });
+
+    expect(within(navigation).getByRole('searchbox', { name: 'Search personal repositories' })).toBeInTheDocument();
+    expect(within(navigation).getByRole('tab', { name: 'notes' })).toHaveAttribute('aria-selected', 'true');
+    expect(within(navigation).getByRole('button', { name: 'Manage repositories' })).toBeInTheDocument();
+    expect(within(repositoryPanel).getByRole('button', { name: 'Open README.md' })).toBeInTheDocument();
+    expect(within(repositoryPanel).getByRole('combobox', { name: 'Branch' })).toBeInTheDocument();
+    expect(within(repositoryPanel).getByText('Local file operations', { selector: 'summary' })).toBeInTheDocument();
+    expect(within(repositoryPanel).queryByRole('searchbox', { name: 'Search personal repositories' })).not.toBeInTheDocument();
+    expect(within(center).getByRole('textbox', { name: 'Source for README.md' })).toHaveValue('# remote');
+    expect(within(center).getByRole('heading', { name: 'Current state' })).toBeInTheDocument();
+    expect(within(center).getByTitle('octocat/notes @ main')).toHaveTextContent('octocat/notes @ main');
+    expect(within(center).queryByRole('tablist', { name: 'Open repository tabs' })).not.toBeInTheDocument();
+    expect(within(center).queryByRole('combobox', { name: 'Branch' })).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: /Changes/ }));
+    expect(within(navigation).getByRole('button', { name: 'other' })).toBeInTheDocument();
+    await user.click(screen.getByRole('tab', { name: 'History' }));
+    expect(within(navigation).getByRole('button', { name: 'other' })).toBeInTheDocument();
+    await user.click(within(navigation).getByRole('button', { name: 'other' }));
+    await waitFor(() => expect(context.store.getState().accountWorkspace?.activeRepoId).toBe('43'));
+    await user.click(await within(repositoryPanel).findByRole('button', { name: 'Open README.md' }));
+    await waitFor(() => expect(screen.getByRole('textbox', { name: 'Source for README.md' })).toHaveValue('# other'));
+    expect(within(navigation).getAllByRole('tab')).toHaveLength(2);
+  });
+
+  it('preserves unsaved file content when a repository switch or close from the app navigation is cancelled', async () => {
+    const context = await createIsolatedStore();
+    const { user } = await connectAndOpenNotes(context);
+    const navigation = screen.getByRole('navigation', { name: 'Repositories' });
+    const editor = screen.getByRole('textbox', { name: 'Source for README.md' });
+    await user.clear(editor);
+    await user.type(editor, '# unsaved navigation edit');
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const requestsBefore = context.requests.length;
+    await user.click(within(navigation).getByRole('button', { name: 'other' }));
+    await user.click(within(navigation).getByRole('button', { name: 'Close local tab for notes' }));
+    expect(confirm).toHaveBeenCalledTimes(2);
+    expect(context.store.getState().accountWorkspace?.activeRepoId).toBe('42');
+    expect(editor).toHaveValue('# unsaved navigation edit');
+    expect(context.requests).toHaveLength(requestsBefore);
+    confirm.mockRestore();
+  });
+
   it('configures through Device Flow, opens and edits fixture files, switches repos, and restores the persisted draft', async () => {
     const user = userEvent.setup();
     const nativeSession = createMemoryNativeSession({ user: { id: '7', login: 'octocat' } });
     const openDeviceLogin = vi.spyOn(nativeSession, 'openDeviceLogin');
     const context = await createIsolatedStore(undefined, nativeSession);
-    const view = render(<GithubWorkspace store={context.store} />);
+    const view = render(<FixtureWorkspace store={context.store} />);
 
     const clientId = await screen.findByRole('textbox', { name: 'GitHub OAuth App Client ID' });
     await user.type(clientId, 'Iv1.fixture1234');
@@ -386,6 +447,7 @@ describe('GitHub Phase 1 rendered workspace', () => {
     await user.clear(search);
     await user.type(search, 'other');
     await user.click(await screen.findByRole('button', { name: 'other' }));
+    await waitFor(() => expect(screen.getByRole('tab', { name: 'notes' })).toBeEnabled());
     await user.click(screen.getByRole('tab', { name: 'notes' }));
     const returnedEditor = await screen.findByRole('textbox', { name: 'Source for README.md' });
     await waitFor(() => expect(returnedEditor).toHaveValue('# locally saved draft'));
@@ -405,7 +467,7 @@ describe('GitHub Phase 1 rendered workspace', () => {
       ...(context.nativeSession ? { nativeSession: context.nativeSession } : {}),
     });
     const reopenedStore = createGithubStore(reopenedService);
-    render(<GithubWorkspace store={reopenedStore} />);
+    render(<FixtureWorkspace store={reopenedStore} />);
 
     const restoredEditor = await screen.findByRole('textbox', { name: 'Source for README.md' });
     await waitFor(() => expect(restoredEditor).toHaveValue('# locally saved draft'));

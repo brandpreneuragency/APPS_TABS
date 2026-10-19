@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task } from '../../types';
+import { useKanbanDropIndicator } from '../../hooks/useKanbanDropIndicator';
+import { sortKanbanCards } from '../../services/kanbanOrder';
 import { useProjectStore } from '../../stores/projectStore';
 import { useTaskStore } from '../../stores/taskStore';
 import { useUIStore } from '../../stores/uiStore';
@@ -36,7 +38,7 @@ export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
   const [anchor, setAnchor] = useState(() => new Date());
   const [today, setToday] = useState(() => new Date());
   const [view, setView] = useState<'week' | 'month'>('week');
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const drop = useKanbanDropIndicator('application/x-task-card');
   const [error, setError] = useState(false);
   const [quickCreateDay, setQuickCreateDay] = useState<string | null>(null);
   const calendarBoard = useRef<HTMLDivElement>(null);
@@ -71,7 +73,7 @@ export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
   return (
     <section className="task-calendar" aria-label={t('navigation.calendar')}>
       <div className="task-calendar-toolbar">
-        <button className="task-calendar-today" type="button" title={t('navigation.today')} aria-label={t('navigation.today')} onClick={() => {
+        <button className="ui-button task-calendar-today" type="button" title={t('navigation.today')} aria-label={t('navigation.today')} onClick={() => {
           const now = new Date();
           scrollToToday.current = true;
           setToday(now);
@@ -80,42 +82,39 @@ export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
           <time dateTime={today.toISOString()}>{clockLabel}</time>
         </button>
         <div className="task-calendar-navigation">
-          <button type="button" title={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(-1)}><ChevronLeft size={16} /></button>
+          <button className="ui-icon-button" type="button" title={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.previous${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(-1)}><ChevronLeft /></button>
           <TaskCalendarDatePicker value={anchor} label={label} onChange={setAnchor} />
-          <button type="button" title={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(1)}><ChevronRight size={16} /></button>
+          <button className="ui-icon-button" type="button" title={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} aria-label={t(`calendar.next${view === 'week' ? 'Week' : 'Month'}`)} onClick={() => move(1)}><ChevronRight /></button>
         </div>
         <div className="task-calendar-actions">
           <div className="task-calendar-switch" role="group" aria-label={t('calendar.view')}>
-            {(['week', 'month'] as const).map((mode) => <button key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)}>{t(`calendar.${mode}`)}</button>)}
+            {(['week', 'month'] as const).map((mode) => <button className="ui-button" key={mode} type="button" aria-pressed={view === mode} onClick={() => setView(mode)}>{t(`calendar.${mode}`)}</button>)}
           </div>
           <AssistantToggle id="task-calendar-btn-assistant" variant="header" />
         </div>
       </div>
       {error && <div role="alert">{t('calendar.moveFailed')}</div>}
-      <div ref={calendarBoard} className={`task-calendar-board task-calendar-board--${view}`} onDragEnd={() => setDropTarget(null)}>
+      <div ref={calendarBoard} className={`task-calendar-board task-calendar-board--${view}`}>
         {days.map((day) => {
           const key = dateKey(day);
-          const dayTasks = visibleTasks.filter((task) => task.date === key);
+          const dayTasks = sortKanbanCards(visibleTasks.filter((task) => task.date === key));
           return (
-            <section key={key} aria-label={key} className={`crm-kanban-column task-calendar-day${key === dateKey(today) ? ' task-calendar-day--today' : ''}${day.getMonth() !== anchor.getMonth() && view === 'month' ? ' task-calendar-day--outside' : ''}${dropTarget === key ? ' crm-kanban-column--drop-target' : ''}`}
-              onDragOver={(event) => { if (event.dataTransfer.types.includes('application/x-task-card')) { event.preventDefault(); event.dataTransfer.dropEffect = 'move'; setDropTarget(key); } }}
-              onDragLeave={(event) => { if (!(event.relatedTarget instanceof Node) || !event.currentTarget.contains(event.relatedTarget)) setDropTarget(null); }}
-              onDrop={(event) => {
-                event.preventDefault(); setDropTarget(null);
-                const id = event.dataTransfer.getData('application/x-task-card');
-                if (!visibleTasks.some((task) => task.id === id && task.date !== key)) return;
+            <section key={key} aria-label={key} className={`crm-kanban-column task-calendar-day${key === dateKey(today) ? ' task-calendar-day--today' : ''}${day.getMonth() !== anchor.getMonth() && view === 'month' ? ' task-calendar-day--outside' : ''}${drop.targetColumn === key ? ' crm-kanban-column--drop-target' : ''}`}
+              {...drop.handlers(key, (id, beforeId) => {
+                if (!visibleTasks.some((task) => task.id === id)) return;
                 setError(false);
-                void updateTask(id, { date: key }).catch(() => setError(true));
-              }}>
+                void updateTask(id, { date: key }, { field: 'date', beforeId }).catch(() => setError(true));
+              })}>
               <div className="crm-kanban-column-header">
                 <span className="task-calendar-day-label"><span>{format(day, { weekday: 'short' })}</span><strong>{day.getDate()}</strong></span>
                 <button
                   type="button"
+                  className="ui-icon-button"
                   aria-label={`${t('calendar.addTask')} ${key}`}
                   title={t('calendar.addTask')}
                   onClick={() => setQuickCreateDay(quickCreateDay === key ? null : key)}
                 >
-                  <Plus size={14} />
+                  <Plus />
                 </button>
               </div>
               {quickCreateDay === key && (
@@ -128,8 +127,9 @@ export function TaskCalendarView({ tasks }: TaskCalendarViewProps) {
                 </div>
               )}
               <div className="crm-kanban-column-body">
+                {drop.indicator(key)}
                 {!dayTasks.length && <div className="crm-kanban-column-empty">{t('navigation.noTasks')}</div>}
-                {dayTasks.map((task) => <TaskKanbanCard key={task.id} task={task} isActive={task.id === activeTaskId} dragLabel={t('calendar.reschedule')} onClick={(id) => { openTask(id); setActiveTaskPage('list'); }} />)}
+                {dayTasks.map((task) => <TaskKanbanCard key={task.id} task={task} isActive={task.id === activeTaskId} dragLabel={t('calendar.reschedule')} showActions onClick={(id) => { openTask(id); setActiveTaskPage('list'); }} />)}
               </div>
             </section>
           );

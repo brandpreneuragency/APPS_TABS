@@ -1,120 +1,156 @@
-/* =========================================================
- * tokens.css — Design Token Foundation
- * Stable, scalable sizing/layout/typography tokens.
- * No `vh` is used for component tokens — only `rem`, `px`,
- * `clamp()`, and `minmax()`.
- *
- * Color tokens already live in src/index.css and are NOT
- * redefined here. This file is additive only.
- * ========================================================= */
-
+/* TABS DESIGN VALUES — the only editable source of app design tokens.
+ * Default palette and typography retain the Docs / Tasks appearance.
+ * Application rules live in controls.css; feature files own layout, not values.
+ * Spacing and icons are fixed. Resizable panel geometry and authored content
+ * (document formatting, client colors, embedded forms) are not design tokens.
+ */
 :root {
+  /* SURFACES — active, content, controls, shell */
+  --c-background-0: #200e20;
+  --c-background-1: #360f36;
+  --c-background-1a: #1b141b99;
+  --c-background-2: #0d0d0d;
+  --c-background-2a: #131313;
+  --c-background-3: #000;
+  --c-background-4: #030303;
+  --c-text-1: #fff;
+  --c-text-2: #bdbdbd;
+  --c-text-3: #999;
+  --c-border-1: #2e2e2e;
+  --c-border-2: #333;
+  --c-accent-1: #17d4b5;
+  --c-accent-2: #187c6a;
+  --c-accent-2a: #187c6a7a;
+  --c-accent-3: #19c3da;
 
-  /* ---------- Line heights ---------- */
+  /* STATUS — semantic feedback; task priority colors stay distinct */
+  --c-danger: #ef4444;
+  --c-warning: #f59e0b;
+  --c-success: #22c55e;
+  --c-info: #3b82f6;
+  --c-red: #df1c1c;
+
+  --c-overlay: rgba(0, 0, 0, 0.35);
+
+  /* SPACING — compact controls / standard body / larger content insets */
+  --c-gap-0: 2px;
+  --c-gap-1: 4px;
+  --c-gap-2: 6px;
+  --c-gap-3: 8px;
+  
+  --c-space-0: 6px;
+  --c-space-1: 8px;
+  --c-space-2: 10px;
+  --c-space-3: 12px;
+
+  /* CONTROLS — all UI icons, including empty-state illustrations */
+  --c-icon-1: 14px;
+  --c-sq-button: 24px;
+  --icon-stroke: 2;
+  --control-height-sm: 32px;
+  --control-height-md: 40px;
+
+  --composer-min-height: 72px;
+  --border-width: 1px;
+  --radius-sm: 6px;
+  --radius-full: 50px;
+  --focus-width: 2px;
+  --disabled-opacity: 0.35;
+
+  /* TYPOGRAPHY — existing Docs / Tasks sizing; text-size selection below */
+  --c-font-1: 'Inter', sans-serif;
+  --fs-xs: clamp(10px, 0.5vw, 12px);
+  --fs-sm: clamp(11px, 0.6vw, 13px);
+  --fs-base: clamp(12px, 0.7vw, 14px);
+
+  --lh-sm: 1.5;
+  --lh-base: 1.45;
   --line-tight: 1.2;
   --line-normal: 1.5;
   --line-relaxed: 1.65;
 
-  /* ---------- Spacing ---------- */
-  --space-0: 0;
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-10: 2.5rem;
-  --space-12: 3rem;
-
-  /* Controlled fluid spacing */
-  --space-fluid-sm: clamp(0.5rem, 0.6vw, 0.875rem);
-  --space-fluid-md: clamp(0.75rem, 1vw, 1.25rem);
-  --space-fluid-lg: clamp(1rem, 1.4vw, 1.75rem);
-
-  /* ---------- Borders ---------- */
-  --border-width: 1px;
-
-  /* ---------- Icon sizes ---------- */
-  /* Fluid base: scales from 12px → 14px with viewport width */
-  --icon-size: clamp(12px, 1.15vw, 14px);
-  /* Static overrides for when fluid scaling isn't desired */
-  --icon-size-xs: 14px;
-  --icon-size-sm: 16px;
-  --icon-size-md: 20px;
-  --icon-size-lg: 24px;
-
-  /* ---------- Icon stroke ---------- */
-  --icon-stroke: 2;
-
-  /* ---------- Control sizes ---------- */
-  --control-height-xs: 28px;
-  --control-height-sm: 32px;
-  --control-height-md: 40px;
-  --control-height-lg: 48px;
-  --control-height-xl: 56px;
-
-  /* ---------- App shell ---------- */
+  /* SHELL — responsive/resizable geometry is separate from control sizes */
   --app-min-height: 560px;
-  --topbar-height: 40px;
+
   --sidebar-width: 36px;
-
-  /* ---------- Workspace columns ---------- */
-  --task-list-width: clamp(280px, 24vw, 420px);
   --main-panel-min-width: 420px;
-  /* Assistant/detail preferred width token (shell uses --assistant-wrapper-width). */
-  --right-panel-width: 360px;
+  --primary-min-width: 140px;
 
-  /* ---------- Panel structure ---------- */
-  --panel-header-height: 48px;
-  --panel-footer-min-height: 72px;
-  --panel-padding: var(--space-4);
-  --panel-gap: var(--space-3);
+  --shell-handle-width: 6px;
+  --editor-inset: 40px;
 
-  /* ---------- Component structure ----------
-   * Task card / row min-heights are intentionally NOT
-   * tokenised. They live in index.css as hard-coded
-   * values so the team can tweak them without an
-   * extra layer of indirection. */
-  --composer-min-height: 72px;
-  --toolbar-height: 40px;
-  --subtasks-bar-height: 40px;
-  --task-list-header-height: 32px;
-
-  /* ---------- Modal / overlay sizes ---------- */
+  /* OVERLAYS */
   --modal-max-width: 560px;
-  --modal-max-width-lg: 672px;
-  --modal-max-width-md: 512px;
-  --modal-max-width-sm: 448px;
-  --modal-max-width-xl: 768px;
-  --modal-max-height: 80vh; /* reserved for content-driven modals only — never for shell */
 
-  /* ---------- Z-index ---------- */
-  --z-base: 0;
+  --modal-max-width-sm: 448px;
+
+  --modal-max-height: 80vh;
+
   --z-dropdown: 20;
   --z-sticky: 30;
-  --z-drawer: 40;
+
   --z-modal: 50;
-  --z-toast: 60;
+
+
+  /* MOTION — one native drag treatment, independent of feature state */
+  --drag-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --drag-duration: 180ms;
+  --drag-source-opacity: 0.34;
+  --drag-source-scale: 0.985;
+  --transition-fast: 150ms;
 }
 
-/* =========================================================
- * Icon Utilities
- * Automatically sizes all lucide-react SVGs to the fluid
- * --icon-size token. Non-lucide SVGs can opt in via
- * the .icon-base class.
- * ========================================================= */
+:root[data-text-size='14'] {
+  --fs-xs: clamp(11px, 0.6vw, 13px);
+  --fs-sm: clamp(12px, 0.7vw, 14px);
+  --fs-base: clamp(12px, 0.7vw, 14px);
 
-/* Global: every lucide icon uses the fluid token */
-svg.lucide {
-  width: var(--icon-size);
-  height: var(--icon-size);
-  stroke-width: var(--icon-stroke);
+  --lh-sm: 1.45;
+  --lh-base: 1.4;
+}
+:root[data-text-size='16'] {
+  --fs-xs: clamp(12px, 0.7vw, 14px);
+  --fs-sm: clamp(14px, 0.8vw, 16px);
+  --fs-base: clamp(14px, 0.8vw, 16px);
+
+  --lh-sm: 1.4;
+  --lh-base: 1.35;
 }
 
-/* Utility class for non-lucide SVGs that should match */
-.icon-base {
-  width: var(--icon-size);
-  height: var(--icon-size);
-  stroke-width: var(--icon-stroke);
+/* OPTIONAL THEME — values only; surface recipes remain in purpleNeon.css. */
+:root[data-theme='purple-neon'] {
+  --c-background-0: #251033;
+  --c-background-1: #320d43;
+  --c-background-1a: #28103699;
+  --c-background-2: #10071e;
+  --c-background-3: #0c0516;
+  --c-background-4: #090310;
+  --c-text-1: #fcf7ff;
+  --c-text-2: #d6c1f1;
+  --c-text-3: #bca3d8;
+  --c-border-1: #542075;
+  --c-border-2: #382047;
+  --c-accent-1: #e03cf5;
+  --c-accent-2: #9820c7;
+  --c-accent-2a: #9820c77a;
+  --c-accent-3: #c37bff;
+  --neon-panel-surface: var(--c-background-2);
+  --neon-control-surface: var(--c-background-3);
+  --neon-card-surface: var(--c-background-1);
+  --neon-card-hover: var(--c-background-0);
+
+  --neon-picker-surface: #260b38aa;
+
+  --neon-send-surface: var(--c-accent-2);
+
+  --neon-radius-panel: 16px;
+  --neon-radius-card: 10px;
+  --neon-radius-control: 8px;
+}
+
+@media (max-width: 640px) {
+  :root { --main-panel-min-width: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --drag-source-scale: 1; --transition-fast: 0ms; }
 }

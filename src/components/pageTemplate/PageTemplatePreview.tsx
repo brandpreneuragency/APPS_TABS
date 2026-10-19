@@ -15,7 +15,7 @@ function PanelBar({
       <span>{side === 'left' ? 'Left Header' : 'Right Header'}</span>
       <button
         type="button"
-        className="reusable-page-template__preview-toggle"
+        className="reusable-page-template__preview-toggle ui-button"
         onClick={onToggle}
         aria-label={`Toggle ${side} panel`}
       >

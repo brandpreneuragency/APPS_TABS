@@ -36,7 +36,7 @@ export default function FormsSubmissionsPage() {
   };
 
   return (
-    <div className="forms-page forms-page--scroll" style={{ gap: 10, padding: 0 }}>
+    <div className="ui-panel-body forms-page forms-page--scroll" >
       <div
         className="forms-spread"
         style={{ padding: '14px 22px 6px', flexShrink: 0 }}
@@ -49,12 +49,12 @@ export default function FormsSubmissionsPage() {
         </div>
         <button
           type="button"
-          className="forms-action-btn"
+          className="ui-button forms-action-btn"
           onClick={handleExport}
           disabled={submissions.length === 0}
           title="Export all submissions to CSV"
         >
-          <Download size={14} /> Export CSV
+          <Download /> Export CSV
         </button>
       </div>
 

@@ -50,7 +50,7 @@ export function FileTreeTabs({ children }: { children?: ReactNode }) {
       {hasFolder && (
         <button
           type="button"
-          className="filetree-change-folder-btn"
+         className="ui-icon-button filetree-change-folder-btn"
           disabled={!activeWorkspaceId || loading}
           aria-label={t('explorer.changeFolder')}
           title={t('explorer.changeFolder')}
@@ -59,7 +59,7 @@ export function FileTreeTabs({ children }: { children?: ReactNode }) {
             void connectFolderInWorkspace(activeWorkspaceId, undefined, { replaceExisting: true });
           }}
         >
-          <FolderOpen size={16} aria-hidden="true" />
+          <FolderOpen className="ui-icon" aria-hidden="true" />
         </button>
       )}
       {hasFolder ? (
@@ -75,6 +75,7 @@ export function FileTreeTabs({ children }: { children?: ReactNode }) {
           aria-label={ariaLabel}
           title={t('explorer.selectFolder')}
         >
+          <FolderOpen className="ui-icon filetree-select-folder-icon"  strokeWidth={2.25} aria-hidden="true" />
           <span className="filetree-select-folder-label">{label}</span>
         </button>
       )}

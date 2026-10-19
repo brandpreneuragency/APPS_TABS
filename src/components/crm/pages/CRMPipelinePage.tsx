@@ -82,7 +82,7 @@ export default function CRMPipelinePage() {
       {leadDetailModalId && (
         <LeadDetailModal leadId={leadDetailModalId} onClose={() => setLeadDetailModalId(null)} />
       )}
-      <div className="crm-page-body" style={{ paddingTop: 14 }}>
+      <div className="ui-panel-body crm-page-body" >
         <div className="crm-kpi-row">
           <KPICard
             label="Total Pipeline"
@@ -115,7 +115,7 @@ export default function CRMPipelinePage() {
         </div>
 
         {activePipelineView === 'list' ? (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Deals (list)</div>
             <table className="crm-table">
               <thead>
@@ -152,8 +152,8 @@ export default function CRMPipelinePage() {
             deals={deals}
             contacts={contacts}
             companies={companies}
-            onMoveDeal={(dealId, toStage) => {
-              void setDealStage(dealId, toStage);
+            onMoveDeal={(dealId, toStage, beforeId) => {
+              void setDealStage(dealId, toStage, beforeId);
             }}
             onSelectDeal={(dealId) => setActiveDealId(dealId)}
             onEditDeal={handleEditDeal}

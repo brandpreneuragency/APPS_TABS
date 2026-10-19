@@ -42,11 +42,11 @@ export function LeadDetailModal({ leadId, onClose }: LeadDetailModalProps) {
       >
         <button
           type="button"
-          className="crm-lead-detail-modal-close modal-close"
+          className="ui-icon-button crm-lead-detail-modal-close modal-close"
           onClick={onClose}
           aria-label="Close"
         >
-          <X size={18} />
+          <X />
         </button>
 
         <div className="crm-lead-detail-modal-body">

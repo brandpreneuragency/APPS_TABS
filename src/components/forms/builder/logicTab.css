@@ -1,7 +1,7 @@
 /* =========================================================
  * Form Builder — Logic tab scoped styles.
  * Imported once by LogicTab.tsx.
- * Token-driven (reuses --c-*, --fs-*, --radius-*, --shadow-*).
+ * Token-driven (reuses --c-*, --fs-*, --radius-*); application chrome stays flat.
  * All classes prefixed `forms-builder-logic-*`.
  * The base builder.css already defines:
  *   .forms-builder-logic, .forms-builder-logic-rule,
@@ -15,57 +15,27 @@
 .forms-builder-logic-nav {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
-  padding: 0 0 12px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border-bottom: 1px solid var(--c-border-1);
   flex-shrink: 0;
-}
-.forms-builder-logic-nav-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-  white-space: nowrap;
-}
-.forms-builder-logic-nav-btn:hover {
-  background: var(--c-background-2);
-  color: var(--c-text-1);
-}
-.forms-builder-logic-nav-btn--active {
-  background: rgba(35, 114, 68, 0.1);
-  color: var(--c-accent-center-panel);
-  border-color: rgba(35, 114, 68, 0.25);
 }
 
 /* ---------- Section card ---------- */
 .forms-builder-logic-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
 }
 .forms-builder-logic-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-section-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
@@ -83,7 +53,7 @@
 }
 .forms-builder-logic-section-hint {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   line-height: 1.45;
 }
 
@@ -92,83 +62,25 @@
   display: flex;
   flex-direction: column;
 }
-.forms-builder-logic-step-input {
-  min-width: 0;
-  height: 28px;
-  padding: 0 8px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.forms-builder-logic-step-input:focus {
-  border-color: var(--c-accent-center-panel);
-}
-.forms-builder-logic-step-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  background: transparent;
-  color: var(--c-text-2);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-}
-.forms-builder-logic-step-btn:hover {
-  background: var(--c-background-3);
-  color: var(--c-text-1);
-}
-.forms-builder-logic-step-btn--danger:hover {
-  color: var(--c-danger);
-}
 .forms-builder-logic-add-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px dashed var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   align-self: flex-start;
-}
-.forms-builder-logic-add-btn:hover {
-  border-color: var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
-  background: rgba(35, 114, 68, 0.06);
 }
 
 /* ---------- Rule editor ---------- */
 .forms-builder-logic-rules {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-rule-wrap {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-2);
 }
 .forms-builder-logic-rule-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-rule-label {
   font-size: var(--fs-xs);
@@ -180,13 +92,10 @@
 .forms-builder-logic-rule-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 8px;
+  gap: var(--c-gap-1);
   align-items: center;
 }
 .forms-builder-logic-rule-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
 }
 .forms-builder-logic-rule-field-label {
@@ -194,32 +103,15 @@
   color: var(--c-text-3);
   font-weight: 500;
 }
-.forms-builder-logic-select,
-.forms-builder-logic-input {
-  min-width: 0;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.forms-builder-logic-select:focus,
-.forms-builder-logic-input:focus {
-  border-color: var(--c-accent-center-panel);
-}
 .forms-builder-logic-rule-message {
   grid-column: 1 / -1;
 }
 .forms-builder-logic-rule-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
 }
 .forms-builder-logic-empty {
@@ -227,10 +119,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 24px 12px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   text-align: center;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   border: 1px dashed var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-2);
@@ -249,27 +141,22 @@
 .forms-builder-logic-validation-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-validation-row {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-2);
 }
 .forms-builder-logic-validation-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-validation-name {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
@@ -283,7 +170,7 @@
 .forms-builder-logic-validation-type {
   font-size: var(--fs-xs);
   color: var(--c-text-3);
-  padding: 1px 6px;
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-full);
   flex-shrink: 0;
@@ -291,13 +178,10 @@
 .forms-builder-logic-validation-controls {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
+  gap: var(--c-gap-1);
   align-items: end;
 }
 .forms-builder-logic-validation-field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
   min-width: 0;
 }
 .forms-builder-logic-validation-field-label {
@@ -308,7 +192,7 @@
 .forms-builder-logic-checkbox-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   height: 30px;
   font-size: var(--fs-sm);
   color: var(--c-text-1);
@@ -319,18 +203,18 @@
 .forms-builder-logic-hidden-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-hidden-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-full);
   background: var(--c-background-2);
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .forms-builder-logic-hidden-chip-name {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -342,33 +226,15 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-utm-bulk {
   display: inline-flex;
-  gap: 4px;
-}
-.forms-builder-logic-utm-bulk-btn {
-  display: inline-flex;
-  align-items: center;
-  height: 26px;
-  padding: 0 10px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-2);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-.forms-builder-logic-utm-bulk-btn:hover {
-  border-color: var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
+  gap: var(--c-gap-1);
 }
 .forms-builder-logic-utm-checkbox {
   width: 15px;
   height: 15px;
-  accent-color: var(--c-accent-center-panel);
+  accent-color: var(--c-accent-1);
   cursor: pointer;
 }

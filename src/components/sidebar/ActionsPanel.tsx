@@ -76,7 +76,7 @@ function ActionForm({
           style={{
             display: 'block',
             fontSize: 'var(--fs-xs)',
-            color: 'var(--c-text-2)',
+            color: 'var(--c-text-3)',
             marginBottom: 6,
           }}
         >
@@ -87,7 +87,7 @@ function ActionForm({
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="e.g. Summarize Task"
-          className="ctrl w-full"
+          className="ui-input w-full"
           style={{ fontSize: 'var(--fs-sm)' }}
         />
       </div>
@@ -98,7 +98,7 @@ function ActionForm({
           style={{
             display: 'block',
             fontSize: 'var(--fs-xs)',
-            color: 'var(--c-text-2)',
+            color: 'var(--c-text-3)',
             marginBottom: 6,
           }}
         >
@@ -109,7 +109,7 @@ function ActionForm({
           onChange={(e) => onPromptChange(e.target.value)}
           placeholder="Prompt text..."
           rows={4}
-          className="ctrl w-full"
+          className="ui-input w-full"
           style={{ fontSize: 'var(--fs-sm)', resize: 'none', lineHeight: 1.625 }}
         />
       </div>
@@ -119,7 +119,7 @@ function ActionForm({
           type="button"
           onClick={onSave}
           disabled={!title.trim() || !prompt.trim()}
-          className="btn-brand flex-1"
+          className="ui-button ui-button--primary btn-brand flex-1"
           style={{ justifyContent: 'center', padding: '6px 0' }}
         >
           {saveLabel}
@@ -127,7 +127,7 @@ function ActionForm({
         <button
           type="button"
           onClick={onCancel}
-          className="btn subtle"
+          className="ui-button btn subtle"
           style={{ fontSize: 'var(--fs-xs)' }}
         >
           Cancel
@@ -226,9 +226,9 @@ function ActionAccordionItem({
       >
         <div className="row gap-3 min-w-0">
           {expanded ? (
-            <ChevronDown size={15} className="subtle shrink-0" />
+            <ChevronDown  className="ui-icon subtle shrink-0" />
           ) : (
-            <ChevronRight size={15} className="subtle shrink-0" />
+            <ChevronRight  className="ui-icon subtle shrink-0" />
           )}
           <div
             className="shrink-0"
@@ -242,7 +242,7 @@ function ActionAccordionItem({
               justifyContent: 'center',
             }}
           >
-            <Zap size={12} style={{ color: 'var(--c-accent-center-panel)' }} />
+            <Zap className="ui-icon"  style={{ color: 'var(--c-accent-1)' }} />
           </div>
           <span
             className="semibold trunc"
@@ -256,7 +256,7 @@ function ActionAccordionItem({
             <span
               className="agent-scope-badge"
               style={{
-                color: 'var(--c-text-2)',
+                color: 'var(--c-text-3)',
                 background: 'var(--c-background-4)',
                 border: '1px solid var(--c-border-1)',
               }}
@@ -329,7 +329,7 @@ function ActionAccordionItem({
               style={{
                 width: 'fit-content',
                 fontSize: 'var(--fs-xs)',
-                color: 'var(--c-accent-center-panel)',
+                color: 'var(--c-accent-1)',
                 fontWeight: 500,
                 padding: '4px 8px',
                 borderRadius: 'var(--radius-sm)',
@@ -345,7 +345,7 @@ function ActionAccordionItem({
                 e.currentTarget.style.background = 'transparent';
               }}
             >
-              <Play size={12} /> Run
+              <Play className="ui-icon"  /> Run
             </button>
 
             {!item.builtin && (
@@ -356,11 +356,10 @@ function ActionAccordionItem({
                     e.stopPropagation();
                     onDelete();
                   }}
-                  className="btn-icon"
-                  style={{ padding: 4 }}
+                  className="ui-icon-button btn-icon"
                   title="Delete action"
                 >
-                  <Trash2 size={14} />
+                  <Trash2 className="ui-icon"  />
                 </button>
               </div>
             )}
@@ -529,7 +528,7 @@ export function ActionsPanel({ scope }: ActionsPanelProps) {
                 marginBottom: 12,
               }}
             >
-              <Zap size={18} style={{ color: 'var(--c-accent-center-panel)' }} />
+              <Zap className="ui-icon"  style={{ color: 'var(--c-accent-1)' }} />
             </div>
             <p
               className="med"
@@ -567,7 +566,7 @@ export function ActionsPanel({ scope }: ActionsPanelProps) {
         {/* New Action button (mirrors .connect-provider-btn) */}
         {!adding && (
           <button type="button" onClick={startAdd} className="new-agent-btn">
-            <Plus size={16} />
+            <Plus className="ui-icon"  />
             New Action
           </button>
         )}

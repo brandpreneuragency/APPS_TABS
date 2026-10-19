@@ -1,7 +1,7 @@
 /* =========================================================
  * Form Builder — Embed tab scoped styles.
  * Imported once by EmbedTab.tsx.
- * Token-driven (reuses --c-*, --fs-*, --radius-*, --shadow-*).
+ * Token-driven (reuses --c-*, --fs-*, --radius-*); application chrome stays flat.
  * All classes prefixed `forms-builder-embed-*`.
  * The base builder.css already defines:
  *   .forms-builder-embed, .forms-builder-embed-preview,
@@ -14,22 +14,17 @@
 .forms-builder-embed-section {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
 }
 .forms-builder-embed-section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-section-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--c-text-1);
@@ -42,7 +37,7 @@
 }
 .forms-builder-embed-section-hint {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   line-height: 1.45;
 }
 
@@ -51,14 +46,14 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   height: 28px;
-  padding: 0 12px;
+  padding: var(--c-space-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-full);
   font-size: var(--fs-xs);
@@ -66,13 +61,12 @@
   text-transform: capitalize;
 }
 .forms-builder-embed-status-badge--draft {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   background: var(--c-background-2);
 }
 .forms-builder-embed-status-badge--published {
   color: #15803d;
   background: rgba(34, 197, 94, 0.1);
-  border-color: rgba(34, 197, 94, 0.3);
 }
 .forms-builder-embed-status-badge--archived {
   color: var(--c-text-3);
@@ -87,120 +81,25 @@
 .forms-builder-embed-status-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-gap-1);
   flex-wrap: wrap;
-}
-.forms-builder-embed-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
-}
-.forms-builder-embed-btn:hover {
-  background: var(--c-background-2);
-  border-color: var(--c-border-2);
-}
-.forms-builder-embed-btn--primary {
-  background: var(--c-accent-center-panel);
-  border-color: var(--c-accent-center-panel);
-  color: #fff;
-}
-.forms-builder-embed-btn--primary:hover {
-  background: var(--c-accent-center-panel);
-  filter: brightness(1.08);
-}
-.forms-builder-embed-btn--danger {
-  color: var(--c-danger);
-  border-color: rgba(220, 38, 38, 0.3);
-}
-.forms-builder-embed-btn--danger:hover {
-  background: rgba(220, 38, 38, 0.08);
-  border-color: var(--c-danger);
-}
-.forms-builder-embed-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* ---------- Allowed domains editor ---------- */
 .forms-builder-embed-domains-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-domain-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 6px;
+  gap: var(--c-gap-1);
   align-items: center;
 }
-.forms-builder-embed-domain-input {
-  min-width: 0;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.forms-builder-embed-domain-input:focus {
-  border-color: var(--c-accent-center-panel);
-}
-.forms-builder-embed-domain-input--invalid {
-  border-color: var(--c-danger);
-}
-.forms-builder-embed-domain-remove {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-.forms-builder-embed-domain-remove:hover {
-  color: var(--c-danger);
-  border-color: rgba(220, 38, 38, 0.3);
-  background: rgba(220, 38, 38, 0.08);
-}
+
 .forms-builder-embed-domain-add {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  height: 30px;
-  padding: 0 12px;
-  border: 1px dashed var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background-color 0.15s;
   align-self: flex-start;
-}
-.forms-builder-embed-domain-add:hover {
-  border-color: var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
-  background: rgba(35, 114, 68, 0.06);
 }
 .forms-builder-embed-domain-error {
   font-size: var(--fs-xs);
@@ -211,16 +110,11 @@
 .forms-builder-embed-options {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-option {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 10px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-2);
 }
 .forms-builder-embed-option-label {
   font-size: var(--fs-xs);
@@ -229,25 +123,10 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.forms-builder-embed-option-control {
-  min-width: 0;
-  height: 30px;
-  padding: 0 8px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  outline: none;
-  transition: border-color 0.15s;
-}
-.forms-builder-embed-option-control:focus {
-  border-color: var(--c-accent-center-panel);
-}
 .forms-builder-embed-option-checkbox {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-gap-1);
   height: 30px;
   font-size: var(--fs-sm);
   color: var(--c-text-1);
@@ -256,14 +135,14 @@
 .forms-builder-embed-option-checkbox input {
   width: 15px;
   height: 15px;
-  accent-color: var(--c-accent-center-panel);
+  accent-color: var(--c-accent-1);
 }
 
 /* ---------- Snippet tabs ---------- */
 .forms-builder-embed-snippets {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--c-gap-1);
 }
 .forms-builder-embed-snippet-tabs {
   display: flex;
@@ -274,35 +153,6 @@
   overflow: hidden;
   background: var(--c-background-2);
   align-self: flex-start;
-}
-.forms-builder-embed-snippet-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  height: 30px;
-  padding: 0 12px;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--c-text-2);
-  font-size: var(--fs-xs);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-  white-space: nowrap;
-  border-right: 1px solid var(--c-border-1);
-}
-.forms-builder-embed-snippet-tab:last-child {
-  border-right: none;
-}
-.forms-builder-embed-snippet-tab:hover {
-  color: var(--c-text-1);
-  background: var(--c-background-3);
-}
-.forms-builder-embed-snippet-tab--active {
-  background: var(--c-accent-center-panel);
-  color: #fff;
 }
 
 /* ---------- Snippet copy block ---------- */
@@ -319,8 +169,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-1);
   border-bottom: 1px solid var(--c-border-1);
   background: var(--c-background-2);
 }
@@ -331,33 +181,9 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
-.forms-builder-embed-copy-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  height: 26px;
-  padding: 0 10px;
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  background: var(--c-background-1);
-  color: var(--c-text-2);
-  font-size: var(--fs-xs);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
-}
-.forms-builder-embed-copy-btn:hover {
-  border-color: var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
-}
-.forms-builder-embed-copy-btn--done {
-  color: #15803d;
-  border-color: rgba(34, 197, 94, 0.3);
-}
 .forms-builder-embed-copy-pre {
   margin: 0;
-  padding: 12px;
+  padding: var(--c-space-1);
   max-height: 260px;
   overflow: auto;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -372,10 +198,10 @@
 /* ---------- Preview note ---------- */
 .forms-builder-embed-preview-note {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   line-height: 1.45;
-  padding: 8px 10px;
-  border-left: 2px solid var(--c-warning);
+  padding: var(--c-space-1);
+
   background: rgba(245, 158, 11, 0.08);
   border-radius: var(--radius-sm);
 }

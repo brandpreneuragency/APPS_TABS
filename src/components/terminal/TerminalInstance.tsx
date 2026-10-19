@@ -4,7 +4,8 @@ import { FitAddon } from 'xterm-addon-fit';
 import 'xterm/css/xterm.css';
 import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
-import { useThemeStore } from '../../stores/themeStore';
+
+import { useUIStore } from '../../stores/uiStore';
 import { isTauriRuntime } from '../../services/runtime';
 
 interface TerminalInstanceProps {
@@ -47,7 +48,8 @@ export function TerminalInstance({ id, active, onExit }: TerminalInstanceProps) 
   const fitRef = useRef<FitAddon | null>(null);
   const sessionReadyRef = useRef<Promise<void> | null>(null);
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const themeVersion = useThemeStore((s) => s.tokens);
+
+  const namedTheme = useUIStore((s) => s.theme);
   const native = isTauriRuntime();
 
   // Create the xterm instance once.
@@ -176,7 +178,7 @@ export function TerminalInstance({ id, active, onExit }: TerminalInstanceProps) 
     if (termRef.current) {
       termRef.current.options.theme = buildTheme();
     }
-  }, [themeVersion]);
+  }, [namedTheme]);
 
   function ensureSession(term: XTerm) {
     if (!sessionReadyRef.current) {

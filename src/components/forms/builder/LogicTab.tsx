@@ -134,19 +134,19 @@ export default function LogicTab({ form }: LogicTabProps) {
   };
 
   return (
-    <div className="forms-builder-logic">
+    <div className="ui-panel-body forms-builder-logic">
       <nav className="forms-builder-logic-nav" aria-label="Logic sections">
         {SECTIONS.map((section) => {
           const Icon = section.icon;
           const isActive = activeSection === section.id;
           return (
-            <button
+            <button data-active={isActive}
               key={section.id}
               type="button"
-              className={`forms-builder-logic-nav-btn${isActive ? ' forms-builder-logic-nav-btn--active' : ''}`}
+              className={"ui-button " + (`forms-builder-logic-nav-btn${isActive ? ' forms-builder-logic-nav-btn--active' : ''}`)}
               onClick={() => scrollToSection(section.id)}
             >
-              <Icon size={15} />
+              <Icon />
               {section.label}
             </button>
           );
@@ -156,16 +156,16 @@ export default function LogicTab({ form }: LogicTabProps) {
       {/* ---------- Steps ---------- */}
       <section
         id="forms-logic-section-steps"
-        className="forms-builder-logic-section"
+        className="ui-card forms-builder-logic-section"
       >
         <div className="forms-builder-logic-section-head">
           <span className="forms-builder-logic-section-title">
-            <ListOrdered size={16} className="forms-builder-logic-section-title-icon" />
+            <ListOrdered className="forms-builder-logic-section-title-icon" />
             Steps
             <span className="forms-builder-logic-section-count">{form.steps.length}</span>
           </span>
-          <button type="button" className="forms-builder-logic-add-btn" onClick={addStep}>
-            <Plus size={15} /> Add step
+          <button type="button" className="ui-button forms-builder-logic-add-btn" onClick={addStep}>
+            <Plus /> Add step
           </button>
         </div>
         <p className="forms-builder-logic-section-hint">
@@ -173,7 +173,7 @@ export default function LogicTab({ form }: LogicTabProps) {
         </p>
         {sortedSteps.length === 0 ? (
           <div className="forms-builder-logic-empty">
-            <ListOrdered size={18} />
+            <ListOrdered />
             <span className="forms-builder-logic-empty-title">No steps defined</span>
             <span className="forms-builder-logic-empty-sub">
               All fields render on a single page until you add steps.
@@ -186,7 +186,7 @@ export default function LogicTab({ form }: LogicTabProps) {
                 <span className="forms-builder-step-order">{idx + 1}</span>
                 <input
                   type="text"
-                  className="forms-builder-logic-step-input"
+                  className="ui-input forms-builder-logic-step-input"
                   value={step.title}
                   onChange={(e) => renameStep(step.id, e.target.value)}
                   placeholder="Step title"
@@ -194,32 +194,32 @@ export default function LogicTab({ form }: LogicTabProps) {
                 <div style={{ display: 'flex', gap: 2 }}>
                   <button
                     type="button"
-                    className="forms-builder-logic-step-btn"
+                    className="ui-icon-button forms-builder-logic-step-btn"
                     onClick={() => moveStep(step.id, -1)}
                     disabled={idx === 0}
                     aria-label="Move step up"
                     title="Move up"
                   >
-                    <ChevronUp size={15} />
+                    <ChevronUp />
                   </button>
                   <button
                     type="button"
-                    className="forms-builder-logic-step-btn"
+                    className="ui-icon-button forms-builder-logic-step-btn"
                     onClick={() => moveStep(step.id, 1)}
                     disabled={idx === sortedSteps.length - 1}
                     aria-label="Move step down"
                     title="Move down"
                   >
-                    <ChevronDown size={15} />
+                    <ChevronDown />
                   </button>
                   <button
                     type="button"
-                    className="forms-builder-logic-step-btn forms-builder-logic-step-btn--danger"
+                    className="ui-icon-button forms-builder-logic-step-btn ui-button--danger forms-builder-logic-step-btn--danger"
                     onClick={() => removeStep(step.id)}
                     aria-label="Delete step"
                     title="Delete step"
                   >
-                    <Trash2 size={15} />
+                    <Trash2 />
                   </button>
                 </div>
               </div>
@@ -231,16 +231,16 @@ export default function LogicTab({ form }: LogicTabProps) {
       {/* ---------- Conditional rules ---------- */}
       <section
         id="forms-logic-section-rules"
-        className="forms-builder-logic-section"
+        className="ui-card forms-builder-logic-section"
       >
         <div className="forms-builder-logic-section-head">
           <span className="forms-builder-logic-section-title">
-            <GitBranch size={16} className="forms-builder-logic-section-title-icon" />
+            <GitBranch className="forms-builder-logic-section-title-icon" />
             Conditional Rules
             <span className="forms-builder-logic-section-count">{form.logicRules.length}</span>
           </span>
-          <button type="button" className="forms-builder-logic-add-btn" onClick={addRule}>
-            <Plus size={15} /> Add rule
+          <button type="button" className="ui-button forms-builder-logic-add-btn" onClick={addRule}>
+            <Plus /> Add rule
           </button>
         </div>
         <p className="forms-builder-logic-section-hint">
@@ -250,7 +250,7 @@ export default function LogicTab({ form }: LogicTabProps) {
         </p>
         {form.logicRules.length === 0 ? (
           <div className="forms-builder-logic-empty">
-            <GitBranch size={18} />
+            <GitBranch />
             <span className="forms-builder-logic-empty-title">No rules yet</span>
             <span className="forms-builder-logic-empty-sub">
               Add a rule to conditionally show, hide, or block based on field values.
@@ -274,11 +274,11 @@ export default function LogicTab({ form }: LogicTabProps) {
       {/* ---------- Validation ---------- */}
       <section
         id="forms-logic-section-validation"
-        className="forms-builder-logic-section"
+        className="ui-card forms-builder-logic-section"
       >
         <div className="forms-builder-logic-section-head">
           <span className="forms-builder-logic-section-title">
-            <CheckSquare size={16} className="forms-builder-logic-section-title-icon" />
+            <CheckSquare className="forms-builder-logic-section-title-icon" />
             Validation
             <span className="forms-builder-logic-section-count">{validationFields.length}</span>
           </span>
@@ -288,7 +288,7 @@ export default function LogicTab({ form }: LogicTabProps) {
         </p>
         {validationFields.length === 0 ? (
           <div className="forms-builder-logic-empty">
-            <MousePointerClick size={18} />
+            <MousePointerClick />
             <span className="forms-builder-logic-empty-title">No editable fields</span>
             <span className="forms-builder-logic-empty-sub">
               Add fields on the Build tab to configure validation.
@@ -299,7 +299,7 @@ export default function LogicTab({ form }: LogicTabProps) {
             {validationFields.map((field) => {
               const v = field.validation ?? {};
               return (
-                <div key={field.id} className="forms-builder-logic-validation-row">
+                <div key={field.id} className="ui-card forms-builder-logic-validation-row">
                   <div className="forms-builder-logic-validation-head">
                     <span className="forms-builder-logic-validation-name">
                       <span className="forms-builder-logic-validation-name-text">
@@ -318,11 +318,11 @@ export default function LogicTab({ form }: LogicTabProps) {
                     </label>
                   </div>
                   <div className="forms-builder-logic-validation-controls">
-                    <div className="forms-builder-logic-validation-field">
+                    <div className="ui-field forms-builder-logic-validation-field">
                       <span className="forms-builder-logic-validation-field-label">Min (number)</span>
                       <input
                         type="number"
-                        className="forms-builder-logic-input"
+                        className="ui-input forms-builder-logic-input"
                         value={v.min ?? ''}
                         onChange={(e) =>
                           setFieldValidation(field, {
@@ -332,11 +332,11 @@ export default function LogicTab({ form }: LogicTabProps) {
                         placeholder="—"
                       />
                     </div>
-                    <div className="forms-builder-logic-validation-field">
+                    <div className="ui-field forms-builder-logic-validation-field">
                       <span className="forms-builder-logic-validation-field-label">Max (number)</span>
                       <input
                         type="number"
-                        className="forms-builder-logic-input"
+                        className="ui-input forms-builder-logic-input"
                         value={v.max ?? ''}
                         onChange={(e) =>
                           setFieldValidation(field, {
@@ -346,21 +346,21 @@ export default function LogicTab({ form }: LogicTabProps) {
                         placeholder="—"
                       />
                     </div>
-                    <div className="forms-builder-logic-validation-field">
+                    <div className="ui-field forms-builder-logic-validation-field">
                       <span className="forms-builder-logic-validation-field-label">Pattern (regex)</span>
                       <input
                         type="text"
-                        className="forms-builder-logic-input"
+                        className="ui-input forms-builder-logic-input"
                         value={v.pattern ?? ''}
                         onChange={(e) => setFieldValidation(field, { pattern: e.target.value })}
                         placeholder="e.g. ^[A-Z]{2}$"
                       />
                     </div>
-                    <div className="forms-builder-logic-validation-field">
+                    <div className="ui-field forms-builder-logic-validation-field">
                       <span className="forms-builder-logic-validation-field-label">Error message</span>
                       <input
                         type="text"
-                        className="forms-builder-logic-input"
+                        className="ui-input forms-builder-logic-input"
                         value={v.message ?? ''}
                         onChange={(e) => setFieldValidation(field, { message: e.target.value })}
                         placeholder="Shown on validation failure"
@@ -377,11 +377,11 @@ export default function LogicTab({ form }: LogicTabProps) {
       {/* ---------- Hidden fields ---------- */}
       <section
         id="forms-logic-section-hidden"
-        className="forms-builder-logic-section"
+        className="ui-card forms-builder-logic-section"
       >
         <div className="forms-builder-logic-section-head">
           <span className="forms-builder-logic-section-title">
-            <EyeOff size={16} className="forms-builder-logic-section-title-icon" />
+            <EyeOff className="forms-builder-logic-section-title-icon" />
             Hidden Fields
             <span className="forms-builder-logic-section-count">{hiddenFields.length}</span>
           </span>
@@ -392,7 +392,7 @@ export default function LogicTab({ form }: LogicTabProps) {
         </p>
         {hiddenFields.length === 0 ? (
           <div className="forms-builder-logic-empty">
-            <EyeOff size={18} />
+            <EyeOff />
             <span className="forms-builder-logic-empty-title">No hidden fields</span>
             <span className="forms-builder-logic-empty-sub">
               Add a Hidden field from the Build palette to capture static values.

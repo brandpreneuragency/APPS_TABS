@@ -1,12 +1,12 @@
 export function formatShortDate(iso?: string): string {
   if (!iso) return '';
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
-  if (m) return `${m[3]}-${m[2]}`;
-  const d = new Date(iso);
+  const d = m
+    ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12)
+    : new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  return `${dd}-${mm}`;
+  const month = d.toLocaleDateString('tr-TR', { month: 'short' });
+  return `${d.getDate()}.${month}`;
 }
 
 export function parseIsoDateToLocal(iso: string): Date | null {

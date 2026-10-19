@@ -27,7 +27,7 @@ export function ResponsivePreviewToggle() {
   const setPreviewMode = useFormsStore((s) => s.setPreviewMode);
 
   return (
-    <div className="forms-builder-preview-bar">
+    <div className="ui-toolbar forms-builder-preview-bar">
       <span className="forms-builder-style-bar-label">Live preview</span>
       <div
         className="forms-builder-preview-toggle"
@@ -40,14 +40,12 @@ export function ResponsivePreviewToggle() {
             <button
               key={mode}
               type="button"
-              className={
-                'forms-builder-preview-toggle-btn' +
-                (active ? ' forms-builder-preview-toggle-btn--active' : '')
-              }
+              className={"ui-button " + ('forms-builder-preview-toggle-btn' +
+                (active ? ' forms-builder-preview-toggle-btn--active' : ''))}
               onClick={() => setPreviewMode(mode)}
               aria-pressed={active}
             >
-              <Icon size={15} strokeWidth={2} />
+              <Icon strokeWidth={2} />
               <span>{label}</span>
             </button>
           );

@@ -56,6 +56,7 @@ vi.mock('../../stores/projectStore', () => ({
 describe('TaskMetadataControls', () => {
   beforeEach(() => {
     updateTask.mockReset();
+    tasks[0].date = '';
   });
 
   it('lists only projects for the task’s current client', async () => {
@@ -79,5 +80,12 @@ describe('TaskMetadataControls', () => {
     expect(updateTask).toHaveBeenCalledWith('t1', { projectId: 'p-web' });
     expect(updateTask).not.toHaveBeenCalledWith('t1', { projectId: 'p-gen-2' });
     expect(updateTask).not.toHaveBeenCalledWith('t1', { projectId: 'p-other' });
+  });
+
+  it('shows the due date with a Turkish abbreviated month', () => {
+    tasks[0].date = '2026-10-18';
+    render(<TaskMetadataControls />);
+
+    expect(screen.getByText('18.Eki')).toBeInTheDocument();
   });
 });

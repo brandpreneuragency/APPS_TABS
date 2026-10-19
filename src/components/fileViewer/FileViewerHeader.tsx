@@ -37,12 +37,12 @@ export function FileViewerHeader({ file }: FileViewerHeaderProps) {
             onClick={handleOpenInTipTap}
             title="Open file in editor"
           >
-            <ExternalLink size={13} />
+            <ExternalLink className="ui-icon"  />
             Open in TipTap
           </button>
         ) : (
           <span className="file-viewer-tip-btn file-viewer-tip-btn--disabled" title="This file type cannot be opened in the editor">
-            <ExternalLink size={13} />
+            <ExternalLink className="ui-icon"  />
             Open in TipTap
           </span>
         )}
@@ -55,11 +55,11 @@ export function FileViewerHeader({ file }: FileViewerHeaderProps) {
       <div className="file-viewer-header-right">
         <button
           type="button"
-          className="file-viewer-close-btn"
+          className="ui-icon-button file-viewer-close-btn"
           onClick={closeFileViewer}
           title="Close (Esc)"
         >
-          <X size={16} />
+          <X className="ui-icon"  />
         </button>
       </div>
     </div>

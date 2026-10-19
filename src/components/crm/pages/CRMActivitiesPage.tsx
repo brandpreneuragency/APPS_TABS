@@ -70,7 +70,7 @@ export default function CRMActivitiesPage() {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title">Activity</div>
           <div className="crm-page-header-meta">
@@ -84,8 +84,8 @@ export default function CRMActivitiesPage() {
         </div>
       </div>
 
-      <div className="crm-page-body" style={{ paddingTop: 14, gap: 12 }}>
-        <div className="crm-card">
+      <div className="ui-panel-body crm-page-body" >
+        <div className="ui-card crm-card">
           <div className="crm-card-title">Summary</div>
           <div className="crm-tag-chips">
             {summaryEntries.map((t) => (

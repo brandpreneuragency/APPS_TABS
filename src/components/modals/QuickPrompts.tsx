@@ -71,7 +71,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
               className="row-xs"
               style={{
                 fontSize: 'var(--fs-xs)',
-                color: 'var(--c-accent-center-panel)',
+                color: 'var(--c-accent-1)',
                 fontWeight: 500,
                 background: 'none',
                 border: 'none',
@@ -79,14 +79,14 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
                 transition: 'color 0.15s',
               }}
             >
-              <Plus size={13} /> Add
+              <Plus className="ui-icon"  /> Add
             </button>
             <button
               id="quick-prompts-close-btn"
               onClick={() => setActiveModal(null)}
-              className="modal-close"
+              className="ui-icon-button modal-close"
             >
-              <X size={18} />
+              <X className="ui-icon"  />
             </button>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
             <div
               className="col gap-2"
               style={{
-                border: '1px solid rgba(139,92,246,0.3)',
+                border: 'none',
                 borderRadius: 'var(--radius-sm)',
                 padding: 16,
                 background: 'rgba(139,92,246,0.06)',
@@ -108,7 +108,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
                 value={newTitle}
                 onChange={(e) => setNewTitle(e.target.value)}
                 placeholder="Prompt title..."
-                className="ctrl w-full"
+                className="ui-input w-full"
                 style={{ fontSize: 'var(--fs-sm)' }}
               />
               <textarea
@@ -117,7 +117,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
                 onChange={(e) => setNewPrompt(e.target.value)}
                 placeholder="Prompt text..."
                 rows={3}
-                className="ctrl w-full"
+                className="ui-input w-full"
                 style={{ fontSize: 'var(--fs-sm)', resize: 'none' }}
               />
               <div className="row gap-2">
@@ -125,14 +125,14 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
                   id="quick-prompt-save-btn"
                   onClick={handleAdd}
                   disabled={!newTitle.trim() || !newPrompt.trim()}
-                  className="btn-brand flex-1"
+                  className="ui-button ui-button--primary btn-brand flex-1"
                   style={{ fontSize: 'var(--fs-sm)', opacity: (!newTitle.trim() || !newPrompt.trim()) ? 0.4 : 1 }}
                 >
                   Save
                 </button>
                 <button
                   onClick={() => setAdding(false)}
-                  className="btn"
+                  className="ui-button btn"
                   style={{ fontSize: 'var(--fs-sm)' }}
                 >
                   Cancel
@@ -161,7 +161,7 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
               onMouseEnter={() => setHoveredId(qp.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <Zap size={14} style={{ color: 'var(--c-accent-center-panel)', flexShrink: 0, marginTop: 2 }} />
+              <Zap className="ui-icon" style={{ color: 'var(--c-accent-1)', flexShrink: 0, marginTop: 2 }} />
               <div className="flex-1 min-w-0">
                 <div className="med" style={{ fontSize: 'var(--fs-sm)' }}>{qp.title}</div>
                 <div className="subtle trunc" style={{ fontSize: 'var(--fs-xs)', marginTop: 2 }}>{qp.prompt}</div>
@@ -169,10 +169,9 @@ export function QuickPrompts({ onSelectPrompt }: QuickPromptsProps) {
               {hoveredId === qp.id && (
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDelete(qp.id); }}
-                  className="btn-icon"
-                  style={{ padding: 4 }}
+                  className="ui-icon-button btn-icon"
                 >
-                  <Trash2 size={13} />
+                  <Trash2 className="ui-icon"  />
                 </button>
               )}
             </div>

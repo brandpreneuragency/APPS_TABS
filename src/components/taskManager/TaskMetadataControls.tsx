@@ -44,7 +44,7 @@ export function TaskClientProjectControls() {
         title={activeClient ? `Client: ${activeClient.name}` : 'No client'}
       >
         <span className="tdp-meta-field-btn tdp-meta-display">
-          <Building2 size={12} />
+          <Building2 />
           <span className="tdp-meta-field-label">
             {activeClient ? activeClient.name : 'No client'}
           </span>
@@ -57,9 +57,9 @@ export function TaskClientProjectControls() {
           onClick={() => setShowProjectPicker(!showProjectPicker)}
           title={activeTask?.projectId ? 'Change project' : 'Set project'}
           disabled={!activeTask}
-          style={{ color: activeTask?.projectId ? 'var(--c-text-1)' : 'var(--c-text-2)' }}
+          style={{ color: activeTask?.projectId ? 'var(--c-text-1)' : 'var(--c-text-3)' }}
         >
-          <Folder size={12} />
+          <Folder />
           <span className="tdp-meta-field-label">
             {activeProject ? activeProject.name : 'No project'}
           </span>
@@ -70,7 +70,7 @@ export function TaskClientProjectControls() {
               <button
                 key={p.id}
                 type="button"
-                className="drop-item"
+                className="ui-list-row drop-item"
                 onClick={() => { updateTask(activeTask.id, { projectId: p.id }); setShowProjectPicker(false); }}
                 style={{ fontSize: 'var(--fs-sm)' }}
               >
@@ -104,8 +104,8 @@ export function TaskDueDateControl() {
           title={activeTask?.date ? `Due: ${activeTask.date}` : 'Set due date'}
           disabled={!activeTask}
         >
-          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: activeTask?.date ? 'var(--c-text-1)' : 'var(--c-text-2)' }}>
-            <Calendar size={12} />
+          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, color: activeTask?.date ? 'var(--c-text-1)' : 'var(--c-text-3)' }}>
+            <Calendar />
             <span className="tdp-meta-field-label">
               {activeTask?.date ? formatShortDate(activeTask.date) : 'No due date'}
             </span>

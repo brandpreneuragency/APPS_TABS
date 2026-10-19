@@ -64,16 +64,15 @@ export function FormsListPanel() {
       style={{ marginLeft: '0px', marginRight: '0px' }}
     >
       <div
-        className="forms-list-content ai-scroll flex-1 overflow-y-a h-full"
-        style={{ display: 'flex', flexDirection: 'column', paddingLeft: '18px', paddingRight: '12px', paddingTop: '12px' }}
+        className="ui-panel-body forms-list-content ai-scroll flex-col flex-1 overflow-y-a"
       >
         {renderPanel1List(activeFormsPage)}
       </div>
 
       <div className="panel-footer forms-list-footer">
         {showAddButton ? (
-          <button type="button" className="forms-list-add-btn" title="New form" onClick={handleNewForm}>
-            <Plus size={14} />
+          <button type="button" className="ui-button forms-list-add-btn" title="New form" onClick={handleNewForm}>
+            <Plus />
             <span>New form</span>
           </button>
         ) : (

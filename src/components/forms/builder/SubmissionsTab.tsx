@@ -53,13 +53,13 @@ export default function SubmissionsTab({ form }: { form: LeadForm }) {
 
   return (
     <div className="forms-builder-submissions">
-      <div className="forms-builder-submissions-toolbar">
+      <div className="ui-toolbar forms-builder-submissions-toolbar">
         <span className="forms-builder-col-head-title">
           {formSubs.length} submission{formSubs.length === 1 ? '' : 's'}
         </span>
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--ghost"
+          className="ui-button forms-action-btn forms-action-btn--ghost"
           onClick={() => setActiveFormsPage('submissions')}
         >
           Open Submissions page
@@ -108,7 +108,7 @@ export default function SubmissionsTab({ form }: { form: LeadForm }) {
                   <SpamBadge spamScore={sub.spamScore} />
                 </td>
                 <td className="forms-builder-submission-time">
-                  {new Date(sub.createdAt).toLocaleString()}
+                  {new Date(sub.createdAt).toLocaleString('tr-TR')}
                 </td>
               </tr>
             ))}

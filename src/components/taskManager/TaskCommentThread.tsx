@@ -49,7 +49,7 @@ function formatTimestamp(ts: number): string {
   yesterday.setDate(yesterday.getDate() - 1);
   if (d.toDateString() === yesterday.toDateString()) return `Yesterday ${time}`;
 
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ` ${time}`;
+  return d.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' }) + ` ${time}`;
 }
 
 function canDeleteComment(comment: TaskComment): boolean {
@@ -113,9 +113,9 @@ function CommentContextMenu({
       <button
         type="button"
         onClick={() => { onReply(); onClose(); }}
-        className="drop-item"
+        className="ui-list-row drop-item"
       >
-        <Reply size={12} />
+        <Reply />
         Reply
       </button>
       <button
@@ -127,10 +127,10 @@ function CommentContextMenu({
             onClose();
           }
         }}
-        className={`drop-item${hasText ? '' : ' cursor-not-allowed'}`}
-        style={hasText ? { color: 'var(--c-accent-2)' } : { color: 'var(--c-text-2)' }}
+        className={`ui-list-row drop-item${hasText ? '' : ' cursor-not-allowed'}`}
+        style={hasText ? { color: 'var(--c-accent-2)' } : { color: 'var(--c-text-3)' }}
       >
-        <Sparkles size={12} />
+        <Sparkles />
         {t('chat.sendToAI')}
       </button>
       <button
@@ -142,10 +142,10 @@ function CommentContextMenu({
             onClose();
           }
         }}
-        className={`drop-item${deletable ? '' : ' cursor-not-allowed'}`}
-        style={deletable ? {color:'var(--c-danger)'} : {color:'var(--c-text-2)'}}
+        className={`ui-list-row drop-item${deletable ? '' : ' cursor-not-allowed'}`}
+        style={deletable ? {color:'var(--c-danger)'} : {color:'var(--c-text-3)'}}
       >
-        <Trash2 size={12} />
+        <Trash2 />
         Delete
       </button>
     </div>
@@ -236,9 +236,9 @@ function CommentBubble({
               cursor: 'pointer',
             }}
           >
-            <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
+            <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-1)', flexShrink: 0 }} />
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
-              <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-center-panel)', marginBottom: 1 }}>
+              <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-1)', marginBottom: 1 }}>
                 {comment.replyTo.sender}
               </div>
               <div className="subtle trunc" style={{ fontSize: 'var(--fs-sm)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

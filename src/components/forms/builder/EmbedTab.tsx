@@ -78,12 +78,12 @@ export default function EmbedTab({ form }: EmbedTabProps) {
   const previewSrc = extractIframeSrc(iframeSnippet.code);
 
   return (
-    <div className="forms-builder-embed">
+    <div className="ui-panel-body forms-builder-embed">
       {/* ---------- Publish state ---------- */}
-      <section className="forms-builder-embed-section">
+      <section className="ui-card forms-builder-embed-section">
         <div className="forms-builder-embed-section-head">
           <span className="forms-builder-embed-section-title">
-            <Upload size={16} className="forms-builder-embed-section-title-icon" />
+            <Upload className="forms-builder-embed-section-title-icon" />
             Publish State
           </span>
         </div>
@@ -99,37 +99,37 @@ export default function EmbedTab({ form }: EmbedTabProps) {
           <div className="forms-builder-embed-status-actions">
             <button
               type="button"
-              className="forms-builder-embed-btn forms-builder-embed-btn--primary"
+              className="ui-button forms-builder-embed-btn ui-button--primary forms-builder-embed-btn--primary"
               onClick={() => void publishForm(form.id)}
               disabled={form.status === 'published'}
             >
-              <Upload size={15} /> Publish
+              <Upload /> Publish
             </button>
             <button
               type="button"
-              className="forms-builder-embed-btn"
+              className="ui-button forms-builder-embed-btn"
               onClick={handleRevertToDraft}
               disabled={form.status === 'draft'}
             >
-              <RotateCcw size={15} /> Revert to Draft
+              <RotateCcw /> Revert to Draft
             </button>
             <button
               type="button"
-              className="forms-builder-embed-btn forms-builder-embed-btn--danger"
+              className="ui-button forms-builder-embed-btn ui-button--danger forms-builder-embed-btn--danger"
               onClick={() => void archiveForm(form.id)}
               disabled={form.status === 'archived'}
             >
-              <Archive size={15} /> Archive
+              <Archive /> Archive
             </button>
           </div>
         </div>
       </section>
 
       {/* ---------- Allowed domains ---------- */}
-      <section className="forms-builder-embed-section">
+      <section className="ui-card forms-builder-embed-section">
         <div className="forms-builder-embed-section-head">
           <span className="forms-builder-embed-section-title">
-            <Globe size={16} className="forms-builder-embed-section-title-icon" />
+            <Globe className="forms-builder-embed-section-title-icon" />
             Allowed Domains
             <span className="forms-builder-logic-section-count">{allowedDomains.length}</span>
           </span>
@@ -141,7 +141,7 @@ export default function EmbedTab({ form }: EmbedTabProps) {
         <div className="forms-builder-embed-domains-list">
           {allowedDomains.length === 0 ? (
             <div className="forms-builder-logic-empty" style={{ padding: '14px 12px' }}>
-              <Globe size={16} />
+              <Globe />
               <span className="forms-builder-logic-empty-sub">
                 No allow list — form can be embedded anywhere.
               </span>
@@ -151,18 +151,18 @@ export default function EmbedTab({ form }: EmbedTabProps) {
               <div key={domain} className="forms-builder-embed-domain-row">
                 <input
                   type="text"
-                  className="forms-builder-embed-domain-input"
+                  className="ui-input forms-builder-embed-domain-input"
                   value={domain}
                   readOnly
                 />
                 <button
                   type="button"
-                  className="forms-builder-embed-domain-remove"
+                  className="ui-icon-button forms-builder-embed-domain-remove"
                   onClick={() => removeDomain(domain)}
                   aria-label={`Remove ${domain}`}
                   title="Remove domain"
                 >
-                  <Trash2 size={15} />
+                  <Trash2 />
                 </button>
               </div>
             ))
@@ -171,7 +171,7 @@ export default function EmbedTab({ form }: EmbedTabProps) {
         <div className="forms-builder-embed-domain-row" style={{ marginTop: 4 }}>
           <input
             type="text"
-            className={`forms-builder-embed-domain-input${domainError ? ' forms-builder-embed-domain-input--invalid' : ''}`}
+            className={"ui-input " + (`forms-builder-embed-domain-input${domainError ? ' forms-builder-embed-domain-input--invalid' : ''}`)}
             value={newDomain}
             placeholder="add domain, e.g. example.com"
             onChange={(e) => {
@@ -185,18 +185,18 @@ export default function EmbedTab({ form }: EmbedTabProps) {
               }
             }}
           />
-          <button type="button" className="forms-builder-embed-domain-add" onClick={addDomain}>
-            <Plus size={15} /> Add
+          <button type="button" className="ui-button forms-builder-embed-domain-add" onClick={addDomain}>
+            <Plus /> Add
           </button>
         </div>
         {domainError && <span className="forms-builder-embed-domain-error">{domainError}</span>}
       </section>
 
       {/* ---------- Embed options (snippet tabs) ---------- */}
-      <section className="forms-builder-embed-section">
+      <section className="ui-card forms-builder-embed-section">
         <div className="forms-builder-embed-section-head">
           <span className="forms-builder-embed-section-title">
-            <Code2 size={16} className="forms-builder-embed-section-title-icon" />
+            <Code2 className="forms-builder-embed-section-title-icon" />
             Embed Snippets
           </span>
         </div>
@@ -207,26 +207,25 @@ export default function EmbedTab({ form }: EmbedTabProps) {
       </section>
 
       {/* ---------- Preview ---------- */}
-      <section className="forms-builder-embed-section">
+      <section className="ui-card forms-builder-embed-section">
         <div className="forms-builder-embed-section-head">
           <span className="forms-builder-embed-section-title">
-            <Eye size={16} className="forms-builder-embed-section-title-icon" />
+            <Eye className="forms-builder-embed-section-title-icon" />
             Live Preview
           </span>
           {previewSrc && (
             <a
-              className="forms-builder-embed-btn"
+              className="ui-button forms-builder-embed-btn"
               href={previewSrc}
               target="_blank"
               rel="noreferrer"
-              style={{ height: 26, padding: '0 10px' }}
             >
-              <ExternalLink size={14} /> Open
+              <ExternalLink /> Open
             </a>
           )}
         </div>
         <p className="forms-builder-embed-preview-note">
-          <ShieldAlert size={14} style={{ verticalAlign: '-2px', marginRight: 6 }} />
+          <ShieldAlert style={{ verticalAlign: '-2px', marginRight: 6 }} />
           Preview uses the public embed URL. Until the public capture endpoint exists, the iframe
           will not render a real form.
         </p>

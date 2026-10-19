@@ -48,16 +48,16 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-            <Building2 size={15} className="subtle" /> {company.name}
+            <Building2 className="subtle" /> {company.name}
           </div>
           <div className="crm-page-header-meta">
             {company.industry && <span className="crm-page-header-meta-item">{company.industry}</span>}
             {company.size && <span className="crm-page-header-meta-item">{company.size}</span>}
             {(company.city || company.country) && (
-              <span className="crm-page-header-meta-item"><MapPin size={11} /> {[company.city, company.country].filter(Boolean).join(', ')}</span>
+              <span className="crm-page-header-meta-item"><MapPin /> {[company.city, company.country].filter(Boolean).join(', ')}</span>
             )}
             {company.tags.length > 0 && <TagChips tags={company.tags} max={4} />}
           </div>
@@ -66,10 +66,10 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
 
       <CRMTabBar tabs={COMPANY_TABS} active={tab} onChange={setTab} />
 
-      <div className="crm-page-body">
+      <div className="ui-panel-body crm-page-body">
         {tab === 'overview' && (
           <>
-            <div className="crm-card">
+            <div className="ui-card crm-card">
               <div className="crm-card-title">Company overview</div>
               <div className="crm-detail-grid">
                 <div className="crm-detail-field">
@@ -80,7 +80,7 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
                   <span className="crm-detail-field-label">Website</span>
                   <span className="crm-detail-field-value crm-detail-field-value--muted">
                     {company.website ? (
-                      <span className="crm-detail-field-row"><Globe size={12} /> {company.website}</span>
+                      <span className="crm-detail-field-row"><Globe /> {company.website}</span>
                     ) : '—'}
                   </span>
                 </div>
@@ -128,11 +128,11 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
             </div>
 
             {companyNotes.length > 0 && (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Recent notes</div>
                 <div className="crm-stacked">
                   {companyNotes.slice(0, 3).map((note) => (
-                    <div key={note.id} className="crm-compact-row">
+                    <div key={note.id} className="ui-list-row crm-compact-row">
                       <div className="crm-compact-row-main">
                         <span className="crm-compact-row-title">{note.body}</span>
                         <span className="crm-compact-row-sub">{note.createdBy ?? 'You'} · {formatRelative(note.createdAt)}</span>
@@ -154,7 +154,7 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
                 <button
                   key={contact.id}
                   type="button"
-                  className="crm-list-item"
+                  className="ui-list-row crm-list-item"
                   onClick={() => {
                     setActiveContactId(contact.id);
                     setActiveCRMPage('contacts');
@@ -182,7 +182,7 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
                 <button
                   key={lead.id}
                   type="button"
-                  className="crm-list-item"
+                  className="ui-list-row crm-list-item"
                   onClick={() => {
                     setActiveLeadId(lead.id);
                     setActiveCRMPage('leads');
@@ -211,7 +211,7 @@ export function CompanyDetail({ company }: CompanyDetailProps) {
                 <button
                   key={deal.id}
                   type="button"
-                  className="crm-list-item"
+                  className="ui-list-row crm-list-item"
                   onClick={() => {
                     setActiveDealId(deal.id);
                     setActiveCRMPage('pipeline');

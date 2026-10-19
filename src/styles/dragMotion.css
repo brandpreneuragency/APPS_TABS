@@ -1,0 +1,88 @@
+/* Native drag snapshots stay flat; drop markers use lines, not shadows. */
+
+:root :is(
+  .crm-kanban-card, .notes-card, [data-ws-tab-id],
+  .scope-tab[draggable='true'], .scope-project-heading > span[draggable='true'],
+  [data-tree-node] > .row-xs, [data-action-row], [data-client-id]
+) {
+  transition: opacity var(--drag-duration) var(--drag-ease),
+    scale var(--drag-duration) var(--drag-ease),
+    background-color 140ms ease, border-color 140ms ease;
+}
+
+:root :is(
+  [data-tabs-dragging='true'], .crm-kanban-card--dragging, .notes-card--dragging,
+  .ws-tab--dragging, .settings-action-row.is-dragging, [data-client-dragging='true']
+) {
+  opacity: var(--drag-source-opacity);
+  scale: var(--drag-source-scale);
+  cursor: grabbing;
+}
+
+/* The client heading's parent already dims the group; don't multiply opacity. */
+:root [data-client-dragging='true'] [data-tabs-dragging='true'] {
+  opacity: 1;
+  scale: 1;
+}
+
+.tabs-drag-preview,
+.tabs-drag-preview * {
+  pointer-events: none;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Quiet target tint instead of flooding a whole column with solid accent. */
+:root .crm-kanban-column,
+:root .crm-kanban-column-body {
+  transition: background-color 140ms ease;
+}
+:root .crm-kanban-column.crm-kanban-column--drop-target {
+  background-color: color-mix(in srgb, var(--c-accent-1) 7%, var(--c-background-3));
+  outline: var(--border-width) solid var(--c-border-2);
+  outline-offset: calc(-1 * var(--border-width));
+}
+:root .crm-kanban-column--drop-target .crm-kanban-column-body {
+  background-color: color-mix(in srgb, var(--c-accent-1) 4%, transparent);
+}
+
+/* Existing insertion markers retain their direction and drop semantics. */
+
+:root .notes-card--drop-before::before,
+:root .notes-card--drop-after::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  width: var(--focus-width);
+  border-radius: var(--radius-full);
+  background: var(--c-accent-1);
+  pointer-events: none;
+}
+:root .notes-card--drop-before::before { left: 0; }
+:root .notes-card--drop-after::after { right: 0; }
+:root .settings-action-row.is-drop-target {
+  position: relative;
+  background-color: color-mix(in srgb, var(--c-accent-1) 6%, transparent);
+}
+:root .settings-action-row.is-drop-target::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--focus-width);
+  background: var(--c-accent-1);
+  pointer-events: none;
+}
+:root :is([data-client-drop-position], [data-drop-position], .ws-tab--drag-over)::before,
+:root :is([data-client-drop-position], [data-drop-position])::after {
+  border-radius: var(--radius-full);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root :is(
+    .crm-kanban-card, .notes-card, [data-ws-tab-id], .scope-tab[draggable='true'],
+    .scope-project-heading > span[draggable='true'], [data-tree-node] > .row-xs,
+    [data-action-row], [data-client-id], .crm-kanban-column, .crm-kanban-column-body
+  ) { transition: none; }
+}

@@ -61,17 +61,17 @@ export function FormCanvas({ form, expandedFieldId, onToggleField }: FormCanvasP
 
   return (
     <div className="forms-builder-col forms-builder-canvas-col">
-      <div className="forms-builder-col-head">
+      <div className="ui-toolbar forms-builder-col-head">
         <span className="forms-builder-col-head-title">Canvas</span>
         <span className="forms-builder-col-head-title" style={{ textTransform: 'none', letterSpacing: 0 }}>
           {sortedFields.length} field{sortedFields.length === 1 ? '' : 's'}
         </span>
       </div>
-      <div className="forms-builder-col-body">
+      <div className="ui-panel-body forms-builder-col-body">
         <div className="forms-builder-canvas">
           {sortedFields.length === 0 ? (
             <div className="forms-builder-canvas-empty">
-              <Plus size={20} />
+              <Plus />
               <p className="forms-empty-state-title">No fields yet</p>
               <p className="forms-empty-state-subtitle">
                 Click a field type in the palette on the left to add it here.
@@ -92,11 +92,9 @@ export function FormCanvas({ form, expandedFieldId, onToggleField }: FormCanvasP
                       key={field.id}
                       className={`forms-builder-field-wrap${isExpanded ? ' forms-builder-field-wrap--expanded' : ''}`}
                     >
-                      <div
-                        className={
-                          `forms-builder-field-card${isExpanded ? ' forms-builder-field-card--active' : ''}` +
-                          `${isDisabledInEmbed ? ' forms-builder-field-card--disabled' : ''}`
-                        }
+                      <div data-active={isExpanded}
+                        className={"ui-card " + (`forms-builder-field-card${isExpanded ? ' forms-builder-field-card--active' : ''}` +
+                          `${isDisabledInEmbed ? ' forms-builder-field-card--disabled' : ''}`)}
                         onClick={() => handleToggle(field.id)}
                         role="button"
                         tabIndex={0}
@@ -112,10 +110,10 @@ export function FormCanvas({ form, expandedFieldId, onToggleField }: FormCanvasP
                           className={`forms-builder-field-card-chevron${isExpanded ? ' forms-builder-field-card-chevron--open' : ''}`}
                           aria-hidden="true"
                         >
-                          <ChevronRight size={14} />
+                          <ChevronRight />
                         </span>
                         <span className="forms-builder-field-card-icon">
-                          <Icon size={15} />
+                          <Icon />
                         </span>
                         <div className="forms-builder-field-card-body">
                           <span className="forms-builder-field-card-label">
@@ -134,36 +132,36 @@ export function FormCanvas({ form, expandedFieldId, onToggleField }: FormCanvasP
                         <div className="forms-builder-field-card-actions">
                           <button
                             type="button"
-                            className="forms-builder-field-card-btn"
+                            className="ui-icon-button forms-builder-field-card-btn"
                             title="Move up"
                             onClick={(e) => {
                               e.stopPropagation();
                               move(field.id, -1);
                             }}
                           >
-                            <ChevronUp size={14} />
+                            <ChevronUp />
                           </button>
                           <button
                             type="button"
-                            className="forms-builder-field-card-btn"
+                            className="ui-icon-button forms-builder-field-card-btn"
                             title="Move down"
                             onClick={(e) => {
                               e.stopPropagation();
                               move(field.id, 1);
                             }}
                           >
-                            <ChevronDown size={14} />
+                            <ChevronDown />
                           </button>
                           <button
                             type="button"
-                            className="forms-builder-field-card-btn forms-builder-field-card-btn--danger"
+                            className="ui-icon-button forms-builder-field-card-btn ui-button--danger forms-builder-field-card-btn--danger"
                             title="Remove field"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleRemove(field.id);
                             }}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 />
                           </button>
                         </div>
                       </div>

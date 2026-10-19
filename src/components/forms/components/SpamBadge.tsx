@@ -19,7 +19,7 @@ export function SpamBadge({ spamScore }: SpamBadgeProps) {
   const label = b === 'high' ? `Spam (${score})` : b === 'mid' ? `Risk (${score})` : `Clean (${score})`;
   return (
     <span className={`forms-spam-badge forms-spam-badge--${b}`}>
-      <Icon size={11} />
+      <Icon />
       {label}
     </span>
   );

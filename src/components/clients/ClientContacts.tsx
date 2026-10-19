@@ -32,7 +32,7 @@ function ContactAutosave({ draft, records }: { draft: Extract<ClientDraft, { kin
   const autosave = useClientAutosave({ draft, value: draft.value, records });
   return <div className="clients-save-state" aria-live="polite">
     <span role={autosave.status === 'error' ? 'alert' : 'status'}>{saveStatusLabel(autosave.status, t)}</span>
-    {autosave.status === 'error' && <button type="button" className="clients-link-button" onClick={() => void autosave.retry()}>
+    {autosave.status === 'error' && <button type="button" className="ui-button clients-link-button" onClick={() => void autosave.retry()}>
       {t('clients.retry')}
     </button>}
   </div>;
@@ -61,13 +61,13 @@ function ContactEditor({
   ];
 
   return <form className="clients-editor-form" aria-label={t('clients.editContact')} onSubmit={(event) => event.preventDefault()}>
-    {fields.map(({ key, label, type }) => <label key={key} className="clients-field">
+    {fields.map(({ key, label, type }) => <label key={key} className="ui-field clients-field">
       <span>{label}</span>
-      <input type={type} value={latest.value[key]} onChange={(event) => change({ ...latest.value, [key]: event.currentTarget.value })} />
+      <input className="ui-input" type={type} value={latest.value[key]} onChange={(event) => change({ ...latest.value, [key]: event.currentTarget.value })} />
     </label>)}
     {latest.generation > 0 && <ContactAutosave draft={latest} records={records} />}
     <div className="clients-editor-actions">
-      <button type="button" className="clients-button" onClick={onClose}>{t('clients.cancelKeepDraft')}</button>
+      <button type="button" className="ui-button clients-button" onClick={onClose}>{t('clients.cancelKeepDraft')}</button>
     </div>
   </form>;
 }
@@ -165,15 +165,15 @@ export function ClientContacts({ clientId, profile, contacts, contactDrafts, rec
     setDeleteTarget(null);
   };
 
-  return <section className="clients-profile-section" aria-labelledby="clients-contacts-title">
+  return <section className="ui-card clients-profile-section" aria-labelledby="clients-contacts-title">
     <div className="clients-profile-section-heading">
       <h2 id="clients-contacts-title">{t('clients.contacts')}</h2>
-      <button type="button" className="clients-button" onClick={startNew}>{t('clients.addContact')}</button>
+      <button type="button" className="ui-button clients-button" onClick={startNew}>{t('clients.addContact')}</button>
     </div>
     {error && <p className="clients-error" role="alert">{t('clients.saveFailed')}</p>}
     {contacts.length === 0 && <p className="clients-muted">{t('clients.noContacts')}</p>}
     <ul className="clients-contact-list">
-      {contacts.map((contact) => <li key={contact.id} className="clients-contact-card">
+      {contacts.map((contact) => <li key={contact.id} className="ui-card clients-contact-card">
         <div className="clients-contact-summary">
           <div>
             <strong>{contact.name}</strong>
@@ -181,26 +181,26 @@ export function ClientContacts({ clientId, profile, contacts, contactDrafts, rec
             {contact.email && <span>{contact.email}</span>}
             {contact.phone && <span>{contact.phone}</span>}
             {profile?.primaryContactId === contact.id && <span className="clients-primary-label">
-              <Star size={13} aria-hidden="true" /> {t('clients.primaryContact')}
+              <Star aria-hidden="true" /> {t('clients.primaryContact')}
             </span>}
           </div>
           <div className="clients-contact-actions">
             {profile?.primaryContactId !== contact.id
-              ? <button type="button" className="clients-icon-button" aria-label={`${t('clients.makePrimary')}: ${contact.name}`}
-                disabled={profileMutationPending} onClick={() => void setPrimary(contact.id)}><Star size={15} aria-hidden="true" /></button>
-              : <button type="button" className="clients-link-button" disabled={profileMutationPending} onClick={() => void setPrimary(null)}>
+              ? <button type="button" className="ui-icon-button clients-icon-button" aria-label={`${t('clients.makePrimary')}: ${contact.name}`}
+                disabled={profileMutationPending} onClick={() => void setPrimary(contact.id)}><Star aria-hidden="true" /></button>
+              : <button type="button" className="ui-button clients-link-button" disabled={profileMutationPending} onClick={() => void setPrimary(null)}>
                 {t('clients.clearPrimary')}
               </button>}
-            <button type="button" className="clients-icon-button" aria-label={`${t('clients.editContact')}: ${contact.name}`}
-              onClick={() => void editContact(contact)}><Pencil size={15} aria-hidden="true" /></button>
-            <button type="button" className="clients-icon-button" aria-label={`${t('clients.deleteContact')}: ${contact.name}`}
-              disabled={profileMutationPending} onClick={() => setDeleteTarget(contact)}><Trash2 size={15} aria-hidden="true" /></button>
+            <button type="button" className="ui-icon-button clients-icon-button" aria-label={`${t('clients.editContact')}: ${contact.name}`}
+              onClick={() => void editContact(contact)}><Pencil aria-hidden="true" /></button>
+            <button type="button" className="ui-icon-button clients-icon-button" aria-label={`${t('clients.deleteContact')}: ${contact.name}`}
+              disabled={profileMutationPending} onClick={() => setDeleteTarget(contact)}><Trash2 aria-hidden="true" /></button>
           </div>
         </div>
       </li>)}
     </ul>
     {contactDrafts.filter((draft) => draft.kind === 'contact' && draft.id !== editingDraftId).map((draft) => draft.kind === 'contact'
-      ? <button key={draft.id} type="button" className="clients-link-button clients-resume-draft"
+      ? <button key={draft.id} type="button" className="ui-button clients-link-button clients-resume-draft"
         onClick={() => {
           useClientDetailsStore.getState().recoverDraft(draft);
           setEditingDraftId(draft.id);
@@ -214,8 +214,8 @@ export function ClientContacts({ clientId, profile, contacts, contactDrafts, rec
       <div className="clients-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="clients-delete-contact-title">
         <p id="clients-delete-contact-title">{t('clients.deleteContactConfirm', { name: deleteTarget.name })}</p>
         <div className="clients-editor-actions">
-          <button type="button" className="clients-button" onClick={() => setDeleteTarget(null)}>{t('clients.cancel')}</button>
-          <button type="button" className="clients-button clients-button--danger" disabled={profileMutationPending}
+          <button type="button" className="ui-button clients-button" onClick={() => setDeleteTarget(null)}>{t('clients.cancel')}</button>
+          <button type="button" className="ui-button clients-button ui-button--danger clients-button--danger" disabled={profileMutationPending}
             onClick={() => void deleteContact()}>{t('clients.delete')}</button>
         </div>
       </div>

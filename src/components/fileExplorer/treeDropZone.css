@@ -1,0 +1,59 @@
+.tree-drop-zone {
+  position: relative;
+  flex: 0 0 1px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tree-drop-zone--end {
+  flex-basis: 12px;
+}
+
+.tree-drop-zone-hitarea {
+  position: absolute;
+  z-index: 1;
+  top: -4px;
+  right: 0;
+  left: 0;
+  height: 9px;
+  pointer-events: none;
+}
+
+.filetree-dragging .tree-drop-zone-hitarea {
+  pointer-events: auto;
+}
+
+.tree-drop-zone--end > .tree-drop-zone-hitarea {
+  bottom: 0;
+  height: auto;
+}
+
+.tree-drop-zone-hitarea::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  left: var(--tree-drop-indent);
+  height: 1px;
+  border-radius: var(--radius-full);
+  background: var(--c-accent-1);
+  opacity: 0;
+  transform: scaleX(0.96);
+  transform-origin: left;
+  transition: opacity 140ms ease, transform 140ms ease;
+  pointer-events: none;
+}
+
+.tree-drop-zone-hitarea[data-active]::after {
+  opacity: 0.7;
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tree-drop-zone-hitarea::after {
+    transition: none;
+    transform: none;
+  }
+}

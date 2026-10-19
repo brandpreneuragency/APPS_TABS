@@ -42,15 +42,15 @@ export function ContactDetail({ contact }: ContactDetailProps) {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title">{fullName(contact.firstName, contact.lastName)}</div>
           <div className="crm-page-header-meta">
             {contact.jobTitle && (
-              <span className="crm-page-header-meta-item"><Briefcase size={11} /> {contact.jobTitle}</span>
+              <span className="crm-page-header-meta-item"><Briefcase /> {contact.jobTitle}</span>
             )}
             {company && (
-              <span className="crm-page-header-meta-item"><Building2 size={11} /> {company.name}</span>
+              <span className="crm-page-header-meta-item"><Building2 /> {company.name}</span>
             )}
             {contact.lifecycleStatus && <span className="crm-page-header-meta-item">{contact.lifecycleStatus}</span>}
             {contact.tags.length > 0 && <TagChips tags={contact.tags} max={4} />}
@@ -60,9 +60,9 @@ export function ContactDetail({ contact }: ContactDetailProps) {
 
       <CRMTabBar tabs={CONTACT_TABS} active={tab} onChange={setTab} />
 
-      <div className="crm-page-body">
+      <div className="ui-panel-body crm-page-body">
         {tab === 'profile' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Contact details</div>
             <div className="crm-detail-grid">
               <div className="crm-detail-field">
@@ -77,7 +77,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
                 <span className="crm-detail-field-label">Email</span>
                 <span className="crm-detail-field-value crm-detail-field-value--muted">
                   {contact.email ? (
-                    <span className="crm-detail-field-row"><Mail size={12} /> {contact.email}</span>
+                    <span className="crm-detail-field-row"><Mail /> {contact.email}</span>
                   ) : '—'}
                 </span>
               </div>
@@ -85,7 +85,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
                 <span className="crm-detail-field-label">Phone</span>
                 <span className="crm-detail-field-value crm-detail-field-value--muted">
                   {contact.phone ? (
-                    <span className="crm-detail-field-row"><Phone size={12} /> {contact.phone}</span>
+                    <span className="crm-detail-field-row"><Phone /> {contact.phone}</span>
                   ) : '—'}
                 </span>
               </div>
@@ -131,7 +131,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
               <div className="crm-muted-block">No leads linked to this contact.</div>
             ) : (
               contactLeads.map((lead) => (
-                <div key={lead.id} className="crm-card">
+                <div key={lead.id} className="ui-card crm-card">
                   <div className="crm-card-header">
                     <span className="crm-card-title">{lead.title}</span>
                     <span className="crm-list-item-sub">{formatRelative(lead.lastActivityAt)}</span>
@@ -149,7 +149,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
               <div className="crm-muted-block">No deals linked to this contact.</div>
             ) : (
               contactDeals.map((deal) => (
-                <div key={deal.id} className="crm-card">
+                <div key={deal.id} className="ui-card crm-card">
                   <div className="crm-card-header">
                     <span className="crm-card-title">{deal.title}</span>
                     <span className="crm-list-item-sub">{deal.stage}</span>
@@ -173,7 +173,7 @@ export function ContactDetail({ contact }: ContactDetailProps) {
               <div className="crm-muted-block">No notes yet. Add one below.</div>
             ) : (
               contactNotes.map((note) => (
-                <div key={note.id} className="crm-card">
+                <div key={note.id} className="ui-card crm-card">
                   <div className="crm-card-header">
                     <span className="crm-card-title">{note.createdBy ?? 'You'}</span>
                     <span className="crm-list-item-sub">{formatRelative(note.createdAt)}</span>

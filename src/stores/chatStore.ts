@@ -364,11 +364,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   setEmptyThreadOrigin: async (threadId, origin) => {
     const thread = get().threads.find((item) => item.id === threadId);
-    if (!thread || thread.origin === 'legacy_api') return false;
+    if (!thread || thread.origin === 'legacy_api' || thread.origin === 'mockEcho' || thread.origin === 'mockTools') return false;
     try {
       const changed = await db.transaction('rw', db.chatThreads, db.chatMessages, async () => {
         const persisted = await db.chatThreads.get(threadId);
-        if (!persisted || persisted.origin === 'legacy_api') return false;
+        if (!persisted || persisted.origin === 'legacy_api' || persisted.origin === 'mockEcho' || persisted.origin === 'mockTools') return false;
         const messageCount = await db.chatMessages.where('threadId').equals(threadId).count();
         if (messageCount > 0) return false;
         await db.chatThreads.update(threadId, { origin });
@@ -412,7 +412,7 @@ function replaceOrRemoveMessage(messages: ChatMessage[], id: string): ChatMessag
   return messages.filter((m) => m.id !== id);
 }
 
-const chatProviderIds: ChatProviderId[] = ['codex', 'grok', 'commandCode', 'openCode', 'mockEcho', 'mockTools'];
+const chatProviderIds: ChatProviderId[] = ['codex', 'grok', 'commandCode', 'openCode'];
 
 function isChatProviderId(value: unknown): value is ChatProviderId {
   return typeof value === 'string' && chatProviderIds.includes(value as ChatProviderId);

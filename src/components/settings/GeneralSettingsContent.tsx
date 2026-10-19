@@ -10,7 +10,7 @@ import { useWorkspaceStore } from '../../stores/workspaceStore';
 import { isNativeFsAvailable, openFolderDialog } from '../../services/fs-adapter';
 import { canStepEditorFontSize, stepEditorFontSize } from '../../stores/editorFontSize';
 
-const FONT_FAMILIES = ['Inter', 'Georgia', 'Arial', 'Verdana', 'Trebuchet MS'];
+const FONT_FAMILIES = ['Inter', 'Georgia', 'Arial', 'Verdana', 'Trebuchet MS', 'Times New Roman', 'Courier New'];
 
 export function SettingsContent() {
   const { t } = useTranslation();
@@ -50,29 +50,29 @@ export function SettingsContent() {
   const canIncreaseFont = canStepEditorFontSize(editorFontSize, 1);
 
   return (
-    <div className="settings-general-content flex-col h-full w-full" style={{ background: 'var(--c-background-1)', overflow: 'hidden', display: 'flex' }}>
-      <div className="settings-general-content__body flex-1 col gap-4" style={{ padding: '0px 0px 16px 0px', overflowY: 'auto' }}>
-        <div>
-          <div style={{ marginBottom: 12 }}>
-            <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
-              <label className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>{t('settings.textSize')}</label>
-              <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
+    <div className="settings-general-content">
+      <div className="settings-general-content__body">
+        <div className="settings-general-fields">
+          <div className="settings-setting-row">
+            <div className="settings-setting-row__content">
+              <span className="subtle">{t('settings.textSize')}</span>
+              <div className="settings-stepper">
                 <button
                   type="button"
                   disabled={!canDecreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, -1))}
-                  className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-sm)', lineHeight: 1, opacity: canDecreaseFont ? 1 : 0.3, cursor: canDecreaseFont ? 'pointer' : 'not-allowed' }}
+                  className="ui-icon-button"
+                  aria-label={`${t('settings.textSize')} −`}
                 >
                   −
                 </button>
-                <span className="nowrap" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)', width: 32, textAlign: 'center' }}>{editorFontSize}px</span>
+                <span className="settings-stepper__value">{editorFontSize}px</span>
                 <button
                   type="button"
                   disabled={!canIncreaseFont}
                   onClick={() => setEditorFontSize(stepEditorFontSize(editorFontSize, 1))}
-                  className="btn-icon"
-                  style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', borderRadius: 'var(--radius-full)', fontSize: 'var(--fs-sm)', lineHeight: 1, opacity: canIncreaseFont ? 1 : 0.3, cursor: canIncreaseFont ? 'pointer' : 'not-allowed' }}
+                  className="ui-icon-button"
+                  aria-label={`${t('settings.textSize')} +`}
                 >
                   +
                 </button>
@@ -81,17 +81,18 @@ export function SettingsContent() {
           </div>
 
           {/* Font Family — full width */}
-          <div style={{ marginBottom: 12 }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-sm)', display: 'block', marginBottom: 6 }}>{t('settings.fontFamily')}</label>
+          <div className="settings-field ui-field">
+            <label id="settings-font-label">{t('settings.fontFamily')}</label>
             <div ref={fontRef} className="relative">
               <button
                 type="button"
                 onClick={() => setFontOpen((v) => !v)}
-                className="btn w-full"
-                style={{ padding: 10, borderRadius: 'var(--radius-sm)', fontSize: 'var(--fs-sm)', justifyContent: 'space-between' }}
+                className="ui-button settings-font-picker"
+                aria-labelledby="settings-font-label"
+                aria-expanded={fontOpen}
               >
                 <span style={{ fontFamily: editorFontFamily }}>{editorFontFamily}</span>
-                <ChevronDown size={14} className="subtle" style={{ transform: fontOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
+                <ChevronDown size="var(--c-icon-1)" className="subtle" style={{ transform: fontOpen ? 'rotate(180deg)' : undefined, transition: 'transform 0.15s' }} />
               </button>
               {fontOpen && (
                 <div className="drop" style={{ left: 0, right: 0 }}>
@@ -105,7 +106,7 @@ export function SettingsContent() {
                         fontFamily: font,
                         fontSize: 'var(--fs-sm)',
                         background: editorFontFamily === font ? 'var(--c-background-4)' : undefined,
-                        color: editorFontFamily === font ? 'var(--c-accent-center-panel)' : undefined,
+                        color: editorFontFamily === font ? 'var(--c-accent-1)' : undefined,
                       }}
                     >
                       {font}
@@ -117,34 +118,23 @@ export function SettingsContent() {
           </div>
 
           {/* Default workspace folder */}
-          <div style={{ marginBottom: 12 }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-sm)', display: 'block', marginBottom: 6 }}>
+          <div className="settings-field ui-field">
+            <label>
               {t('settings.defaultFolder')}
             </label>
-            <p className="subtle" style={{ fontSize: 'var(--fs-sm)', margin: '0 0 8px' }}>
+            <p className="settings-hint">
               {t('settings.defaultFolderHint')}
             </p>
-            <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+            <div className="settings-folder-controls">
               <span
-                className="ctrl"
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  display: 'block',
-                  fontSize: 'var(--fs-sm)',
-                  color: defaultFolderPath ? 'var(--c-text-1)' : 'var(--c-text-3)',
-                }}
+                className={`ui-input settings-folder-path${defaultFolderPath ? '' : ' subtle'}`}
                 title={defaultFolderPath ?? undefined}
               >
                 {defaultFolderPath ?? t('settings.defaultFolderNone')}
               </span>
               <button
                 type="button"
-                className="btn"
-                style={{ fontSize: 'var(--fs-sm)', flexShrink: 0 }}
+                className="ui-button"
                 onClick={() => void handleChooseDefaultFolder()}
                 disabled={!canPickFolder || pickingFolder}
               >
@@ -153,8 +143,7 @@ export function SettingsContent() {
               {defaultFolderPath && (
                 <button
                   type="button"
-                  className="btn"
-                  style={{ fontSize: 'var(--fs-sm)', flexShrink: 0 }}
+                  className="ui-button"
                   onClick={() => void setDefaultFolderPath(null)}
                   disabled={pickingFolder}
                 >
@@ -163,32 +152,23 @@ export function SettingsContent() {
               )}
             </div>
             {!canPickFolder && (
-              <p className="subtle" style={{ fontSize: 'var(--fs-sm)', marginTop: 6 }}>
+              <p className="settings-hint">
                 {t('settings.defaultFolderUnavailable')}
               </p>
             )}
           </div>
 
           {/* Language */}
-          <div className="row" style={{ justifyContent: 'space-between', padding: '2px 0' }}>
-            <label className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>{t('settings.language')}</label>
-            <div className="row-xs" style={{ border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-full)', padding: '2px 4px' }}>
+          <div className="settings-setting-row__content">
+            <span className="subtle">{t('settings.language')}</span>
+            <div className="settings-scope-toggle">
               {(['en', 'tr'] as const).map((lang) => (
                 <button
                   key={lang}
                   type="button"
                   onClick={() => setLanguage(lang)}
-                  className="semibold"
-                  style={{
-                    padding: '2px 10px',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--fs-sm)',
-                    border: 'none',
-                    cursor: 'pointer',
-                    background: language === lang ? 'var(--c-accent-center-panel)' : 'transparent',
-                    color: language === lang ? '#fff' : 'var(--c-text-2)',
-                    transition: 'background-color 0.15s, color 0.15s',
-                  }}
+                  className={`ui-button${language === lang ? ' is-active' : ''}`}
+                  aria-pressed={language === lang}
                 >
                   {lang.toUpperCase()}
                 </button>

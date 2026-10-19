@@ -77,18 +77,18 @@ export function LeadDetail({ lead }: LeadDetailProps) {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title">{lead.title}</div>
           <div className="crm-page-header-meta">
             {contact && (
               <span className="crm-page-header-meta-item">
-                <User size={11} /> {fullName(contact.firstName, contact.lastName)}
+                <User /> {fullName(contact.firstName, contact.lastName)}
               </span>
             )}
             {company && (
               <span className="crm-page-header-meta-item">
-                <Building2 size={11} /> {company.name}
+                <Building2 /> {company.name}
               </span>
             )}
             <span className="crm-page-header-meta-item">Stage: <StatusBadge stage={lead.stage} /></span>
@@ -98,7 +98,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
         <div className="crm-page-header-actions">
           <button
             type="button"
-            className="crm-btn crm-btn--ghost crm-btn--sm"
+            className="ui-icon-button crm-btn crm-btn--ghost crm-btn--sm"
             title="Edit lead"
             aria-label="Edit lead"
             onClick={() => {
@@ -108,18 +108,18 @@ export function LeadDetail({ lead }: LeadDetailProps) {
               }
             }}
           >
-            <Pencil size={12} />
+            <Pencil />
           </button>
         </div>
       </div>
 
       <CRMTabBar tabs={LEAD_TABS} active={tab} onChange={setTab} />
 
-      <div className="crm-page-body">
+      <div className="ui-panel-body crm-page-body">
         {tab === 'overview' && (
           <>
             {contact ? (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Contact</div>
                 <div className="crm-detail-grid">
                   <div className="crm-detail-field">
@@ -134,7 +134,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                     <span className="crm-detail-field-label">Email</span>
                     <span className="crm-detail-field-value crm-detail-field-value--muted">
                       {contact.email ? (
-                        <span className="crm-detail-field-row"><Mail size={12} /> {contact.email}</span>
+                        <span className="crm-detail-field-row"><Mail /> {contact.email}</span>
                       ) : '—'}
                     </span>
                   </div>
@@ -142,7 +142,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                     <span className="crm-detail-field-label">Phone</span>
                     <span className="crm-detail-field-value crm-detail-field-value--muted">
                       {contact.phone ? (
-                        <span className="crm-detail-field-row"><Phone size={12} /> {contact.phone}</span>
+                        <span className="crm-detail-field-row"><Phone /> {contact.phone}</span>
                       ) : '—'}
                     </span>
                   </div>
@@ -150,7 +150,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                     <span className="crm-detail-field-label">Job title</span>
                     <span className="crm-detail-field-value crm-detail-field-value--muted">
                       {contact.jobTitle ? (
-                        <span className="crm-detail-field-row"><Briefcase size={12} /> {contact.jobTitle}</span>
+                        <span className="crm-detail-field-row"><Briefcase /> {contact.jobTitle}</span>
                       ) : '—'}
                     </span>
                   </div>
@@ -181,14 +181,14 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                 )}
               </div>
             ) : (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Contact</div>
                 <div className="crm-muted-block">No contact linked to this lead.</div>
               </div>
             )}
 
             {company ? (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Company</div>
                 <div className="crm-detail-grid">
                   <div className="crm-detail-field">
@@ -199,7 +199,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                     <span className="crm-detail-field-label">Website</span>
                     <span className="crm-detail-field-value crm-detail-field-value--muted">
                       {company.website ? (
-                        <span className="crm-detail-field-row"><Globe size={12} /> {company.website}</span>
+                        <span className="crm-detail-field-row"><Globe /> {company.website}</span>
                       ) : '—'}
                     </span>
                   </div>
@@ -216,7 +216,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                     <span className="crm-detail-field-value crm-detail-field-value--muted">
                       {(company.city || company.country) ? (
                         <span className="crm-detail-field-row">
-                          <MapPin size={12} /> {[company.city, company.country].filter(Boolean).join(', ')}
+                          <MapPin /> {[company.city, company.country].filter(Boolean).join(', ')}
                         </span>
                       ) : '—'}
                     </span>
@@ -248,7 +248,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
                 )}
               </div>
             ) : (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Company</div>
                 <div className="crm-muted-block">No company linked to this lead.</div>
               </div>
@@ -263,7 +263,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
               <div className="crm-muted-block">No notes yet. Add one below.</div>
             ) : (
               leadNotes.map((note) => (
-                <div key={note.id} className="crm-card">
+                <div key={note.id} className="ui-card crm-card">
                   <div className="crm-card-header">
                     <span className="crm-card-title">{note.createdBy ?? 'You'}</span>
                     <span className="crm-list-item-sub">{formatRelative(note.createdAt)}</span>
@@ -285,18 +285,18 @@ export function LeadDetail({ lead }: LeadDetailProps) {
               <div className="crm-muted-block">No tasks linked to this lead yet.</div>
             ) : (
               leadTaskLinks.map((link) => (
-                <div key={link.id} className="crm-card">
+                <div key={link.id} className="ui-card crm-card">
                   <div className="crm-card-header">
                     <span className="crm-card-title">
-                      <Link2 size={13} /> Task {link.taskId}
+                      <Link2 /> Task {link.taskId}
                     </span>
                     <span className="crm-list-item-sub">{formatRelative(link.createdAt)}</span>
                   </div>
                 </div>
               ))
             )}
-            <button type="button" className="crm-btn crm-btn--ghost crm-btn--sm" disabled title="Linking creation is a placeholder for now.">
-              <Plus size={12} /> Link a task
+            <button type="button" className="ui-button crm-btn crm-btn--ghost crm-btn--sm" disabled title="Linking creation is a placeholder for now.">
+              <Plus /> Link a task
             </button>
           </div>
         )}
@@ -304,7 +304,7 @@ export function LeadDetail({ lead }: LeadDetailProps) {
         {tab === 'formdata' && (
           <div className="crm-stacked">
             {submission ? (
-              <div className="crm-card">
+              <div className="ui-card crm-card">
                 <div className="crm-card-title">Submission · {submission.id}</div>
                 <div className="crm-list-item-sub" style={{ marginBottom: 6 }}>
                   {sourceForm?.name ?? lead.sourceFormId ?? '—'} · {formatDate(submission.createdAt)}

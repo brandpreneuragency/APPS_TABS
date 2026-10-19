@@ -56,7 +56,7 @@ export function HeaderDropdown({
         style={{ borderRadius: 'var(--radius-sm)', background: 'transparent' }}
       >
         <span className="trunc med">{selected?.label ?? ''}</span>
-        <ChevronDown size={12} className="subtle shrink-0" />
+        <ChevronDown  className="ui-icon subtle shrink-0" />
       </button>
 
       {open && (

@@ -7,6 +7,7 @@ import type { Task, TaskStatus } from '../types';
 import { TASK_TITLE_MAX_LENGTH } from '../types';
 import { db, getSetting, setSetting } from '../services/db';
 import { recordTaskDeletion } from '../services/taskAuthority/cache';
+import { insertKanbanCard } from '../services/kanbanOrder';
 import * as fsAdapter from '../services/fs-adapter';
 import { isTauriRuntime } from '../services/runtime';
 import { useUIStore } from './uiStore';
@@ -68,7 +69,7 @@ interface TaskStore {
   updateTask: (id: string, updates: Partial<Pick<Task,
     'title' | 'content' | 'status' | 'importance' | 'date' |
     'projectId' | 'assignees' | 'sourcePath' |
-    'sourceChatMessageId'>>) => Promise<void>;
+    'sourceChatMessageId'>>, placement?: { field: 'projectId' | 'date'; beforeId: string | null }) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   restoreTask: (id: string) => Promise<void>;
   permanentlyDeleteTask: (id: string) => Promise<void>;
@@ -372,7 +373,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
     }
   },
 
-  updateTask: async (id, updates) => {
+  updateTask: async (id, updates, placement) => {
     const previous = get().tasks.find((t) => t.id === id);
     // Enforce max title length
     const enforcedUpdates =
@@ -404,7 +405,16 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
         }
         const next: Task = { ...current, ...enforcedUpdates,
           updatedAt: Math.max(nextUpdatedAt, current.updatedAt + 1) };
-        await db.tasks.put(next);
+        if (placement) {
+          const peers = (await db.tasks.toArray()).filter((task) => !task.deletedAt && task[placement.field] === next[placement.field]);
+          const ordered = insertKanbanCard(peers, next, placement.beforeId);
+          const changed = ordered.filter((task) => task.id === id || peers.find((peer) => peer.id === task.id)?.order !== task.order)
+            .map((task) => ({ ...task, updatedAt: Math.max(nextUpdatedAt, task.updatedAt + 1) }));
+          await db.tasks.bulkPut(changed);
+          Object.assign(next, changed.find((task) => task.id === id));
+        } else {
+          await db.tasks.put(next);
+        }
         return { before: current, after: next };
       });
       await get().refreshTasksFromDb();

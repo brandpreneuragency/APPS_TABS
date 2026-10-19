@@ -17,7 +17,7 @@ const DASH_FILTERS: { key: DashFilter; label: string }[] = [
 
 function timeLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
   } catch {
     return iso;
   }
@@ -45,10 +45,10 @@ export function FormsNavList() {
     <>
       <div className="forms-list-filters">
         {DASH_FILTERS.map((f) => (
-          <button
+          <button data-active={filter === f.key}
             key={f.key}
             type="button"
-            className={`forms-filter-chip${filter === f.key ? ' forms-filter-chip--active' : ''}`}
+            className={"ui-button " + (`forms-filter-chip${filter === f.key ? ' forms-filter-chip--active' : ''}`)}
             onClick={() => setFilter(f.key)}
           >
             {f.label}
@@ -68,17 +68,17 @@ export function FormsNavList() {
               key={form.id}
               type="button"
               onClick={() => openForm(form.id)}
-              className="forms-list-item"
+              className="ui-list-row forms-list-item"
             >
               <span className="forms-list-item-title">
                 <span className="trunc forms-grow">{form.name}</span>
                 <StatusBadge status={form.status} />
               </span>
               <span className="forms-list-item-meta">
-                <Inbox size={11} />
+                <Inbox />
                 <span>{subCount}</span>
                 <span>·</span>
-                <Clock size={11} />
+                <Clock />
                 <span>{timeLabel(form.createdAt)}</span>
               </span>
             </button>

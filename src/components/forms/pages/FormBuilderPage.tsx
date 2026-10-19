@@ -13,7 +13,7 @@ export default function FormBuilderPage() {
 
   if (!activeFormId && !activeTemplateId) {
     return (
-      <div className="forms-page forms-page--builder" style={{ padding: 0, gap: 0 }}>
+      <div className="ui-panel-body forms-page forms-page--builder" >
         <FormsEmptyState
           icon={FileEdit}
           title="No form or template selected"
@@ -24,7 +24,7 @@ export default function FormBuilderPage() {
   }
 
   return (
-    <div className="forms-page forms-page--builder" style={{ padding: 0, gap: 0 }}>
+    <div className="ui-panel-body forms-page forms-page--builder" >
       <FormBuilder />
     </div>
   );

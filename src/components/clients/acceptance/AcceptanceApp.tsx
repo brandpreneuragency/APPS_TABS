@@ -55,8 +55,8 @@ export default function AcceptanceApp() {
     <header>
       <div><p className="clients-acceptance-eyebrow">TABS Clients Acceptance</p><h1>{t('acceptance.title')}</h1></div>
       <div className="clients-acceptance-actions">
-        <button type="button" onClick={() => void i18n.changeLanguage(i18n.language === 'tr' ? 'en' : 'tr')}>TR / EN</button>
-        <button type="button" onClick={() => void acceptance.quit().catch(() => setError('CONFLICT'))}>{t('acceptance.quit')}</button>
+        <button className="ui-button" type="button" onClick={() => void i18n.changeLanguage(i18n.language === 'tr' ? 'en' : 'tr')}>TR / EN</button>
+        <button className="ui-button" type="button" onClick={() => void acceptance.quit().catch(() => setError('CONFLICT'))}>{t('acceptance.quit')}</button>
       </div>
     </header>
     <p>{t('acceptance.intro')}</p>
@@ -65,16 +65,16 @@ export default function AcceptanceApp() {
       <p>{t('acceptance.config')} <strong>{status ? t(status.configReady ? 'acceptance.ready' : 'acceptance.missing') : '…'}</strong></p>
       <form onSubmit={(event) => { event.preventDefault(); void perform(() => acceptance.connect(mailbox)); }}>
         <label htmlFor="acceptance-mailbox">{t('acceptance.mailbox')}</label>
-        <input id="acceptance-mailbox" type="email" autoComplete="off" required value={mailbox}
+        <input className="ui-input" id="acceptance-mailbox" type="email" autoComplete="off" required value={mailbox}
           disabled={busy || status?.accountPresent} onChange={(event) => setMailbox(event.target.value)} />
         <div className="clients-acceptance-actions">
-          <button type="submit" disabled={busy || !diagnostics || !status?.configReady || !mailbox}>{t('acceptance.connect')}</button>
-          <button type="button" disabled={busy || !status?.accountPresent}
+          <button className="ui-button" type="submit" disabled={busy || !diagnostics || !status?.configReady || !mailbox}>{t('acceptance.connect')}</button>
+          <button className="ui-button" type="button" disabled={busy || !status?.accountPresent}
             onClick={() => void perform(acceptance.refresh)}>{t('acceptance.refresh')}</button>
-          <button type="button" disabled={busy || !status?.accountPresent}
+          <button className="ui-button" type="button" disabled={busy || !status?.accountPresent}
             onClick={() => void checkReadAccess()}>{t('acceptance.readAccess')}</button>
-          {busy && <button type="button" onClick={() => void acceptance.cancel().catch(() => setError('CONFLICT'))}>{t('acceptance.cancel')}</button>}
-          <button type="button" disabled={busy || !status?.accountPresent}
+          {busy && <button className="ui-button" type="button" onClick={() => void acceptance.cancel().catch(() => setError('CONFLICT'))}>{t('acceptance.cancel')}</button>}
+          <button className="ui-button" type="button" disabled={busy || !status?.accountPresent}
             onClick={() => void perform(acceptance.disconnect)}>{t('acceptance.disconnect')}</button>
         </div>
       </form>

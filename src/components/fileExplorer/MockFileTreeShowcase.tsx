@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ChevronRight, ChevronDown, Folder, FolderOpen, File } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import './mockFileTreeShowcase.css';
 
 type MockNode = {
   name: string;
@@ -45,6 +46,7 @@ export function MockFileTreeShowcase() {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState<string[]>(['Documents', 'Documents/research']);
   const [selected, setSelected] = useState('Documents/meeting-notes.md');
+  const [activeFile, setActiveFile] = useState('Documents/meeting-notes.md');
 
   const toggle = (path: string) => {
     setExpanded((prev) => (prev.includes(path) ? prev.filter((p) => p !== path) : [...prev, path]));
@@ -57,6 +59,7 @@ export function MockFileTreeShowcase() {
         const isDir = node.kind === 'directory';
         const isExpanded = expanded.includes(path);
         const isSelected = selected === path;
+        const isActiveFile = !isDir && activeFile === path;
         return (
           <li
             key={path}
@@ -64,49 +67,60 @@ export function MockFileTreeShowcase() {
             tabIndex={0}
             onClick={() => {
               setSelected(path);
+              if (!isDir) setActiveFile(path);
               if (isDir) toggle(path);
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 setSelected(path);
+                if (!isDir) setActiveFile(path);
                 if (isDir) toggle(path);
               }
             }}
             style={{
               borderRadius: 'var(--radius-sm)',
-              backgroundColor: isSelected ? 'var(--c-background-3)' : 'transparent',
+              backgroundColor: isSelected ? 'var(--c-background-1)' : 'transparent',
               fontSize: 'var(--fs-xs)',
               color: 'var(--c-text-1)',
               cursor: 'default',
             }}
           >
-            <div className="row-xs" style={{ height: 32, paddingLeft: 6 + depth * 12, paddingRight: 6 }}>
+            <div
+              className="row-xs"
+              style={{
+                height: 'var(--control-height-sm)',
+                paddingLeft: 6 + depth * 12,
+                paddingRight: 6,
+                backgroundColor: isSelected ? 'var(--c-background-1)' : 'transparent',
+                borderRadius: '6px',
+              }}
+            >
               {isDir ? (
                 <>
                   <span className="shrink-0 subtle" style={{ width: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {isExpanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}
+                    {isExpanded ? <ChevronDown className="ui-icon" /> : <ChevronRight className="ui-icon" />}
                   </span>
                   {isExpanded
-                    ? <FolderOpen size={13} className="shrink-0" style={{ color: isSelected ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />
-                    : <Folder size={13} className="shrink-0" style={{ color: isSelected ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />}
+                    ? <FolderOpen className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />
+                    : <Folder className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />}
                 </>
               ) : (
                 <>
                   <span className="shrink-0" style={{ width: 14 }} />
-                  <File size={13} className="shrink-0" style={{ color: isSelected ? 'var(--c-accent-1)' : 'var(--c-text-2)' }} />
+                  <File className="ui-icon shrink-0" style={{ color: isActiveFile ? 'var(--c-text-1)' : 'var(--c-text-3)' }} />
                 </>
               )}
               <span
                 className="trunc flex-1 min-w-0"
-                style={{ marginLeft: 4, fontWeight: 500, color: isSelected ? 'var(--c-accent-1)' : 'var(--c-text-2)' }}
+                style={{ marginLeft: 4, fontWeight: 500, color: isActiveFile ? 'var(--c-text-1)' : 'var(--c-text-3)' }}
               >
                 {node.name}
               </span>
             </div>
             {isDir && isExpanded && node.children && node.children.length > 0 && renderNodes(node.children, path, depth + 1)}
             {isDir && isExpanded && node.children?.length === 0 && (
-              <div className="subtle" style={{ paddingLeft: 6 + (depth + 1) * 12, fontSize: 'var(--fs-xs)', height: 32, display: 'flex', alignItems: 'center' }}>
+              <div className="subtle" style={{ paddingLeft: 6 + (depth + 1) * 12, fontSize: 'var(--fs-xs)', height: 'var(--control-height-sm)', display: 'flex', alignItems: 'center' }}>
                 {t('explorer.mockEmptyFolder')}
               </div>
             )}

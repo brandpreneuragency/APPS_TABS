@@ -93,7 +93,7 @@ export function AttachmentPreviewItem({
         <img src={thumbSrc} alt={item.name} className="composer-attachment-thumb-img" />
         {kind === 'video' && (
           <span className="composer-attachment-thumb-play" aria-hidden>
-            <Play size={10} fill="currentColor" />
+            <Play className="ui-icon"  fill="currentColor" />
           </span>
         )}
       </>
@@ -113,10 +113,10 @@ export function AttachmentPreviewItem({
             type="button"
             onClick={handleRemove}
             title={removeTitle}
-            className="composer-attachment-thumb-remove"
+            className="ui-icon-button composer-attachment-thumb-remove"
             aria-label={removeTitle}
           >
-            <X size={9} />
+            <X className="ui-icon"  />
           </button>
         )}
       </div>
@@ -144,9 +144,9 @@ export function AttachmentPreviewItem({
       }
     >
       {kind === 'folder' ? (
-        <Folder size={13} className="composer-chip-icon" />
+        <Folder  className="ui-icon composer-chip-icon" />
       ) : (
-        <File size={13} className="composer-chip-icon" />
+        <File  className="ui-icon composer-chip-icon" />
       )}
       <span className="composer-chip-name">{label}</span>
       {item.sizeLabel ? <span className="composer-chip-size">{item.sizeLabel}</span> : null}
@@ -155,10 +155,10 @@ export function AttachmentPreviewItem({
           type="button"
           onClick={handleRemove}
           title={removeTitle}
-          className="composer-chip-remove"
+          className="ui-icon-button composer-chip-remove"
           aria-label={removeTitle}
         >
-          <X size={9} />
+          <X className="ui-icon"  />
         </button>
       )}
     </div>

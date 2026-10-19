@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent as ReactDragEvent, type FormEvent, type KeyboardEvent, type ReactNode, type SetStateAction } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, ChevronRight, FileText, Folder, FolderOpen, GitBranch, RefreshCw, Settings2, X } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { ChevronDown, ChevronRight, Code2, Eye, FileText, Folder, FolderOpen, GitBranch, GitCompareArrows, History, RefreshCw, Save, X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { isTauriRuntime } from '../../services/runtime';
@@ -14,6 +15,7 @@ import { PrimaryWorkspaceContent } from '../layout/workspace/PrimaryWorkspaceCon
 import { AISidebar } from '../sidebar/AISidebar';
 import { useChatStore } from '../../stores/chatStore';
 import type { ChatMessage } from '../../types';
+import { GithubRepositoryNavigation } from './GithubRepositoryNavigation';
 import './github.css';
 
 type GithubStoreHook = typeof useGithubStore;
@@ -21,6 +23,8 @@ type GithubStoreHook = typeof useGithubStore;
 interface GithubWorkspaceProps {
   /** Isolated store injection for fixture-backed UI acceptance tests. */
   store?: GithubStoreHook;
+  /** App-owned navigation slot keeps repository actions on the same editor guard. */
+  navigationContainer?: HTMLDivElement | null;
 }
 
 interface DirectoryListing {
@@ -149,7 +153,7 @@ export function GithubAssistantNotice({ store = useGithubStore }: GithubAssistan
   };
 
   return (
-    <section className="github-ai-notice" aria-labelledby="github-ai-notice-title">
+    <section className="ui-panel-body github-ai-notice" aria-labelledby="github-ai-notice-title">
       <h2 id="github-ai-notice-title">{t('github.aiUnavailableTitle')}</h2>
       {!target ? <p>{t('github.aiSelectRepo')}</p> : (
         <>
@@ -176,21 +180,21 @@ export function GithubAssistantNotice({ store = useGithubStore }: GithubAssistan
           <p className="github-ai-warning" role="note">{t('github.aiRecallWarning')}</p>
           {activeRepo?.private && !aiConsent && <p className="github-ai-status" role="status">{t('github.aiPrivateBlocked')}</p>}
           <div className="github-ai-actions" role="group" aria-label={t('github.aiActions')}>
-            <button type="button" onClick={() => beginPrepare('review_file')} disabled={!filePath || (activeRepo?.private === true && !aiConsent)}>{t('github.aiReviewFile')}</button>
-            <button type="button" onClick={() => beginPrepare('review_diff')} disabled={!aiDraftPath || (activeRepo?.private === true && !aiConsent)}>{t('github.aiReviewDiff')}</button>
-            <button type="button" onClick={() => beginPrepare('suggest_commit_message')} disabled={aiCommitDraftCount === 0 || (activeRepo?.private === true && !aiConsent)}>{t('github.aiSuggestCommit')}</button>
-            <button type="button" onClick={() => beginPrepare('edit_draft')} disabled={!filePath || !currentDrafts.some((draft) => draft.path === filePath) || (activeRepo?.private === true && !aiConsent)}>{t('github.aiEditDraft')}</button>
+            <button className="ui-button" type="button" onClick={() => beginPrepare('review_file')} disabled={!filePath || (activeRepo?.private === true && !aiConsent)}>{t('github.aiReviewFile')}</button>
+            <button className="ui-button" type="button" onClick={() => beginPrepare('review_diff')} disabled={!aiDraftPath || (activeRepo?.private === true && !aiConsent)}>{t('github.aiReviewDiff')}</button>
+            <button className="ui-button" type="button" onClick={() => beginPrepare('suggest_commit_message')} disabled={aiCommitDraftCount === 0 || (activeRepo?.private === true && !aiConsent)}>{t('github.aiSuggestCommit')}</button>
+            <button className="ui-button" type="button" onClick={() => beginPrepare('edit_draft')} disabled={!filePath || !currentDrafts.some((draft) => draft.path === filePath) || (activeRepo?.private === true && !aiConsent)}>{t('github.aiEditDraft')}</button>
           </div>
           {preparedAi?.blocked && <p className="github-ai-status" role="alert">{status || preparedAi.warning}</p>}
           {!preparedAi?.blocked && status && <p className="github-ai-status" role="status">{status}</p>}
           {freshAssistant && preparedAi?.purpose === 'suggest_commit_message' && (
-            <button type="button" className="github-secondary-button" onClick={() => {
+            <button type="button" className="ui-button github-secondary-button" onClick={() => {
               storeApi().setAiCommitMessage(freshAssistant.content.trim());
               setStatus(t('github.aiCommitSuggestionReady'));
             }}>{t('github.aiUseCommitSuggestion')}</button>
           )}
           {freshAssistant && preparedAi?.purpose === 'edit_draft' && preparedAi.proposalId && (
-            <button type="button" className="github-secondary-button" onClick={() => void applyAiResponse()}>{t('github.aiApplyDraft')}</button>
+            <button type="button" className="ui-button github-secondary-button" onClick={() => void applyAiResponse()}>{t('github.aiApplyDraft')}</button>
           )}
           {commitMessageSuggestion && <p className="github-ai-status" role="status">{t('github.aiCommitSuggestionReady')}</p>}
         </>
@@ -216,7 +220,7 @@ function githubContextId(accountId: string, repoId: string, ref: string): string
   return `github:${accountId}:${repoId}:${encodeURIComponent(ref)}`;
 }
 
-export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps) {
+export function GithubWorkspace({ store = useGithubStore, navigationContainer = null }: GithubWorkspaceProps) {
   const { t } = useTranslation();
   const desktop = isTauriRuntime();
   const connection = store((state) => state.connection);
@@ -245,7 +249,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
   const [finishingSignIn, setFinishingSignIn] = useState(false);
   const [selectingRepo, setSelectingRepo] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [repoSearch, setRepoSearch] = useState('');
+
   const [expandedDirectories, setExpandedDirectories] = useState<Set<string>>(() => new Set());
   const [loadingDirectories, setLoadingDirectories] = useState<Set<string>>(() => new Set());
   const [directoryListings, setDirectoryListings] = useState<Record<string, DirectoryListing>>({});
@@ -508,17 +512,6 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
   }, [desktop, openRepository, reportError, store]);
 
 
-  const repoTabs = useMemo(() => (accountWorkspace?.openRepoIds ?? []).flatMap((repoId) => {
-    const repo = repos.find((item) => item.id === repoId);
-    return repo ? [repo] : [];
-  }), [accountWorkspace?.openRepoIds, repos]);
-
-  const filteredRepos = useMemo(() => {
-    const query = repoSearch.trim().toLocaleLowerCase();
-    return query
-      ? repos.filter((repo) => `${repo.ownerLogin}/${repo.name}`.toLocaleLowerCase().includes(query))
-      : repos;
-  }, [repoSearch, repos]);
 
   useEffect(() => () => {
     if (downloadUrl) URL.revokeObjectURL(downloadUrl.url);
@@ -1311,8 +1304,9 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
             <li key={`${path}/${entry.name}`} className="github-file-tree-item">
               <button
                 type="button"
-                className="github-file-tree-entry"
+                className="ui-list-row github-file-tree-entry"
                 aria-expanded={isDirectory ? isExpanded : undefined}
+                aria-current={!isDirectory && selectedPath === entry.path ? 'page' : undefined}
                 aria-label={entry.kind === 'file' ? t('github.openFile', { path: entry.path }) : undefined}
                 title={isUnsupported ? t('github.unsupported') : undefined}
                 disabled={isUnsupported || selectingRepo}
@@ -1322,11 +1316,11 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                 }}
               >
                 {isDirectory
-                  ? isExpanded ? <FolderOpen size={15} aria-hidden="true" /> : <Folder size={15} aria-hidden="true" />
-                  : <FileText size={15} aria-hidden="true" />}
+                  ? isExpanded ? <FolderOpen aria-hidden="true" /> : <Folder aria-hidden="true" />
+                  : <FileText aria-hidden="true" />}
                 <span className="github-file-tree-name">{entry.name}</span>
                 {indicator && <span className="github-file-tree-kind" title={indicator} aria-label={indicator}>{indicator}</span>}
-                {isDirectory && (isExpanded ? <ChevronDown size={13} aria-hidden="true" /> : <ChevronRight size={13} aria-hidden="true" />)}
+                {isDirectory && (isExpanded ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />)}
                 {isUnsupported && <span className="github-file-tree-kind">{entry.kind}</span>}
               </button>
               {isDirectory && isExpanded && (
@@ -1356,15 +1350,15 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
   if (connection.status !== 'connected') {
     const challenge = connection.status === 'authorizing' ? connection.challenge : null;
     return (
-      <section className="github-mode github-connection-screen" aria-labelledby="github-connection-title">
-        <div className="github-connection-card">
+      <section className="ui-page-body github-mode github-connection-screen" aria-labelledby="github-connection-title">
+        <div className="ui-card github-connection-card">
           <h1 id="github-connection-title">{connection.status === 'needs_setup' ? t('github.setupTitle') : t('github.title')}</h1>
           {connection.status === 'needs_setup' ? (
             <>
               <p>{t('github.setupHint')}</p>
               <form className="github-client-id-form" onSubmit={(event) => void handleConfigureClientId(event)}>
                 <label htmlFor="github-client-id">{t('github.clientId')}</label>
-                <input
+                <input className="ui-input"
                   id="github-client-id"
                   type="text"
                   autoComplete="off"
@@ -1373,7 +1367,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   value={clientId}
                   onChange={(event) => setClientId(event.currentTarget.value)}
                 />
-                <button type="submit" className="github-primary-button" disabled={configuring || clientId.length === 0}>
+                <button type="submit" className="ui-button ui-button--primary github-primary-button" disabled={configuring || clientId.length === 0}>
                   {t('github.saveClientId')}
                 </button>
               </form>
@@ -1384,7 +1378,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               {scopeElevationRepoId && <p>{t('github.deleteScopeDeviceHelp', {
                 target: repoDeleteSnapshot?.repoId === scopeElevationRepoId ? repoDeleteSnapshot.fullName : scopeElevationRepoId,
               })}</p>}
-              <button type="button" className="github-secondary-button" onClick={() => void handleOpenDeviceLogin()} disabled={finishingSignIn}>
+              <button type="button" className="ui-button github-secondary-button" onClick={() => void handleOpenDeviceLogin()} disabled={finishingSignIn}>
                 {t('github.openDevicePage')}
               </button>
               {deviceLoginStatus && <p className="github-inline-status" role="status">{deviceLoginStatus}</p>}
@@ -1395,10 +1389,10 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               <p>{scopeElevationRepoId ? t('github.deleteScopeSignInHelp') : t('github.signInHelp')}</p>
               {finishingSignIn && <p className="github-inline-status" role="status">{t('github.signInPending')}</p>}
               <div className="github-connection-actions">
-                <button type="button" className="github-primary-button" onClick={() => void handleFinishSignIn()} disabled={finishingSignIn}>
+                <button type="button" className="ui-button ui-button--primary github-primary-button" onClick={() => void handleFinishSignIn()} disabled={finishingSignIn}>
                   {finishingSignIn ? t('github.signInPending') : t('github.finishSignIn')}
                 </button>
-                <button type="button" className="github-secondary-button" onClick={() => {
+                <button type="button" className="ui-button github-secondary-button" onClick={() => {
                   store.getState().cancelSignIn();
                   setFinishingSignIn(false);
                 }}>{t('github.cancelSignIn')}</button>
@@ -1410,7 +1404,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
             <>
               <p>{connection.status === 'auth_expired' ? t('github.authExpired') : t('github.connectionSignedOut')}</p>
               <p>{t('github.signInHelp')}</p>
-              <button type="button" className="github-primary-button" onClick={() => void handleBeginSignIn()}>
+              <button type="button" className="ui-button ui-button--primary github-primary-button" onClick={() => void handleBeginSignIn()}>
                 {t('github.connect')}
               </button>
             </>
@@ -1434,59 +1428,109 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
   const inlineBinaryPreview = activeFile?.kind === 'binary' && activeFile.byteLength <= GITHUB_INLINE_BYTE_CAP
     && (activeFile.mediaKind === 'image' || activeFile.mediaKind === 'pdf');
 
+  const fileOperations = (
+    <details className="github-file-operations">
+      <summary>{t('github.fileOperations')}</summary>
+      <div className="github-file-operation-grid">
+        <details>
+          <summary>{t('github.newFile')}</summary>
+          <form onSubmit={(event) => void handleCreateFile(event)}>
+            <label><span>{t('github.newFilePath')}</span><input className="ui-input" value={newPath} onChange={(event) => setNewPath(event.currentTarget.value)} required /></label>
+            <label><span>{t('github.newFileContents')}</span><textarea className="ui-input" value={newText} onChange={(event) => setNewText(event.currentTarget.value)} /></label>
+            <button type="submit" className="ui-button github-secondary-button" disabled={!activeRepo || actionBusy}>{t('github.addLocalDraft')}</button>
+          </form>
+        </details>
+        <details>
+          <summary>{t('github.newFolder')}</summary>
+          <form onSubmit={(event) => void handleCreateFolder(event)}>
+            <label><span>{t('github.newFolderPath')}</span><input className="ui-input" value={folderPath} onChange={(event) => setFolderPath(event.currentTarget.value)} required /></label>
+            <label className="github-checkbox-label"><input type="checkbox" checked={explicitGitkeep} onChange={(event) => setExplicitGitkeep(event.currentTarget.checked)} /><span>{t('github.explicitGitkeep')}</span></label>
+            <button type="submit" className="ui-button github-secondary-button" disabled={!activeRepo || actionBusy}>{t('github.stageFolder')}</button>
+          </form>
+        </details>
+        {activeFile && <details>
+          <summary>{t('github.renameOrMove')}</summary>
+          <form onSubmit={(event) => void handleRenameOrMove(event)}>
+            <label><span>{t('github.newFilePath')}</span><input className="ui-input" value={renamePath} onChange={(event) => setRenamePath(event.currentTarget.value)} required /></label>
+            <button type="submit" className="ui-button github-secondary-button" disabled={actionBusy || hasUnsavedEdits}>{t('github.stageRenameMove')}</button>
+          </form>
+          <button type="button" className="ui-button github-secondary-button" disabled={actionBusy || hasUnsavedEdits} onClick={() => void handleDeleteFile()}>{t('github.stageDelete')}</button>
+        </details>}
+        <div className="github-upload-drop" onDragOver={(event: ReactDragEvent<HTMLDivElement>) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }} onDrop={(event: ReactDragEvent<HTMLDivElement>) => {
+          event.preventDefault();
+          void handleUploadFiles(event.dataTransfer.files);
+        }}>
+          <label><span>{t('github.uploadFiles')}</span><input type="file" multiple disabled={!activeRepo || actionBusy} onChange={(event) => {
+            const files = event.currentTarget.files;
+            if (files) void handleUploadFiles(files);
+            event.currentTarget.value = '';
+          }} /></label>
+          <span>{t('github.dropFilesHere')}</span>
+        </div>
+      </div>
+    </details>
+  );
+
   return (
     <div className="github-mode">
+      {navigationContainer && createPortal(
+        <GithubRepositoryNavigation
+          repos={repos}
+          openRepoIds={accountWorkspace?.openRepoIds ?? []}
+          activeRepoId={activeRepoId}
+          complete={reposComplete}
+          busy={isBusy}
+          managing={repoManagementBusy}
+          login={connection.account.login}
+          onOpen={(repoId) => void openRepository(repoId)}
+          onClose={(repo) => void closeRepoTab(repo)}
+          onManage={openRepoManagement}
+        />,
+        navigationContainer,
+      )}
       <PrimaryWorkspaceContent
         mode="github"
         contextPanel={(
           <aside className="github-repository-panel" aria-label={t('github.fileTree')}>
-            <div className="github-panel-heading">
-              <GitBranch size={16} aria-hidden="true" />
-              <h2>{t('github.fileTree')}</h2>
+            <div className="ui-toolbar github-panel-heading">
+              <Folder aria-hidden="true" />
+              <h2 className="github-active-repo-name" title={activeRepo ? `${activeRepo.ownerLogin}/${activeRepo.name}` : undefined}>
+                {activeRepo ? activeRepo.name : t('github.fileTree')}
+              </h2>
+              {activeRepo?.private && <span className="github-private-badge">{t('github.private')}</span>}
+              <button type="button" className="ui-icon-button github-icon-button github-refresh-button" onClick={() => void handleRefresh()}
+                aria-label={refreshing ? t('github.refreshing') : t('github.refresh')}
+                title={refreshing ? t('github.refreshing') : t('github.refresh')} disabled={isBusy || refreshing}>
+                <RefreshCw aria-hidden="true" />
+              </button>
+            </div>
+            <div className="ui-toolbar github-repository-toolbar">
+              <label className="github-branch-picker">
+                <GitBranch aria-hidden="true" />
+                <span>{t('github.branch')}</span>
+                <select className="ui-input" aria-label={t('github.branch')} value={activeRef} disabled={!activeRepo || isBusy || branches.length === 0}
+                  onChange={(event) => {
+                    if (activeRepo) void openRepository(activeRepo.id, event.currentTarget.value);
+                  }}>
+                  {activeRef && !branches.some((branch) => branch.name === activeRef) && <option value={activeRef}>{activeRef}</option>}
+                  {branches.map((branch) => <option key={branch.name} value={branch.name}>{branch.name}</option>)}
+                </select>
+              </label>
             </div>
             <nav className="github-left-nav" role="tablist" aria-label={t('github.leftNavigation')}>
-              <button type="button" role="tab" aria-selected={panel.leftView === 'files'} onClick={() => updatePanel({ leftView: 'files' })}>{t('github.filesTab')}</button>
-              <button type="button" role="tab" aria-selected={panel.leftView === 'changes'} onClick={() => updatePanel({ leftView: 'changes' })}>
-                {t('github.changesTab')} <span className="github-change-count">{activeDrafts.length}</span>
+              <button className="ui-button" type="button" role="tab" aria-selected={panel.leftView === 'files'} data-active={panel.leftView === 'files'} onClick={() => updatePanel({ leftView: 'files' })}>
+                <Folder aria-hidden="true" /><span>{t('github.filesTab')}</span>
               </button>
-              <button type="button" role="tab" aria-selected={panel.leftView === 'history'} onClick={() => void handleShowHistory()}>{t('github.historyTab')}</button>
+              <button className="ui-button" type="button" role="tab" aria-selected={panel.leftView === 'changes'} data-active={panel.leftView === 'changes'} onClick={() => updatePanel({ leftView: 'changes' })}>
+                <GitCompareArrows aria-hidden="true" /><span>{t('github.changesTab')}</span><span className="github-change-count">{activeDrafts.length}</span>
+              </button>
+              <button className="ui-button" type="button" role="tab" aria-selected={panel.leftView === 'history'} data-active={panel.leftView === 'history'} onClick={() => void handleShowHistory()}>
+                <History aria-hidden="true" /><span>{t('github.historyTab')}</span>
+              </button>
             </nav>
             {panel.leftView === 'files' && <>
-            <label className="github-repo-search">
-              <span>{t('github.repoSearch')}</span>
-              <input
-                type="search"
-                aria-label={t('github.repoSearch')}
-                placeholder={t('github.repoSearchPlaceholder')}
-                value={repoSearch}
-                onChange={(event) => setRepoSearch(event.currentTarget.value)}
-              />
-            </label>
-            <div className="github-repo-search-results" role="group" aria-label={t('github.repoSearch')}>
-              {filteredRepos.map((repo) => (
-                <button
-                  type="button"
-                  key={repo.id}
-                  className="github-repo-option"
-                  aria-pressed={activeRepoId === repo.id}
-                  disabled={selectingRepo}
-                  onClick={() => void openRepository(repo.id)}
-                  title={`${repo.ownerLogin}/${repo.name}`}
-                >
-                  <span className="github-repo-option-name">{repo.name}</span>
-                  {repo.private && <span className="github-private-badge">{t('github.private')}</span>}
-                </button>
-              ))}
-              {filteredRepos.length === 0 && (
-                <p className="github-inline-status">{repos.length ? t('github.noRepoMatches') : t('github.noRepos')}</p>
-              )}
-              {!reposComplete && <p className="github-inline-warning" role="status">{t('github.incompleteRepos')}</p>}
-            </div>
-            <div className="github-tree-heading">
-              <span>{t('github.fileTree')}</span>
-              {activeRepo && <span className="github-tree-repo-name">{activeRepo.name}</span>}
-            </div>
-            <div className="github-file-tree-scroll" role="group" aria-label={t('github.fileTree')}>
+            {fileOperations}
+            <div className="ui-panel-body github-file-tree-scroll" role="group" aria-label={t('github.fileTree')}>
               {!activeRepo ? (
                 <p className="github-empty-prompt">{t('github.selectRepo')}</p>
               ) : rootListing?.entries.length === 0 ? (
@@ -1502,19 +1546,19 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
             </div>
             </>}
             {panel.leftView === 'changes' && (
-              <section className="github-changes-scroll" aria-label={t('github.changesTab')}>
-                <form className="github-search-form" onSubmit={(event) => void handleSearch(event)}>
+              <section className="ui-panel-body github-changes-scroll" aria-label={t('github.changesTab')}>
+                <form className="ui-field github-search-form" onSubmit={(event) => void handleSearch(event)}>
                   <label htmlFor="github-repository-search">{t('github.searchRepo')}</label>
                   <div className="github-search-row">
-                    <input id="github-repository-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.currentTarget.value)} />
-                    <button type="submit" className="github-secondary-button" disabled={actionBusy || !searchQuery.trim()}>{t('github.search')}</button>
+                    <input className="ui-input" id="github-repository-search" type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.currentTarget.value)} />
+                    <button type="submit" className="ui-button github-secondary-button" disabled={actionBusy || !searchQuery.trim()}>{t('github.search')}</button>
                   </div>
                 </form>
                 {searching && <p className="github-inline-status" role="status">{t('github.searchingRepo')}</p>}
                 {search && (
                   <div className="github-search-results" aria-label={t('github.searchResults')}>
                     {search.items.map((match, index) => (
-                      <button type="button" className="github-search-result" key={`${match.path}:${match.line ?? index}:${match.source}`} onClick={() => void openFile(match.path)}>
+                      <button type="button" className="ui-list-row github-search-result" key={`${match.path}:${match.line ?? index}:${match.source}`} onClick={() => void openFile(match.path)}>
                         <strong>{match.path}</strong>
                         <span>{t(match.source === 'draft' ? 'github.searchDraft' : 'github.searchRemote')}{match.line === null ? '' : ` · ${t('github.lineNumber', { line: match.line })}`}</span>
                         <code>{match.preview}</code>
@@ -1529,7 +1573,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                 )}
                 <div className="github-change-list-heading">
                   <strong>{t('github.draftsCount', { count: activeDrafts.length })}</strong>
-                  <button type="button" className="github-secondary-button" disabled={selectedDrafts.length === 0 || actionBusy} onClick={() => updatePanel({ leftView: 'changes' })}>{t('github.selectedCount', { count: selectedDrafts.length })}</button>
+                  <button type="button" className="ui-button github-secondary-button" disabled={selectedDrafts.length === 0 || actionBusy} onClick={() => updatePanel({ leftView: 'changes' })}>{t('github.selectedCount', { count: selectedDrafts.length })}</button>
                 </div>
                 {activeRemote && (
                   <p className={activeRemote.draftsStale ? 'github-inline-warning' : 'github-inline-status'} role="status">
@@ -1539,7 +1583,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                 {activeRemote?.protected && <p className="github-inline-warning" role="alert">{t('github.protectedBranchBlocked')}</p>}
                 {activeRemote?.draftsStale && <p className="github-inline-warning" role="alert">{t('github.refreshResolveStaleDrafts')}</p>}
                 {activeDrafts.length === 0 ? <p className="github-empty-prompt">{t('github.noDrafts')}</p> : activeDrafts.map((draft) => (
-                  <article className="github-change-item" key={draft.path}>
+                  <article className="ui-card github-change-item" key={draft.path}>
                     <label className="github-change-select">
                       <input type="checkbox" checked={selectedDraftPaths.has(draft.path)} onChange={(event) => {
                         const checked = event.currentTarget.checked;
@@ -1553,11 +1597,11 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                     </label>
                     <div className="github-change-actions">
                       <span className="github-change-operation">{t(`github.operation.${draft.operation}`)}</span>
-                      <button type="button" className="github-secondary-button" onClick={() => void openFile(draft.newPath ?? draft.path)}>{t('github.openChange')}</button>
-                      <button type="button" className="github-secondary-button" disabled={actionBusy} onClick={() => void handleUndoDraft(draft)}>{t('github.undoDraft')}</button>
+                      <button type="button" className="ui-button github-secondary-button" onClick={() => void openFile(draft.newPath ?? draft.path)}>{t('github.openChange')}</button>
+                      <button type="button" className="ui-button github-secondary-button" disabled={actionBusy} onClick={() => void handleUndoDraft(draft)}>{t('github.undoDraft')}</button>
                     </div>
                     {draft.conflict && (
-                      <section className="github-conflict-card" aria-label={t('github.conflictFor', { path: draft.path })}>
+                      <section className="ui-card github-conflict-card" aria-label={t('github.conflictFor', { path: draft.path })}>
                         <strong>{draft.conflict.resolved ? t('github.conflictResolvedLabel') : t('github.conflictUnresolvedLabel')}</strong>
                         <p>{t(`github.conflictKind.${draft.conflict.kind}`)} · {t('github.conflictRemoteHead', { sha: draft.conflict.remoteCommitSha.slice(0, 8) })}</p>
                         <div className="github-conflict-versions">
@@ -1565,55 +1609,55 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                           <section><h4>{t('github.conflictMine')}</h4><pre>{draft.binary ? t('github.binaryVersion') : draft.newText ?? t('github.deletedVersion')}</pre></section>
                           <section><h4>{t('github.conflictRemote')}</h4><pre>{draft.conflict.remoteDeleted ? t('github.deletedVersion') : draft.binary ? t('github.binaryVersion') : draft.conflict.remoteText ?? t('github.noRemoteText')}</pre></section>
                         </div>
-                        {!draft.binary && <label className="github-conflict-custom">
+                        {!draft.binary && <label className="ui-field github-conflict-custom">
                           <span>{t('github.conflictEditableResult')}</span>
-                          <textarea value={customConflictText[draft.path] ?? draft.conflict.resultText ?? draft.newText ?? ''} onChange={(event) => {
+                          <textarea className="ui-input" value={customConflictText[draft.path] ?? draft.conflict.resultText ?? draft.newText ?? ''} onChange={(event) => {
                             const text = event.currentTarget.value;
                             setCustomConflictText((previous) => ({ ...previous, [draft.path]: text }));
                           }} />
                         </label>}
                         {draft.conflict.kind === 'rename_collision' && <label className="github-repo-search">
                           <span>{t('github.conflictDestination')}</span>
-                          <input value={conflictDestinations[draft.path] ?? draft.newPath ?? ''} onChange={(event) => {
+                          <input className="ui-input" value={conflictDestinations[draft.path] ?? draft.newPath ?? ''} onChange={(event) => {
                             const path = event.currentTarget.value;
                             setConflictDestinations((previous) => ({ ...previous, [draft.path]: path }));
                           }} />
                         </label>}
                         <div className="github-conflict-actions">
-                          <button type="button" className="github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'mine')}>{t('github.conflictKeepMine')}</button>
-                          <button type="button" className="github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'theirs')}>{t('github.conflictKeepTheirs')}</button>
-                          {!draft.binary && draft.conflict.kind === 'content' && <button type="button" className="github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'both')}>{t('github.conflictMergeBoth')}</button>}
-                          {!draft.binary && <button type="button" className="github-primary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'custom')}>{t('github.conflictUseCustom')}</button>}
+                          <button type="button" className="ui-button github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'mine')}>{t('github.conflictKeepMine')}</button>
+                          <button type="button" className="ui-button github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'theirs')}>{t('github.conflictKeepTheirs')}</button>
+                          {!draft.binary && draft.conflict.kind === 'content' && <button type="button" className="ui-button github-secondary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'both')}>{t('github.conflictMergeBoth')}</button>}
+                          {!draft.binary && <button type="button" className="ui-button ui-button--primary github-primary-button" disabled={actionBusy} onClick={() => void handleResolveConflict(draft, 'custom')}>{t('github.conflictUseCustom')}</button>}
                         </div>
                       </section>
                     )}
                   </article>
                 ))}
                 {activeRemote?.empty && <p className="github-inline-warning">{t('github.emptyRepositoryFirstCommitNote')}</p>}
-                <label className="github-commit-message">
+                <label className="ui-field github-commit-message">
                   <span>{t('github.commitMessage')}</span>
-                  <textarea value={commitMessage} onChange={(event) => setCommitMessage(event.currentTarget.value)} />
+                  <textarea className="ui-input" value={commitMessage} onChange={(event) => setCommitMessage(event.currentTarget.value)} />
                 </label>
-                <button type="button" className="github-primary-button github-commit-button" disabled={!selectedDrafts.length || actionBusy || selectedHasUnresolvedConflict || activeRemote?.protected === true} onClick={handleStageCommit}>
+                <button type="button" className="ui-button ui-button--primary github-primary-button github-commit-button" disabled={!selectedDrafts.length || actionBusy || selectedHasUnresolvedConflict || activeRemote?.protected === true} onClick={handleStageCommit}>
                   {t('github.commitCreateAndSend', { target: activeRepo ? `${activeRepo.ownerLogin}/${activeRepo.name} @ ${activeRef}` : t('github.noTarget') })}
                 </button>
                 {commitResult && <p className="github-inline-status" role="status">{commitOutcomeMessage(commitResult)}</p>}
               </section>
             )}
             {panel.leftView === 'history' && (
-              <section className="github-history-scroll" aria-label={t('github.historyTab')}>
-                <form className="github-branch-create" onSubmit={(event) => void handleCreateBranch(event)}>
+              <section className="ui-panel-body github-history-scroll" aria-label={t('github.historyTab')}>
+                <form className="ui-field github-branch-create" onSubmit={(event) => void handleCreateBranch(event)}>
                   <label htmlFor="github-new-branch">{t('github.newBranch')}</label>
-                  <div className="github-search-row"><input id="github-new-branch" value={newBranchName} onChange={(event) => setNewBranchName(event.currentTarget.value)} /><button className="github-secondary-button" type="submit" disabled={actionBusy || !newBranchName.trim()}>{t('github.createBranch')}</button></div>
+                  <div className="github-search-row"><input className="ui-input" id="github-new-branch" value={newBranchName} onChange={(event) => setNewBranchName(event.currentTarget.value)} /><button className="ui-button github-secondary-button" type="submit" disabled={actionBusy || !newBranchName.trim()}>{t('github.createBranch')}</button></div>
                 </form>
                 {historyLoading && <p className="github-inline-status" role="status">{t('github.loadingHistory')}</p>}
                 {history.map((commit) => (
-                  <button type="button" className="github-history-item" key={commit.sha} aria-pressed={commitDetail?.sha === commit.sha} onClick={() => void store.getState().loadCommitDetail(commit.sha).catch(reportError)}>
+                  <button type="button" className="ui-list-row github-history-item" key={commit.sha} aria-pressed={commitDetail?.sha === commit.sha} data-active={commitDetail?.sha === commit.sha} onClick={() => void store.getState().loadCommitDetail(commit.sha).catch(reportError)}>
                     <strong>{commit.message.split('\n')[0]}</strong><code>{commit.sha.slice(0, 8)}</code><time>{commit.date ?? ''}</time>
                   </button>
                 ))}
                 {history.length === 0 && <p className="github-empty-prompt">{t('github.noHistory')}</p>}
-                {commitDetail && <section className="github-commit-detail">
+                {commitDetail && <section className="ui-card github-commit-detail">
                   <h3>{t('github.commitDetail')}</h3><pre>{commitDetail.message}</pre>
                   <ul>{commitDetail.files.map((file) => <li key={`${file.path}:${file.sha ?? ''}`}><span>{file.status ?? t('github.unknownStatus')}</span> {file.path}</li>)}</ul>
                 </section>}
@@ -1623,110 +1667,13 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
         )}
         centerPanel={(
           <section className="github-editor-pane" aria-label={t('github.title')}>
-            <div className="github-topbar">
-              <div className="github-repo-tabs" role="tablist" aria-label={t('github.repoTabs')}>
-                {repoTabs.map((repo) => (
-                  <div className="github-repo-tab" key={repo.id}>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={repo.id === activeRepoId}
-                      className="github-repo-tab-select"
-                      onClick={() => void openRepository(repo.id)}
-                    >
-                      <span>{repo.name}</span>
-                    </button>
-                    <button
-                      type="button"
-                      className="github-tab-close"
-                      aria-label={t('github.closeRepoTab', { name: repo.name })}
-                      disabled={selectingRepo || busy}
-                      onClick={() => void closeRepoTab(repo)}
-                    >
-                      <X size={13} aria-hidden="true" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="github-connection-status" role="status">
-                <span className="github-status-dot" aria-hidden="true" />
-                <span>{isBusy ? t('github.statusChecking') : t('github.statusConnected')}</span>
-                <span className="github-connected-login">{t('github.connectedAs', { login: connection.account.login })}</span>
-              </div>
-            </div>
-            <div className="github-repository-toolbar">
-              <div className="github-active-repository">
-                {activeRepo ? (
-                  <>
-                    <span className="github-active-repo-name">{activeRepo.ownerLogin}/{activeRepo.name}</span>
-                    {activeRepo.private && <span className="github-private-badge">{t('github.private')}</span>}
-                  </>
-                ) : <span className="github-empty-prompt">{t('github.selectRepo')}</span>}
-              </div>
-              <label className="github-branch-picker">
-                <GitBranch size={14} aria-hidden="true" />
-                <span>{t('github.branch')}</span>
-                <select
-                  aria-label={t('github.branch')}
-                  value={activeRef}
-                  disabled={!activeRepo || isBusy || branches.length === 0}
-                  onChange={(event) => {
-                    if (activeRepo) void openRepository(activeRepo.id, event.currentTarget.value);
-                  }}
-                >
-                  {activeRef && !branches.some((branch) => branch.name === activeRef) && <option value={activeRef}>{activeRef}</option>}
-                  {branches.map((branch) => <option key={branch.name} value={branch.name}>{branch.name}</option>)}
-                </select>
-              </label>
-              <button type="button" className="github-secondary-button github-manage-button" onClick={openRepoManagement} disabled={repoManagementBusy}>
-                <Settings2 size={14} aria-hidden="true" />
-                <span>{t('github.manageRepositories')}</span>
-              </button>
-              <button type="button" className="github-secondary-button github-refresh-button" onClick={() => void handleRefresh()} disabled={isBusy || refreshing}>
-                <RefreshCw size={14} aria-hidden="true" />
-                <span>{refreshing ? t('github.refreshing') : t('github.refresh')}</span>
-              </button>
-            </div>
-            <details className="github-file-operations">
-              <summary>{t('github.fileOperations')}</summary>
-              <div className="github-file-operation-grid">
-                <details>
-                  <summary>{t('github.newFile')}</summary>
-                  <form onSubmit={(event) => void handleCreateFile(event)}>
-                    <label><span>{t('github.newFilePath')}</span><input value={newPath} onChange={(event) => setNewPath(event.currentTarget.value)} required /></label>
-                    <label><span>{t('github.newFileContents')}</span><textarea value={newText} onChange={(event) => setNewText(event.currentTarget.value)} /></label>
-                    <button type="submit" className="github-secondary-button" disabled={!activeRepo || actionBusy}>{t('github.addLocalDraft')}</button>
-                  </form>
-                </details>
-                <details>
-                  <summary>{t('github.newFolder')}</summary>
-                  <form onSubmit={(event) => void handleCreateFolder(event)}>
-                    <label><span>{t('github.newFolderPath')}</span><input value={folderPath} onChange={(event) => setFolderPath(event.currentTarget.value)} required /></label>
-                    <label className="github-checkbox-label"><input type="checkbox" checked={explicitGitkeep} onChange={(event) => setExplicitGitkeep(event.currentTarget.checked)} /><span>{t('github.explicitGitkeep')}</span></label>
-                    <button type="submit" className="github-secondary-button" disabled={!activeRepo || actionBusy}>{t('github.stageFolder')}</button>
-                  </form>
-                </details>
-                {activeFile && <details>
-                  <summary>{t('github.renameOrMove')}</summary>
-                  <form onSubmit={(event) => void handleRenameOrMove(event)}>
-                    <label><span>{t('github.newFilePath')}</span><input value={renamePath} onChange={(event) => setRenamePath(event.currentTarget.value)} required /></label>
-                    <button type="submit" className="github-secondary-button" disabled={actionBusy || hasUnsavedEdits}>{t('github.stageRenameMove')}</button>
-                  </form>
-                  <button type="button" className="github-secondary-button" disabled={actionBusy || hasUnsavedEdits} onClick={() => void handleDeleteFile()}>{t('github.stageDelete')}</button>
-                </details>}
-                <div className="github-upload-drop" onDragOver={(event: ReactDragEvent<HTMLDivElement>) => { event.preventDefault(); event.dataTransfer.dropEffect = 'copy'; }} onDrop={(event: ReactDragEvent<HTMLDivElement>) => {
-                  event.preventDefault();
-                  void handleUploadFiles(event.dataTransfer.files);
-                }}>
-                  <label><span>{t('github.uploadFiles')}</span><input type="file" multiple disabled={!activeRepo || actionBusy} onChange={(event) => {
-                    const files = event.currentTarget.files;
-                    if (files) void handleUploadFiles(files);
-                    event.currentTarget.value = '';
-                  }} /></label>
-                  <span>{t('github.dropFilesHere')}</span>
-                </div>
-              </div>
-            </details>
+            <header className="ui-toolbar github-current-state">
+              <h2>{t('github.currentState')}</h2>
+              {activeRepo && <span className="github-state-target" title={`${activeRepo.ownerLogin}/${activeRepo.name} @ ${activeRef}`}>
+                <GitBranch aria-hidden="true" />
+                <span>{activeRepo.ownerLogin}/{activeRepo.name} @ {activeRef}</span>
+              </span>}
+            </header>
             {lastError && <p className="github-error-message" role="alert">{lastError.message}</p>}
             {localStatus && <p className="github-inline-status" role="status">{localStatus}</p>}
             <div className="github-file-tabs" role="tablist" aria-label={t('github.fileTabs')}>
@@ -1735,32 +1682,37 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={selectedPath === path}
-                    className="github-file-tab-select"
+                    aria-selected={selectedPath === path} data-active={selectedPath === path}
+                    className="ui-button github-file-tab-select"
                     title={path}
                     onClick={() => void openFile(path)}
                   >
+                    <FileText aria-hidden="true" />
                     <span>{fileName(path)}</span>
                   </button>
                   <button
                     type="button"
-                    className="github-tab-close"
+                    className="ui-icon-button github-tab-close"
                     aria-label={t('github.closeFileTab', { path })}
                     onClick={() => void closeFileTab(path)}
                   >
-                    <X size={13} aria-hidden="true" />
+                    <X aria-hidden="true" />
                   </button>
                 </div>
               ))}
             </div>
             <div className="github-editor-view-tabs" role="tablist" aria-label={t('github.editorViews')}>
+              <span className="github-editor-path" title={activeFile?.path}>{activeFile?.path ?? t('github.fileTabs')}</span>
               {(['source', 'preview', 'diff'] as const).map((view) => (
-                <button key={view} type="button" role="tab" aria-selected={panel.editorView === view} disabled={!activeFile}
-                  onClick={() => updatePanel({ editorView: view })}>{t(`github.view.${view}`)}</button>
+                <button className="ui-button" key={view} type="button" role="tab" aria-selected={panel.editorView === view} data-active={panel.editorView === view} disabled={!activeFile}
+                  onClick={() => updatePanel({ editorView: view })}>
+                  {view === 'source' ? <Code2 aria-hidden="true" /> : view === 'preview' ? <Eye aria-hidden="true" /> : <GitCompareArrows aria-hidden="true" />}
+                  <span>{t(`github.view.${view}`)}</span>
+                </button>
               ))}
               {panel.editorView === 'diff' && <div className="github-diff-layout-tabs" role="group" aria-label={t('github.diffLayout')}>
-                <button type="button" aria-pressed={panel.diffLayout === 'side_by_side'} onClick={() => updatePanel({ diffLayout: 'side_by_side' })}>{t('github.sideBySide')}</button>
-                <button type="button" aria-pressed={panel.diffLayout === 'inline'} onClick={() => updatePanel({ diffLayout: 'inline' })}>{t('github.inlineDiff')}</button>
+                <button className="ui-button" type="button" aria-pressed={panel.diffLayout === 'side_by_side'} onClick={() => updatePanel({ diffLayout: 'side_by_side' })}>{t('github.sideBySide')}</button>
+                <button className="ui-button" type="button" aria-pressed={panel.diffLayout === 'inline'} onClick={() => updatePanel({ diffLayout: 'inline' })}>{t('github.inlineDiff')}</button>
               </div>}
             </div>
             <div className="github-editor-content">
@@ -1779,8 +1731,8 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   {inlineBinaryPreview && downloadUrl?.path === activeFile.path && downloadUrl.mediaKind === 'image' && <img className="github-safe-image-preview" src={downloadUrl.url} alt={t('github.imagePreviewAlt', { path: activeFile.path })} />}
                   {inlineBinaryPreview && downloadUrl?.path === activeFile.path && downloadUrl.mediaKind === 'pdf' && <iframe className="github-safe-pdf-preview" src={downloadUrl.url} sandbox="" referrerPolicy="no-referrer" title={t('github.pdfPreviewTitle', { path: activeFile.path })} />}
                   {activeFile.mediaKind === 'image' || activeFile.mediaKind === 'pdf' ? (
-                    <button type="button" className="github-secondary-button" disabled={actionBusy || activeFile.byteLength > GITHUB_DOWNLOAD_BYTE_CAP} onClick={() => void handleDownload()}>{t('github.loadSafePreviewOrDownload')}</button>
-                  ) : <button type="button" className="github-secondary-button" disabled={actionBusy || activeFile.byteLength > GITHUB_DOWNLOAD_BYTE_CAP} onClick={() => void handleDownload()}>{t('github.downloadFile')}</button>}
+                    <button type="button" className="ui-button github-secondary-button" disabled={actionBusy || activeFile.byteLength > GITHUB_DOWNLOAD_BYTE_CAP} onClick={() => void handleDownload()}>{t('github.loadSafePreviewOrDownload')}</button>
+                  ) : <button type="button" className="ui-button github-secondary-button" disabled={actionBusy || activeFile.byteLength > GITHUB_DOWNLOAD_BYTE_CAP} onClick={() => void handleDownload()}>{t('github.downloadFile')}</button>}
                   {downloadUrl?.path === activeFile.path && <a className="github-download-link" href={downloadUrl.url} download={fileName(activeFile.path)}>{t('github.downloadReady', { path: activeFile.path })}</a>}
                 </div>
               ) : panel.editorView === 'source' ? (
@@ -1819,8 +1771,8 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   <span>{hasUnsavedEdits ? t('github.unsavedEdits') : activeFile.draft ? t('github.savedDraft') : t('github.noSavedDraft')}</span>
                   <span>{t('github.draftLocalOnly')}</span>
                 </div>
-                <button type="button" className="github-primary-button" onClick={() => void handleSaveDraft()} disabled={!hasUnsavedEdits || savingDraft}>
-                  {savingDraft ? t('github.savingDraft') : t('github.saveDraft')}
+                <button type="button" className="ui-button ui-button--primary github-primary-button" onClick={() => void handleSaveDraft()} disabled={!hasUnsavedEdits || savingDraft}>
+                  <Save aria-hidden="true" /><span>{savingDraft ? t('github.savingDraft') : t('github.saveDraft')}</span>
                 </button>
               </footer>
             )}
@@ -1829,21 +1781,21 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               <span>{t('github.remoteHeadStatus', {
                 sha: activeRemote?.remoteCommitSha?.slice(0, 8) ?? (activeRemote?.empty ? t('github.emptyRepository') : t('github.noRemoteHead')),
               })}</span>
-              <span>{t('github.lastCheckStatus', { time: activeLastRemoteCheck ? new Date(activeLastRemoteCheck).toLocaleString() : t('github.notChecked') })}</span>
+              <span>{t('github.lastCheckStatus', { time: activeLastRemoteCheck ? new Date(activeLastRemoteCheck).toLocaleString('tr-TR') : t('github.notChecked') })}</span>
               <span>{t('github.statusDraftCount', { count: activeDrafts.length })}</span>
               {lastError && <span className="github-workspace-status-error" role="alert">{lastError.message}</span>}
             </footer>
             {commitReview && <div className="github-commit-confirm-backdrop">
-              <section className="github-commit-confirm" role="dialog" aria-modal="true" aria-labelledby="github-commit-confirm-title">
+              <section className="ui-panel-body github-commit-confirm" role="dialog" aria-modal="true" aria-labelledby="github-commit-confirm-title">
                 <h2 id="github-commit-confirm-title">{t('github.confirmCommitTitle')}</h2>
                 <p className="github-commit-target">{activeRepo?.ownerLogin}/{activeRepo?.name} @ {commitReview.ref}</p>
                 <p>{t('github.confirmCommitBase', { sha: commitReview.expectedBaseSha || t('github.emptyRepositoryBase') })}</p>
                 <ul>{commitReview.draftVersions.map((draft) => <li key={draft.path}>{draft.path}</li>)}</ul>
-                <label className="github-commit-message"><span>{t('github.exactCommitMessage')}</span><pre>{commitReview.sentMessage}</pre></label>
+                <label className="ui-field github-commit-message"><span>{t('github.exactCommitMessage')}</span><pre>{commitReview.sentMessage}</pre></label>
                 <p>{t('github.commitOneRequest')}</p>
                 <div className="github-commit-confirm-actions">
-                  <button type="button" className="github-secondary-button" disabled={actionBusy} onClick={() => setCommitReview(null)}>{t('github.cancelCommit')}</button>
-                  <button type="button" className="github-primary-button" autoFocus disabled={actionBusy} onClick={() => void handleConfirmCommit()}>
+                  <button type="button" className="ui-button github-secondary-button" disabled={actionBusy} onClick={() => setCommitReview(null)}>{t('github.cancelCommit')}</button>
+                  <button type="button" className="ui-button ui-button--primary github-primary-button" autoFocus disabled={actionBusy} onClick={() => void handleConfirmCommit()}>
                     {t('github.confirmCommitButton', { target: `${activeRepo?.ownerLogin}/${activeRepo?.name} @ ${commitReview.ref}` })}
                   </button>
                 </div>
@@ -1876,36 +1828,36 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               <h2 id="github-repo-management-title">{t('github.repoManagementTitle')}</h2>
               <p>{t('github.repoManagementAccount', { login: connection.account.login, id: connection.account.id })}</p>
             </div>
-            <button type="button" className="github-tab-close" aria-label={t('github.closeRepoManagement')} disabled={repoManagementBusy} onClick={closeRepoManagement}>
-              <X size={15} aria-hidden="true" />
+            <button type="button" className="ui-icon-button github-tab-close" aria-label={t('github.closeRepoManagement')} disabled={repoManagementBusy} onClick={closeRepoManagement}>
+              <X aria-hidden="true" />
             </button>
           </header>
 
           {!repoCreateReview && !repoDeleteReview ? <>
             <div className="github-repo-management-tabs" role="tablist" aria-label={t('github.repoManagementViews')}>
-              <button type="button" role="tab" aria-selected={repoManagementView === 'create'} disabled={repoManagementBusy} onClick={() => switchRepoManagementView('create')}>
+              <button className="ui-button" type="button" role="tab" aria-selected={repoManagementView === 'create'} data-active={repoManagementView === 'create'} disabled={repoManagementBusy} onClick={() => switchRepoManagementView('create')}>
                 {t('github.repoCreateTab')}
               </button>
-              <button type="button" role="tab" aria-selected={repoManagementView === 'delete'} disabled={repoManagementBusy} onClick={() => switchRepoManagementView('delete')}>
+              <button className="ui-button" type="button" role="tab" aria-selected={repoManagementView === 'delete'} data-active={repoManagementView === 'delete'} disabled={repoManagementBusy} onClick={() => switchRepoManagementView('delete')}>
                 {t('github.repoDeleteTab')}
               </button>
             </div>
-            <div className="github-repo-management-content">
+            <div className="ui-panel-body github-repo-management-content">
               {repoManagementView === 'create' ? <>
                 <p className="github-inline-status">{t('github.repoCreateHelp')}</p>
                 <form className="github-repo-lifecycle-form" onSubmit={handleReviewRepoCreate}>
                   <label htmlFor="github-repo-create-name">{t('github.repoName')}</label>
-                  <input id="github-repo-create-name" autoFocus maxLength={100} required value={repoCreateForm.name} onChange={(event) => {
+                  <input className="ui-input" id="github-repo-create-name" autoFocus maxLength={100} required value={repoCreateForm.name} onChange={(event) => {
                     const name = event.currentTarget.value;
                     setRepoCreateForm((current) => ({ ...current, name }));
                   }} />
                   <label htmlFor="github-repo-create-description">{t('github.repoDescription')}</label>
-                  <textarea id="github-repo-create-description" maxLength={350} value={repoCreateForm.description ?? ''} onChange={(event) => {
+                  <textarea className="ui-input" id="github-repo-create-description" maxLength={350} value={repoCreateForm.description ?? ''} onChange={(event) => {
                     const description = event.currentTarget.value;
                     setRepoCreateForm((current) => ({ ...current, description }));
                   }} />
                   <label htmlFor="github-repo-visibility">{t('github.repoVisibility')}</label>
-                  <select id="github-repo-visibility" value={repoCreateForm.visibility ?? 'private'} onChange={(event) => {
+                  <select className="ui-input" id="github-repo-visibility" value={repoCreateForm.visibility ?? 'private'} onChange={(event) => {
                     const visibility = event.currentTarget.value as 'private' | 'public';
                     setRepoCreateForm((current) => ({ ...current, visibility }));
                   }}>
@@ -1920,7 +1872,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                     <span>{t('github.repoReadme')}</span>
                   </label>
                   <label htmlFor="github-repo-gitignore">{t('github.repoGitignore')}</label>
-                  <select id="github-repo-gitignore" value={repoCreateForm.gitignoreTemplate ?? ''} onChange={(event) => {
+                  <select className="ui-input" id="github-repo-gitignore" value={repoCreateForm.gitignoreTemplate ?? ''} onChange={(event) => {
                     const gitignoreTemplate = event.currentTarget.value || null;
                     setRepoCreateForm((current) => ({ ...current, gitignoreTemplate }));
                   }}>
@@ -1928,7 +1880,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                     {(repoTemplates?.gitignore ?? []).map((name) => <option key={name} value={name}>{name}</option>)}
                   </select>
                   <label htmlFor="github-repo-license">{t('github.repoLicense')}</label>
-                  <select id="github-repo-license" value={repoCreateForm.licenseTemplate ?? ''} onChange={(event) => {
+                  <select className="ui-input" id="github-repo-license" value={repoCreateForm.licenseTemplate ?? ''} onChange={(event) => {
                     const licenseTemplate = event.currentTarget.value || null;
                     setRepoCreateForm((current) => ({ ...current, licenseTemplate }));
                   }}>
@@ -1938,9 +1890,9 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   {!repoTemplates && repoManagementBusy && <p className="github-inline-status" role="status">{t('github.repoCatalogLoading')}</p>}
                   {repoTemplates && !repoTemplates.complete && <p className="github-inline-warning" role="status">{t('github.repoCatalogIncomplete')}</p>}
                   <p className="github-inline-status">{t('github.repoInitialCommitNote')}</p>
-                  <button type="submit" className="github-primary-button" disabled={repoManagementBusy || !repoCreateForm.name.trim()}>{t('github.reviewRepoCreate')}</button>
+                  <button type="submit" className="ui-button ui-button--primary github-primary-button" disabled={repoManagementBusy || !repoCreateForm.name.trim()}>{t('github.reviewRepoCreate')}</button>
                 </form>
-                {repoCreateResult && <section className="github-repo-result" role={repoCreateResult.status === 'created' ? 'status' : 'alert'}>
+                {repoCreateResult && <section className="ui-card github-repo-result" role={repoCreateResult.status === 'created' ? 'status' : 'alert'}>
                   <strong>{t(`github.repoCreateStatus.${repoCreateResult.status}`)}</strong>
                   <p>{repoCreateOutcomeMessage(repoCreateResult)}</p>
                   {repoCreateResult.status === 'created' && <dl>
@@ -1956,7 +1908,7 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                 <p className="github-inline-warning">{t('github.repoDeleteHelp')}</p>
                 <p className="github-inline-status">{t('github.localDismissNotice')}</p>
                 <label className="github-repo-lifecycle-label" htmlFor="github-repo-delete-selection">{t('github.repoDeleteSelect')}</label>
-                <select id="github-repo-delete-selection" value={repoDeleteRepoId} disabled={repoManagementBusy} onChange={(event) => {
+                <select className="ui-input" id="github-repo-delete-selection" value={repoDeleteRepoId} disabled={repoManagementBusy} onChange={(event) => {
                   setRepoDeleteRepoId(event.currentTarget.value);
                   setRepoDeleteSnapshot(null);
                   setRepoDeleteName('');
@@ -1969,10 +1921,10 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                   {repos.map((repo) => <option key={repo.id} value={repo.id}>{repo.ownerLogin}/{repo.name} · {repo.private ? t('github.private') : t('github.public')}</option>)}
                 </select>
                 {repos.length === 0 && <p className="github-empty-prompt">{t('github.noRepos')}</p>}
-                <button type="button" className="github-secondary-button" disabled={!selectedDeleteRepo || repoManagementBusy} onClick={() => void handleCaptureDeleteSnapshot()}>
+                <button type="button" className="ui-button github-secondary-button" disabled={!selectedDeleteRepo || repoManagementBusy} onClick={() => void handleCaptureDeleteSnapshot()}>
                   {repoManagementBusy ? t('github.statusChecking') : t('github.verifyDeleteTarget')}
                 </button>
-                {deleteSnapshotCurrent && repoDeleteSnapshot && <section className="github-repo-delete-snapshot" aria-label={t('github.repoDeleteSnapshot')}>
+                {deleteSnapshotCurrent && repoDeleteSnapshot && <section className="ui-card github-repo-delete-snapshot" aria-label={t('github.repoDeleteSnapshot')}>
                   <p>{t('github.repoDeleteReadonlySummary')}</p>
                   <dl>
                     <dt>{t('github.repoResultAccount')}</dt><dd>{repoDeleteSnapshot.accountLogin} · {repoDeleteSnapshot.accountId}</dd>
@@ -1984,23 +1936,23 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
                 </section>}
                 {deleteSnapshotCurrent && repoDeleteSnapshot && !deleteScopeGranted && <div className="github-repo-scope-elevation">
                   <p>{t('github.repoDeleteScopeNeeded')}</p>
-                  <button type="button" className="github-secondary-button" disabled={repoManagementBusy} onClick={() => void handleBeginDeleteScopeElevation()}>{t('github.repoRequestDeleteScope')}</button>
+                  <button type="button" className="ui-button github-secondary-button" disabled={repoManagementBusy} onClick={() => void handleBeginDeleteScopeElevation()}>{t('github.repoRequestDeleteScope')}</button>
                 </div>}
                 {deleteSnapshotCurrent && repoDeleteSnapshot && <>
                   <label className="github-repo-lifecycle-label" htmlFor="github-repo-delete-exact">{t('github.repoDeleteTypeTarget')}</label>
-                  <input id="github-repo-delete-exact" autoComplete="off" spellCheck={false} value={repoDeleteName} onChange={(event) => setRepoDeleteName(event.currentTarget.value)} />
-                  <button type="button" className="github-danger-button" disabled={!canReviewRepoDelete} onClick={handleReviewRepoDelete}>{t('github.repoReviewPermanentDelete')}</button>
+                  <input className="ui-input" id="github-repo-delete-exact" autoComplete="off" spellCheck={false} value={repoDeleteName} onChange={(event) => setRepoDeleteName(event.currentTarget.value)} />
+                  <button type="button" className="ui-button ui-button--danger github-danger-button" disabled={!canReviewRepoDelete} onClick={handleReviewRepoDelete}>{t('github.repoReviewPermanentDelete')}</button>
                 </>}
-                {repoDeleteResult && <section className="github-repo-result" role={repoDeleteResult.status === 'deleted' ? 'status' : 'alert'}>
+                {repoDeleteResult && <section className="ui-card github-repo-result" role={repoDeleteResult.status === 'deleted' ? 'status' : 'alert'}>
                   <strong>{t(`github.repoDeleteStatus.${repoDeleteResult.status}`)}</strong>
                   <p>{repoDeleteOutcomeMessage(repoDeleteResult)}</p>
                   {'draftsRetained' in repoDeleteResult && repoDeleteResult.draftsRetained && <p>{t('github.repoDeleteDraftsRetained')}</p>}
-                  {repoDeleteResult.status === 'needs_scope' && repoDeleteSnapshot && <button type="button" className="github-secondary-button" disabled={repoManagementBusy} onClick={() => void handleBeginDeleteScopeElevation()}>{t('github.repoRequestDeleteScope')}</button>}
+                  {repoDeleteResult.status === 'needs_scope' && repoDeleteSnapshot && <button type="button" className="ui-button github-secondary-button" disabled={repoManagementBusy} onClick={() => void handleBeginDeleteScopeElevation()}>{t('github.repoRequestDeleteScope')}</button>}
                 </section>}
               </>}
             </div>
             {(repoManagementMessage || repoManagementError) && <p className={repoManagementError ? 'github-error-message' : 'github-inline-status'} role={repoManagementError ? 'alert' : 'status'}>{repoManagementError || repoManagementMessage}</p>}
-          </> : repoCreateReview ? <section className="github-repo-confirm-content">
+          </> : repoCreateReview ? <section className="ui-panel-body github-repo-confirm-content">
             <h3 id="github-repo-create-confirm-title">{t('github.repoCreateConfirmTitle')}</h3>
             <p>{t('github.repoCreateConfirmHelp')}</p>
             <dl>
@@ -2012,12 +1964,12 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               <dt>{t('github.repoLicense')}</dt><dd>{repoTemplates?.licenses.find((license) => license.key === repoCreateReview.form.licenseTemplate)?.name ?? t('github.repoNoTemplate')}</dd>
             </dl>
             <div className="github-repo-confirm-actions">
-              <button type="button" className="github-secondary-button" disabled={repoManagementBusy} onClick={() => setRepoCreateReview(null)}>{t('github.cancel')}</button>
-              <button type="button" className="github-primary-button" autoFocus disabled={repoManagementBusy} onClick={() => void handleConfirmRepoCreate()}>
+              <button type="button" className="ui-button github-secondary-button" disabled={repoManagementBusy} onClick={() => setRepoCreateReview(null)}>{t('github.cancel')}</button>
+              <button type="button" className="ui-button ui-button--primary github-primary-button" autoFocus disabled={repoManagementBusy} onClick={() => void handleConfirmRepoCreate()}>
                 {t('github.repoConfirmCreateButton', { target: `${repoCreateReview.ownerLogin}/${repoCreateReview.form.name}` })}
               </button>
             </div>
-          </section> : repoDeleteReview ? <section className="github-repo-confirm-content">
+          </section> : repoDeleteReview ? <section className="ui-panel-body github-repo-confirm-content">
             <h3 id="github-repo-delete-confirm-title">{t('github.repoDeleteConfirmTitle')}</h3>
             <p>{t('github.repoDeleteConfirmHelp')}</p>
             <dl>
@@ -2028,8 +1980,8 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
               <dt>{t('github.repoDeleteScopes')}</dt><dd>{repoDeleteReview.snapshot.grantedScopes.join(', ')}</dd>
             </dl>
             <div className="github-repo-confirm-actions">
-              <button type="button" className="github-secondary-button" disabled={repoManagementBusy} onClick={() => setRepoDeleteReview(null)}>{t('github.cancel')}</button>
-              <button type="button" className="github-danger-button" autoFocus disabled={repoManagementBusy || repoDeleteReview.typedOwnerRepo !== repoDeleteReview.snapshot.fullName} onClick={() => void handleConfirmRepoDelete()}>
+              <button type="button" className="ui-button github-secondary-button" disabled={repoManagementBusy} onClick={() => setRepoDeleteReview(null)}>{t('github.cancel')}</button>
+              <button type="button" className="ui-button ui-button--danger github-danger-button" autoFocus disabled={repoManagementBusy || repoDeleteReview.typedOwnerRepo !== repoDeleteReview.snapshot.fullName} onClick={() => void handleConfirmRepoDelete()}>
                 {t('github.repoConfirmPermanentDeleteButton', { target: repoDeleteReview.snapshot.fullName })}
               </button>
             </div>
@@ -2042,8 +1994,8 @@ export function GithubWorkspace({ store = useGithubStore }: GithubWorkspaceProps
 
 function GithubMessageScreen({ title, message }: { title: string; message: string }) {
   return (
-    <section className="github-mode github-message-screen" aria-labelledby="github-message-title">
-      <div className="github-message-card">
+    <section className="ui-page-body github-mode github-message-screen" aria-labelledby="github-message-title">
+      <div className="ui-card github-message-card">
         <h1 id="github-message-title">{title}</h1>
         <p>{message}</p>
       </div>

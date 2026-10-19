@@ -82,18 +82,18 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
     <div className="forms-builder-field-details" onClick={stopClick} onKeyDown={stopClick}>
       <div className="forms-builder-inspector-section">
         <span className="forms-builder-inspector-section-title">Field</span>
-        <div className="forms-field-group">
+        <div className="ui-field forms-field-group">
           <label className="forms-field-group-label">Label</label>
           <input
-            className="forms-input"
+            className="ui-input forms-input"
             value={field.label}
             onChange={(e) => set({ label: e.target.value })}
           />
         </div>
-        <div className="forms-field-group">
+        <div className="ui-field forms-field-group">
           <label className="forms-field-group-label">Name (key)</label>
           <input
-            className="forms-input"
+            className="ui-input forms-input"
             value={field.name}
             onChange={(e) => set({ name: e.target.value })}
           />
@@ -103,19 +103,19 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
       <div className="forms-builder-inspector-section">
         <span className="forms-builder-inspector-section-title">Display</span>
         {showPlaceholder && (
-          <div className="forms-field-group">
+          <div className="ui-field forms-field-group">
             <label className="forms-field-group-label">Placeholder</label>
             <input
-              className="forms-input"
+              className="ui-input forms-input"
               value={field.placeholder ?? ''}
               onChange={(e) => set({ placeholder: e.target.value || undefined })}
             />
           </div>
         )}
-        <div className="forms-field-group">
+        <div className="ui-field forms-field-group">
           <label className="forms-field-group-label">Help text</label>
           <input
-            className="forms-input"
+            className="ui-input forms-input"
             value={field.helpText ?? ''}
             onChange={(e) => set({ helpText: e.target.value || undefined })}
           />
@@ -142,7 +142,7 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
             {options.map((opt, idx) => (
               <div key={opt.id} className="forms-builder-option-row">
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   value={opt.label}
                   placeholder="Label"
                   onChange={(e) =>
@@ -153,28 +153,28 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
                   }
                 />
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   value={opt.value}
                   placeholder="value"
                   onChange={(e) => updateOption(idx, { value: e.target.value })}
                 />
                 <button
                   type="button"
-                  className="forms-builder-field-card-btn forms-builder-field-card-btn--danger"
+                  className="ui-icon-button forms-builder-field-card-btn ui-button--danger forms-builder-field-card-btn--danger"
                   title="Remove option"
                   onClick={() => removeOption(idx)}
                 >
-                  <Trash2 size={14} />
+                  <Trash2 />
                 </button>
               </div>
             ))}
           </div>
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={addOption}
           >
-            <Plus size={14} /> Add option
+            <Plus /> Add option
           </button>
         </div>
       )}
@@ -184,10 +184,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
           <span className="forms-builder-inspector-section-title">Validation</span>
           {meta.hasNumericValidation && (
             <div className="forms-builder-control-grid">
-              <div className="forms-field-group">
+              <div className="ui-field forms-field-group">
                 <label className="forms-field-group-label">Min</label>
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   type="number"
                   value={validation.min ?? ''}
                   onChange={(e) =>
@@ -195,10 +195,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
                   }
                 />
               </div>
-              <div className="forms-field-group">
+              <div className="ui-field forms-field-group">
                 <label className="forms-field-group-label">Max</label>
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   type="number"
                   value={validation.max ?? ''}
                   onChange={(e) =>
@@ -211,10 +211,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
           {meta.hasTextValidation && (
             <>
               <div className="forms-builder-control-grid">
-                <div className="forms-field-group">
+                <div className="ui-field forms-field-group">
                   <label className="forms-field-group-label">Min length</label>
                   <input
-                    className="forms-input"
+                    className="ui-input forms-input"
                     type="number"
                     value={validation.minLength ?? ''}
                     onChange={(e) =>
@@ -224,10 +224,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
                     }
                   />
                 </div>
-                <div className="forms-field-group">
+                <div className="ui-field forms-field-group">
                   <label className="forms-field-group-label">Max length</label>
                   <input
-                    className="forms-input"
+                    className="ui-input forms-input"
                     type="number"
                     value={validation.maxLength ?? ''}
                     onChange={(e) =>
@@ -238,10 +238,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
                   />
                 </div>
               </div>
-              <div className="forms-field-group">
+              <div className="ui-field forms-field-group">
                 <label className="forms-field-group-label">Pattern (regex)</label>
                 <input
-                  className="forms-input"
+                  className="ui-input forms-input"
                   value={validation.pattern ?? ''}
                   placeholder="^[A-Za-z]+$"
                   onChange={(e) => setValidation({ pattern: e.target.value || undefined })}
@@ -249,10 +249,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
               </div>
             </>
           )}
-          <div className="forms-field-group">
+          <div className="ui-field forms-field-group">
             <label className="forms-field-group-label">Error message</label>
             <input
-              className="forms-input"
+              className="ui-input forms-input"
               value={validation.message ?? ''}
               onChange={(e) => setValidation({ message: e.target.value || undefined })}
             />
@@ -266,7 +266,7 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
           <p className="forms-field-group-hint">No steps defined. Add steps in the Logic tab.</p>
         ) : (
           <select
-            className="forms-select"
+            className="ui-input forms-select"
             value={field.stepId ?? ''}
             onChange={(e) => set({ stepId: e.target.value || undefined })}
           >
@@ -286,7 +286,7 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
         <span className="forms-builder-inspector-section-title">Embed behavior</span>
         {field.type === 'file' && (
           <p className="forms-builder-inline-hint">
-            <AlertTriangle size={12} /> File uploads render disabled in published embeds until VPS
+            <AlertTriangle /> File uploads render disabled in published embeds until VPS
             storage is connected.
           </p>
         )}
@@ -303,10 +303,10 @@ export function FieldDetailsPanel({ form, field, onRemove }: FieldDetailsPanelPr
       <div className="forms-builder-inspector-section">
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--danger"
+          className="ui-button forms-action-btn ui-button--danger forms-action-btn--danger"
           onClick={handleRemove}
         >
-          <Trash2 size={14} /> Delete field
+          <Trash2 /> Delete field
         </button>
       </div>
     </div>

@@ -123,7 +123,7 @@ interface CrmStore {
   // deal CRUD
   createDeal: (input: Parameters<typeof crmService.createDeal>[0]) => Promise<CRMDeal | null>;
   updateDeal: (id: string, updates: Partial<CRMDeal>) => Promise<void>;
-  setDealStage: (id: string, stage: CRMDealStage) => Promise<void>;
+  setDealStage: (id: string, stage: CRMDealStage, beforeId?: string | null) => Promise<void>;
   deleteDeal: (id: string) => Promise<void>;
 
   // notes + task links
@@ -439,12 +439,15 @@ export const useCrmStore = create<CrmStore>((set, get) => ({
     }
   },
 
-  setDealStage: async (id, stage) => {
+  setDealStage: async (id, stage, beforeId) => {
     try {
-      const next = await crmService.setDealStage(id, stage);
+      const next = await crmService.setDealStage(id, stage, beforeId);
       if (next) {
+        const orders = beforeId === undefined ? new Map<string, number | undefined>()
+          : new Map((await crmService.listDeals()).map((deal) => [deal.id, deal.order]));
         set((s) => ({
-          deals: s.deals.map((d) => (d.id === id ? next : d)),
+          deals: s.deals.map((deal) => deal.id === id ? next
+            : orders.has(deal.id) ? { ...deal, order: orders.get(deal.id) } : deal),
           leads: next.leadId
             ? s.leads.map((l) => (l.id === next.leadId ? { ...l, stage, status: stage } : l))
             : s.leads,

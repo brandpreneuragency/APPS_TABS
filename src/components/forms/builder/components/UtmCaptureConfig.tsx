@@ -63,7 +63,7 @@ export function UtmCaptureConfig({ form }: UtmCaptureConfigProps) {
   const noneOn = enabled.length === 0;
 
   return (
-    <div className="forms-builder-logic-section">
+    <div className="ui-card forms-builder-logic-section">
       <div className="forms-builder-logic-utm-head">
         <div className="forms-builder-logic-section-head">
           <span className="forms-builder-logic-section-title">UTM &amp; Source Capture</span>
@@ -72,7 +72,7 @@ export function UtmCaptureConfig({ form }: UtmCaptureConfigProps) {
         <div className="forms-builder-logic-utm-bulk">
           <button
             type="button"
-            className="forms-builder-logic-utm-bulk-btn"
+            className="ui-button forms-builder-logic-utm-bulk-btn"
             onClick={() => setAll(true)}
             disabled={allOn}
           >
@@ -80,7 +80,7 @@ export function UtmCaptureConfig({ form }: UtmCaptureConfigProps) {
           </button>
           <button
             type="button"
-            className="forms-builder-logic-utm-bulk-btn"
+            className="ui-button forms-builder-logic-utm-bulk-btn"
             onClick={() => setAll(false)}
             disabled={noneOn}
           >

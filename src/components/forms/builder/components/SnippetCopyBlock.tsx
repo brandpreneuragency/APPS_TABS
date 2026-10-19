@@ -33,11 +33,11 @@ export function SnippetCopyBlock({ snippet, language = 'html' }: SnippetCopyBloc
         <span className="forms-builder-embed-copy-lang">{LANG_LABEL[language] ?? language}</span>
         <button
           type="button"
-          className={`forms-builder-embed-copy-btn${copied ? ' forms-builder-embed-copy-btn--done' : ''}`}
+          className={"ui-button " + (`forms-builder-embed-copy-btn${copied ? ' forms-builder-embed-copy-btn--done' : ''}`)}
           onClick={() => void handleCopy()}
           aria-label="Copy snippet"
         >
-          {copied ? <Check size={15} /> : <Copy size={15} />}
+          {copied ? <Check /> : <Copy />}
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>

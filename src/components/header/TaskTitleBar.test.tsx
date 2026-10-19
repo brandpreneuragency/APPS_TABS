@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { Task } from '../../types';
 import en from '../../i18n/en';
 import { TaskTitleBar } from './TaskTitleBar';
@@ -47,86 +46,22 @@ beforeEach(() => {
   showToast.mockReset();
 });
 
-describe('TaskTitleBar completion', () => {
-  it('completes the selected task without subtask controls', async () => {
+describe('TaskTitleBar', () => {
+  it.each(['pending', 'completed'] as const)('omits completion controls for a %s task', (status) => {
+    state.task = task({ status });
     render(<TaskTitleBar />);
-    const complete = screen.getByRole('button', { name: 'Mark as completed' });
-    expect(complete).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(complete);
-    expect(updateTask).toHaveBeenCalledWith('parent', { status: 'completed' });
-    expect(toggleSubtaskSection).not.toHaveBeenCalled();
-    expect(screen.queryByRole('button', { name: 'Collapse subtasks' })).not.toBeInTheDocument();
-    await waitFor(() => expect(complete).toBeEnabled());
+    expect(screen.queryByRole('button', { name: /Mark as/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Write brief' })).toBeInTheDocument();
+    expect(updateTask).not.toHaveBeenCalled();
   });
 
-  it('reopens a completed parent with the previous in-progress behavior using the keyboard', async () => {
-    state.task = task({ status: 'completed' });
-    const user = userEvent.setup();
+  it('still renames the selected task', () => {
     render(<TaskTitleBar />);
-    const reopen = screen.getByRole('button', { name: 'Mark as incomplete' });
-    expect(reopen).toHaveAttribute('aria-pressed', 'true');
-    reopen.focus();
-    await user.keyboard('{Enter}');
-    expect(updateTask).toHaveBeenCalledWith('parent', { status: 'in_progress' });
-    await waitFor(() => expect(reopen).toBeEnabled());
-  });
-
-  it('reflects the selected task status after a store refresh', async () => {
-    const view = render(<TaskTitleBar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Mark as completed' })).toBeEnabled());
-    state.task = task({ status: 'completed' });
-    view.rerender(<TaskTitleBar />);
-    expect(screen.getByRole('button', { name: 'Mark as incomplete' })).toHaveAttribute('aria-pressed', 'true');
-  });
-
-  it('disables duplicate completion writes while a status update is pending', async () => {
-    let finish: () => void = () => undefined;
-    updateTask.mockImplementation(() => new Promise<void>((resolve) => { finish = resolve; }));
-    render(<TaskTitleBar />);
-    const complete = screen.getByRole('button', { name: 'Mark as completed' });
-    fireEvent.click(complete);
-    expect(complete).toBeDisabled();
-    fireEvent.click(complete);
-    expect(updateTask).toHaveBeenCalledTimes(1);
-    await act(async () => { finish(); });
-    expect(complete).toBeEnabled();
-  });
-
-  it('keeps pending status writes scoped to the task selected when each action starts', async () => {
-    const finishers: Array<() => void> = [];
-    updateTask.mockImplementation(() => new Promise<void>((resolve) => { finishers.push(() => resolve()); }));
-    const view = render(<TaskTitleBar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
-
-    state.task = task({ id: 'next' });
-    view.rerender(<TaskTitleBar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
-
-    expect(updateTask).toHaveBeenNthCalledWith(1, 'parent', { status: 'completed' });
-    expect(updateTask).toHaveBeenNthCalledWith(2, 'next', { status: 'completed' });
-    await act(async () => { finishers.forEach((finish) => finish()); });
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Mark as completed' })).toBeEnabled());
-  });
-
-  it('shows a local error and unlocks the status action when a write rejects', async () => {
-    updateTask.mockRejectedValueOnce(new Error('Task storage unavailable'));
-    render(<TaskTitleBar />);
-    const complete = screen.getByRole('button', { name: 'Mark as completed' });
-
-    fireEvent.click(complete);
-
-    await waitFor(() => expect(complete).toBeEnabled());
-    expect(showToast).toHaveBeenCalledWith('Task storage unavailable', 'error');
-  });
-
-  it('lets a selected subtask change status without rendering a parent disclosure', async () => {
-    state.task = task({ id: 'child', parentTaskId: 'parent' });
-    render(<TaskTitleBar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Mark as completed' }));
-    expect(updateTask).toHaveBeenCalledWith('child', { status: 'completed' });
-    expect(screen.queryByRole('button', { name: 'Collapse subtasks' })).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByRole('button', { name: 'Mark as completed' })).toBeEnabled());
+    fireEvent.click(screen.getByRole('button', { name: 'Write brief' }));
+    const input = screen.getByRole('textbox', { name: 'Task title' });
+    fireEvent.change(input, { target: { value: 'Updated brief' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(updateTask).toHaveBeenCalledWith('parent', { title: 'Updated brief' });
   });
 
   it('does not offer a completion action without a selected task', () => {

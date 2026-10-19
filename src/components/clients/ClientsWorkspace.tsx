@@ -38,8 +38,8 @@ export function ClientsWorkspace({ database = db, records }: ClientsWorkspacePro
     : category === 'profile' ? t('clients.profile') : t('clients.notes');
 
   return (
-    <section className="clients-workspace" aria-label={t('clients.categoryPanelLabel', { category: categoryTitle, identity })}>
-      <header className="clients-workspace-header">
+    <section className="ui-panel-body clients-workspace" aria-label={t('clients.categoryPanelLabel', { category: categoryTitle, identity })}>
+      <header className="ui-card clients-workspace-header">
         <p className="clients-workspace-eyebrow">{t('navigation.clients')}</p>
         <h1>{categoryTitle}</h1>
         <p className="clients-workspace-identity">{identity}</p>

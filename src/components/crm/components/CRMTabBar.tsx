@@ -15,8 +15,9 @@ export function CRMTabBar({ tabs, active, onChange }: CRMTabBarProps) {
             type="button"
             role="tab"
             aria-selected={isActive}
+            data-active={isActive}
             onClick={() => onChange(tab.id)}
-            className={`crm-tab${isActive ? ' crm-tab--active' : ''}`}
+            className={"ui-button " + (`crm-tab${isActive ? ' crm-tab--active' : ''}`)}
           >
             {tab.label}
           </button>

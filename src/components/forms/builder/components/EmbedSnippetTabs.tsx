@@ -65,10 +65,11 @@ export function EmbedSnippetTabs({ formId }: EmbedSnippetTabsProps) {
               type="button"
               role="tab"
               aria-selected={isActive}
-              className={`forms-builder-embed-snippet-tab${isActive ? ' forms-builder-embed-snippet-tab--active' : ''}`}
+              data-active={isActive}
+              className={"ui-button " + (`forms-builder-embed-snippet-tab${isActive ? ' forms-builder-embed-snippet-tab--active' : ''}`)}
               onClick={() => setActive(tab.mode)}
             >
-              <Icon size={15} />
+              <Icon />
               {tab.label}
             </button>
           );

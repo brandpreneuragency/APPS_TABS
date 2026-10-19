@@ -35,15 +35,15 @@ export function SettingsNav() {
         const Icon = SECTION_ICONS[section.key] ?? Settings2;
         const isActive = section.key === active;
         return (
-          <button
+          <button data-active={isActive}
             key={section.key}
             type="button"
             onClick={() => setFormsSettingsSection(section.key)}
-            className={`forms-list-item${isActive ? ' forms-list-item--active' : ''}`}
+            className={"ui-list-row " + (`forms-list-item${isActive ? ' forms-list-item--active' : ''}`)}
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <span className="forms-list-item-title" style={{ fontWeight: 500 }}>
-              <Icon size={13} />
+              <Icon />
               <span>{section.label}</span>
             </span>
           </button>

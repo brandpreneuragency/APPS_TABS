@@ -6,7 +6,7 @@ import '../forms.css';
 
 function dateLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
   } catch {
     return iso;
   }
@@ -51,7 +51,7 @@ export function TemplatesList() {
           const fieldCount = t.schema.fields.filter((f) => f.type !== 'submit').length;
           const isActive = t.id === activeTemplateId;
           return (
-            <div
+            <div data-active={isActive}
               key={t.id}
               role="button"
               tabIndex={0}
@@ -62,24 +62,24 @@ export function TemplatesList() {
                   handleSelect(t.id);
                 }
               }}
-              className={`forms-list-item${isActive ? ' forms-list-item--active' : ''}`}
+              className={"ui-list-row " + (`forms-list-item${isActive ? ' forms-list-item--active' : ''}`)}
               style={{ cursor: 'pointer' }}
             >
               <span className="forms-list-item-title">
-                <LayoutPanelTop size={12} className="forms-muted" />
+                <LayoutPanelTop className="forms-muted" />
                 <span className="trunc forms-grow">{t.name}</span>
                 <button
                   type="button"
-                  className="forms-action-btn forms-action-btn--ghost"
-                  style={{ height: 22, padding: '0 8px', fontSize: 'var(--fs-xs)' }}
+                  className="ui-button forms-action-btn forms-action-btn--ghost"
+                  style={{ fontSize: 'var(--fs-xs)' }}
                   onClick={(e) => void handleUse(e, t.id, t.name)}
                   title="Create form from template"
                 >
-                  <Plus size={12} /> Use
+                  <Plus /> Use
                 </button>
               </span>
               <span className="forms-list-item-meta">
-                <FileText size={11} />
+                <FileText />
                 <span>{fieldCount} fields</span>
                 <span>·</span>
                 <span>{dateLabel(t.createdAt)}</span>

@@ -70,7 +70,7 @@ export function AddNewClientButton({ showLabel = false }: { showLabel?: boolean 
     <div className="task-list-add-project" ref={rootRef}>
       <button
         type="button"
-        className="task-list-add-project-btn"
+        className={`${showLabel ? 'ui-button' : 'ui-icon-button'} task-list-add-project-btn`}
         title={t('tasks.addNewClient')}
         aria-label={t('tasks.addNewClient')}
         aria-expanded={open}
@@ -84,7 +84,7 @@ export function AddNewClientButton({ showLabel = false }: { showLabel?: boolean 
           });
         }}
       >
-        <Plus size={14} strokeWidth={2.25} />
+        <Plus strokeWidth={2.25} />
         {showLabel && <span>{t('tasks.addNewClient')}</span>}
       </button>
       {open && (
@@ -103,7 +103,7 @@ export function AddNewClientButton({ showLabel = false }: { showLabel?: boolean 
             <input
               ref={inputRef}
               type="text"
-              className="task-list-add-project-input"
+              className="ui-input task-list-add-project-input"
               value={name}
               maxLength={NAME_MAX}
               placeholder={t('tasks.clientNamePlaceholder')}
@@ -113,12 +113,12 @@ export function AddNewClientButton({ showLabel = false }: { showLabel?: boolean 
             />
             <button
               type="submit"
-              className="task-client-name-save"
+              className="ui-icon-button task-client-name-save"
               aria-label={t('tasks.addClient')}
               title={t('tasks.addClient')}
               disabled={submitting || !name.trim()}
             >
-              <Check size={14} aria-hidden="true" />
+              <Check aria-hidden="true" />
             </button>
           </div>
         </form>

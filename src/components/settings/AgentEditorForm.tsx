@@ -62,65 +62,58 @@ export function AgentEditorForm({ agentId, onDone }: AgentEditorFormProps) {
 
   return (
     <div className="settings-agent-editor flex-col h-full w-full" style={{ display: 'flex', overflow: 'hidden' }}>
-      <div className="settings-detail-body">
-        <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Agent Name</label>
+      <div className="settings-detail-body ui-page-body">
+        <div className="settings-field ui-field">
+          <label htmlFor="settings-agent-name">Agent Name</label>
           <input
+            id="settings-agent-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('sidebar.agentNamePlaceholder')}
-            className="ctrl w-full"
+            className="ui-input w-full"
             style={{ fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
-        <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Avatar URL (optional)</label>
+        <div className="settings-field ui-field">
+          <label htmlFor="settings-agent-avatar">Avatar URL (optional)</label>
           <input
+            id="settings-agent-avatar"
             value={avatarUrl}
             onChange={(e) => setAvatarUrl(e.target.value)}
             placeholder="https://..."
-            className="ctrl w-full"
+            className="ui-input w-full"
             style={{ fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
-        <div>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>System Prompt</label>
+        <div className="settings-field ui-field">
+          <label htmlFor="settings-agent-prompt">System Prompt</label>
           <textarea
+            id="settings-agent-prompt"
             value={systemPrompt}
             onChange={(e) => setSystemPrompt(e.target.value)}
             rows={8}
             placeholder="Describe how this agent should behave..."
-            className="ctrl w-full"
-            style={{ fontSize: 'var(--fs-sm)', resize: 'vertical', lineHeight: 1.625, minHeight: 160 }}
+            className="ui-input w-full"
           />
         </div>
 
-        <div className="row gap-2" style={{ paddingTop: 4 }}>
+        <div className="settings-form-actions">
           <button
             onClick={handleSave}
             disabled={!name.trim()}
-            className="btn-brand flex-1"
-            style={{ fontSize: 'var(--fs-sm)', padding: '8px 12px', opacity: !name.trim() ? 0.4 : 1 }}
+            className="ui-button ui-button--primary"
           >
             {editingAgent ? 'Save Changes' : 'Create Agent'}
           </button>
           {editingAgent && !editingAgent.isDefault && (
             <button
               onClick={handleDelete}
-              className="btn-icon"
-              style={{
-                width: 40,
-                border: '1px solid rgba(239,68,68,0.3)',
-                borderRadius: 'var(--radius-sm)',
-                color: 'var(--c-danger)',
-                transition: 'background-color 0.15s, color 0.15s',
-              }}
-              onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(239,68,68,0.15)'; e.currentTarget.style.color = '#ef4444'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--c-danger)'; }}
+              className="ui-icon-button settings-delete-btn"
+              title="Delete"
             >
-              <Trash2 size={15} />
+              <Trash2 size="var(--c-icon-1)" />
             </button>
           )}
         </div>

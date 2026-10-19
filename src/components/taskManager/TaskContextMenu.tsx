@@ -118,14 +118,14 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
     >
       {panel === 'main' && (
         <>
-          <button type="button" className="drop-item" onClick={removeTask} style={itemStyle}>
-            <Trash2 size={12} /> Remove Task
+          <button type="button" className="ui-list-row drop-item" onClick={removeTask} style={itemStyle}>
+            <Trash2 /> Remove Task
           </button>
-          <button type="button" className="drop-item" onClick={() => setPanel('project')} style={itemStyle}>
-            <Folder size={12} /> Assign Project
+          <button type="button" className="ui-list-row drop-item" onClick={() => setPanel('project')} style={itemStyle}>
+            <Folder /> Assign Project
           </button>
-          <button type="button" className="drop-item" onClick={() => setPanel('date')} style={itemStyle}>
-            <Calendar size={12} /> Edit Due Date
+          <button type="button" className="ui-list-row drop-item" onClick={() => setPanel('date')} style={itemStyle}>
+            <Calendar /> Edit Due Date
           </button>
         </>
       )}
@@ -136,16 +136,17 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
             <button
               key={p.id}
               type="button"
-              className="drop-item"
+              className="ui-list-row drop-item"
               onClick={() => assignProject(p.id)}
               style={{ ...itemStyle, fontWeight: task.projectId === p.id ? 700 : 400 }}
             >
-              <Folder size={12} /> {p.name}
+              <Folder /> {p.name}
             </button>
           ))}
           <div style={{ height: 1, background: 'var(--c-border-1)', margin: '4px 0' }} />
-          <div style={{ padding: '4px 12px' }}>
+          <div className="ui-panel-body ui-field">
             <input
+              className="ui-input"
               autoFocus
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
@@ -154,19 +155,14 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
                 if (e.key === 'Escape') setPanel('main');
               }}
               placeholder="New project name..."
-              style={{
-                width: '100%', fontSize: 'var(--fs-sm)', padding: '6px 8px',
-                border: '1px solid var(--c-border-1)', borderRadius: 'var(--radius-sm)',
-                background: 'var(--c-background-1)', color: 'var(--c-text-1)',
-                outline: 'none',
-              }}
+
             />
           </div>
           <div style={{ display: 'flex', gap: 4, padding: '4px 12px 6px' }}>
-            <button type="button" className="drop-item" onClick={addNewProject} disabled={!newProjectName.trim()} style={{ ...itemStyle, flex: 1, justifyContent: 'center', opacity: newProjectName.trim() ? 1 : 0.4 }}>
+            <button type="button" className="ui-list-row drop-item" onClick={addNewProject} disabled={!newProjectName.trim()} style={{ ...itemStyle, flex: 1, justifyContent: 'center', opacity: newProjectName.trim() ? 1 : 0.4 }}>
               Create &amp; Assign
             </button>
-            <button type="button" className="drop-item" onClick={() => setPanel('main')} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
+            <button type="button" className="ui-list-row drop-item" onClick={() => setPanel('main')} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
               Back
             </button>
           </div>
@@ -181,7 +177,7 @@ export function TaskContextMenu({ taskId, x, y, onClose }: TaskContextMenuProps)
             </div>
           </div>
           <div style={{ display: 'flex', gap: 4, padding: '4px 12px 6px' }}>
-            <button type="button" className="drop-item" onClick={() => setPanel('main')} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
+            <button type="button" className="ui-list-row drop-item" onClick={() => setPanel('main')} style={{ ...itemStyle, flex: 1, justifyContent: 'center' }}>
               Back
             </button>
           </div>

@@ -239,14 +239,14 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
 
   return <div className="clients-notes">
     <section className="clients-notes-controls" aria-label={t('clients.notesFilter')}>
-      <label className="clients-field clients-notes-search">
+      <label className="ui-field clients-field clients-notes-search">
         <span>{t('clients.searchNotes')}</span>
-        <input type="search" aria-label={t('clients.searchNotes')} value={query}
+        <input className="ui-input" type="search" aria-label={t('clients.searchNotes')} value={query}
           onChange={(event) => setQuery(event.currentTarget.value)} />
       </label>
-      <label className="clients-field">
+      <label className="ui-field clients-field">
         <span>{t('clients.noteKind')}</span>
-        <select aria-label={t('clients.noteKind')} value={kindFilter}
+        <select className="ui-input" aria-label={t('clients.noteKind')} value={kindFilter}
           onChange={(event) => setKindFilter(event.currentTarget.value as NoteKindFilter)}>
           <option value="all">{t('clients.noteKindAll')}</option>
           <option value="call">{t('clients.kindCall')}</option>
@@ -273,27 +273,27 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
     {clientId !== null && selectedClient && isNoClient(selectedClient) &&
       <p className="clients-read-only-notice" role="status">{t('clients.noClientNotesReadOnly')}</p>}
     {canCreate && <div className="clients-note-create">
-      {clientId === null && <label className="clients-field">
+      {clientId === null && <label className="ui-field clients-field">
         <span>{t('clients.selectClient')}</span>
-        <select aria-label={t('clients.selectClient')} value={createClientId}
+        <select className="ui-input" aria-label={t('clients.selectClient')} value={createClientId}
           onChange={(event) => { setCreateClientId(event.currentTarget.value); setCreateTargetError(false); }}>
           <option value="">{t('clients.selectClient')}</option>
           {liveBrands.map((brand) => <option key={brand.id} value={brand.id}>{brand.name}</option>)}
         </select>
       </label>}
-      <button type="button" className="clients-button clients-button--primary" onClick={() => startCreate(Date.now())}>{t('clients.addNote')}</button>
+      <button type="button" className="ui-button clients-button ui-button--primary clients-button--primary" onClick={() => startCreate(Date.now())}>{t('clients.addNote')}</button>
       {createTargetError && <p role="alert" className="clients-error">{t('clients.selectBrandToCreate')}</p>}
     </div>}
 
     {resumableDrafts.map((draft) => <div className="clients-resume-draft" key={draft.id}>
       <span>{draft.value.title || t('clients.untitledNote')}</span>
-      <button type="button" className="clients-link-button"
+      <button type="button" className="ui-button clients-link-button"
         aria-label={t('clients.resumeNoteDraft', { title: draft.value.title || t('clients.untitledNote') })}
         onClick={() => void resumeDraft(draft.id)}>{t('clients.resumeDraft')}</button>
     </div>)}
 
     {editFailure && <p role="alert" className="clients-error">{t('clients.loadFailed')}
-      <button type="button" className="clients-link-button" onClick={() => {
+      <button type="button" className="ui-button clients-link-button" onClick={() => {
         if (editRetry?.kind === 'draft') void resumeDraft(editRetry.draftId);
         if (editRetry?.kind === 'note') void beginEdit(editRetry.note);
       }}>{t('clients.retry')}</button>
@@ -307,14 +307,14 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
           onPublished={() => setEditor(null)} />
         : editorContacts.key === editorContactKey && editorContacts.status === 'error'
           ? <div><p role="alert" className="clients-error">{t('clients.loadFailed')}</p>
-            <button type="button" className="clients-link-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button></div>
+            <button type="button" className="ui-button clients-link-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button></div>
           : <p role="status">{t('clients.loading')}</p>}
     </section>}
 
     {visibleState.status === 'loading' && <p className="clients-data-state" role="status" aria-busy="true">{t('clients.loading')}</p>}
     {visibleState.status === 'error' && <div className="clients-data-state">
       <p role="alert" className="clients-error">{t('clients.loadFailed')}</p>
-      <button type="button" className="clients-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button>
+      <button type="button" className="ui-button clients-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button>
     </div>}
     {visibleState.status === 'ready' && displayedNotes.length === 0 &&
       <p className="clients-empty-state" role="status">{clientId !== null && !showArchived && !showTrash
@@ -329,12 +329,12 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
         const failedAction = actionFailure?.note.id === note.id ? actionFailure : null;
         const happenedAt = new Date(note.occurredAt);
         const dateValue = Number.isNaN(happenedAt.getTime()) ? undefined : happenedAt.toISOString();
-        const dateLabel = Number.isNaN(happenedAt.getTime()) ? '' : happenedAt.toLocaleString();
+        const dateLabel = Number.isNaN(happenedAt.getTime()) ? '' : happenedAt.toLocaleString('tr-TR');
         const kindLabels: Record<ClientNote['kind'], string> = {
           call: t('clients.kindCall'), meeting: t('clients.kindMeeting'),
           decision: t('clients.kindDecision'), note: t('clients.kindNote'),
         };
-        return <article className="clients-note-card" key={note.id} data-note-id={note.id}
+        return <article className="ui-card clients-note-card" key={note.id} data-note-id={note.id}
           aria-label={note.title || t('clients.untitledNote')}>
           <div className="clients-note-heading">
             <div>
@@ -348,19 +348,19 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
               </div>
             </div>
             <div className="clients-note-actions">
-              {canEdit && <button type="button" className="clients-link-button"
+              {canEdit && <button type="button" className="ui-button clients-link-button"
                 aria-label={t('clients.editNoteNamed', { title: note.title || t('clients.untitledNote') })}
                 onClick={() => void beginEdit(note)}>{t('clients.editNote')}</button>}
-              {canMutate && !showTrash && <button type="button" className="clients-link-button"
+              {canMutate && !showTrash && <button type="button" className="ui-button clients-link-button"
                 aria-label={t(note.pinned ? 'clients.unpinNote' : 'clients.pinNote')}
                 disabled={actionBusy === `${note.id}:${note.pinned ? 'unpin' : 'pin'}`}
                 onClick={() => void executeOperation(note, note.pinned ? 'unpin' : 'pin')}>
                 {t(note.pinned ? 'clients.unpinNote' : 'clients.pinNote')}
               </button>}
-              {canMutate && !showTrash && <button type="button" className="clients-link-button"
+              {canMutate && !showTrash && <button type="button" className="ui-button clients-link-button"
                 disabled={actionBusy === `${note.id}:trash`}
                 onClick={() => void executeOperation(note, 'trash')}>{t('clients.moveToTrash')}</button>}
-              {canMutate && showTrash && <button type="button" className="clients-link-button"
+              {canMutate && showTrash && <button type="button" className="ui-button clients-link-button"
                 disabled={actionBusy === `${note.id}:restore`}
                 onClick={() => void executeOperation(note, 'restore')}>{t('clients.restoreNote')}</button>}
             </div>
@@ -370,7 +370,7 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
             {t('clients.historicalContact', { name: note.contactSnapshot.name })}
             {note.contactSnapshot.email && ` · ${note.contactSnapshot.email}`}
           </p>}
-          <button type="button" className="clients-link-button"
+          <button type="button" className="ui-button clients-link-button"
             aria-expanded={Boolean(openAttachments[note.id])}
             onClick={() => setOpenAttachments((current) => ({ ...current, [note.id]: !current[note.id] }))}>
             {t(openAttachments[note.id] ? 'clients.hideAttachments' : 'clients.showAttachments')}
@@ -379,14 +379,14 @@ export function ClientNotes({ clientId, records, database }: ClientNotesProps) {
             records={records} database={database} readOnly={archivedNote || !canMutate} />}
           {failedAction && <div className="clients-action-error">
             <p role="alert" className="clients-error">{t('clients.noteUpdateFailed')}</p>
-            <button type="button" className="clients-link-button"
+            <button type="button" className="ui-button clients-link-button"
               onClick={() => void executeOperation(failedAction.note, failedAction.operation)}>{t('clients.retry')}</button>
           </div>}
         </article>;
       })}
     </div>}
     {visibleState.status === 'ready' && displayedNotes.length < notes.length &&
-      <button type="button" className="clients-button" onClick={() => setPage((current) => ({
+      <button type="button" className="ui-button clients-button" onClick={() => setPage((current) => ({
         key: filterKey, limit: (current.key === filterKey ? current.limit : PAGE_SIZE) + PAGE_SIZE,
       }))}>{t('clients.loadMore')}</button>}
   </div>;

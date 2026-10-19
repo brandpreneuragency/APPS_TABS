@@ -27,13 +27,16 @@ import { useClientStore } from './stores/clientStore';
 import { useCrmStore } from './stores/crmStore';
 import { useFormsStore } from './stores/formsStore';
 import { resolveTaskAssistantBinding } from './stores/taskAssistantBinding';
-import { useThemeStore } from './stores/themeStore';
+import { retireLegacyThemeTokens } from './stores/themeStore';
 import { runStartupUpdateCheck } from './services/updater';
 import { subscribeToDesktopFileOpen } from './services/desktopFileOpen';
 import { codexSessionService } from './services/codex/sessionService';
 import { startTaskAuthority } from './services/taskAuthority/service';
+import { installDragMotion } from './services/dragMotion';
+import './styles/dragMotion.css';
 
 export default function App() {
+  useEffect(() => installDragMotion(document), []);
   useEffect(() => { void codexSessionService.start(); }, []);
   const [editor, setEditor] = useState<Editor | null>(null);
   const [trashOpen, setTrashOpen] = useState(false);
@@ -54,7 +57,7 @@ export default function App() {
     navigationCollapsed,
   } = useUIStore();
   const { loadAISettings } = useAIStore();
-  const { loadThemeTokens } = useThemeStore();
+
   const {
     loadTasks,
     isLoaded: tasksLoaded,
@@ -82,7 +85,7 @@ export default function App() {
         .then(() => loadTasks()),
       useCrmStore.getState().loadCrm(),
       useFormsStore.getState().loadForms(),
-      loadThemeTokens(),
+      retireLegacyThemeTokens().catch(() => console.warn('[theme] Legacy token retirement failed; original settings retained for retry.')),
     ]);
     // Check for app updates in the background (no-op in the browser).
     void runStartupUpdateCheck();
@@ -93,7 +96,7 @@ export default function App() {
     loadClients,
     loadTasks,
     loadProjects,
-    loadThemeTokens,
+
   ]);
 
   // Listen for "Open with TABS" / argv file events from the Tauri shell.
@@ -161,8 +164,8 @@ export default function App() {
       <div className="h-dvh" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
         <div className="flex-col gap-3" style={{ display: 'flex', alignItems: 'center' }}>
           <div style={{
-            width: 32, height: 32,
-            border: '2px solid var(--c-accent-center-panel)', borderTopColor: 'transparent',
+            width: 'var(--control-height-sm)', height: 'var(--control-height-sm)',
+            border: '2px solid var(--c-border-2)', borderTopColor: 'transparent',
             borderRadius: 'var(--radius-full)',
           }} />
           <span className="subtle" style={{ fontSize: 'var(--fs-sm)' }}>Loading...</span>
@@ -175,10 +178,11 @@ export default function App() {
 
   // The Settings doc only lives in doc mode (not task/crm).
   const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
+  const notesActive = !githubMode && !taskMode && !crmMode && activeView === 'notes';
 
   // Panel 2 (editor) — CRM > task > doc. Settings primary content is
   // owned by AppLayout (SettingsDocument → section slots).
-  const activeWorkspace = githubMode
+  const activeWorkspace = githubMode || notesActive
     ? null
     : crmMode
     ? <CRMWorkspace />
@@ -194,7 +198,7 @@ export default function App() {
   // Settings supplies its own list via SettingsPanels inside SettingsDocument.
   const formsPageActive = crmMode && activeCRMPage === 'forms';
   const clientsPageActive = crmMode && activeCRMPage === 'clients';
-  const leftPanel = githubMode
+  const leftPanel = githubMode || notesActive
     ? null
     : crmMode
     ? formsPageActive
@@ -217,7 +221,7 @@ export default function App() {
     selectedProjectId,
   });
 
-  const sidebar = githubMode ? (
+  const sidebar = githubMode || notesActive ? (
     <AISidebar workspaceId={null} taskId={null} mode="writer" editor={null} />
   ) : settingsActive ? (
     <AISidebar

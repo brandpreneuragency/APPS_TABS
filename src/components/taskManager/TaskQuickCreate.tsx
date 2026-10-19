@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ChevronDown, Plus } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { Task } from '../../types';
 import { useClientStore } from '../../stores/clientStore';
@@ -12,6 +12,7 @@ import './TaskQuickCreate.css';
 
 interface TaskQuickCreateProps {
   date?: string | null;
+  projectId?: string;
   onSuccess?: (task: Task) => void;
   onClose?: () => void;
 }
@@ -50,12 +51,11 @@ function TaskQuickCreateSelect({
       const anchor = triggerRef.current.getBoundingClientRect();
       const width = Math.max(anchor.width, 130);
       menuRef.current.style.width = `${width}px`;
-      const bounds = menuRef.current.getBoundingClientRect();
-      const left = Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8));
       const gap = 6;
-      const top = anchor.top - bounds.height - gap >= 8
-        ? anchor.top - bounds.height - gap
-        : Math.min(anchor.bottom + gap, Math.max(8, window.innerHeight - bounds.height - 8));
+      const availableHeight = Math.max(0, window.innerHeight - anchor.bottom - gap - 8);
+      menuRef.current.style.maxHeight = `${availableHeight}px`;
+      const left = Math.max(8, Math.min(anchor.left, window.innerWidth - width - 8));
+      const top = anchor.bottom + gap;
       setPosition({ top, left, width });
     };
     reposition();
@@ -102,7 +102,7 @@ function TaskQuickCreateSelect({
       <button
         ref={triggerRef}
         type="button"
-        className="task-quick-create-select"
+        className="ui-button task-quick-create-select"
         aria-label={ariaLabel}
         aria-haspopup="menu"
         aria-expanded={open}
@@ -111,7 +111,7 @@ function TaskQuickCreateSelect({
         onClick={() => setOpen((current) => !current)}
       >
         <span className="task-quick-create-select-label">{selected?.label ?? ''}</span>
-        <ChevronDown size={12} aria-hidden="true" />
+        <ChevronDown aria-hidden="true" />
       </button>
       {open && createPortal(
         <div
@@ -127,7 +127,7 @@ function TaskQuickCreateSelect({
               key={option.value || '__empty__'}
               type="button"
               role="menuitem"
-              className={`drop-item${option.value === value ? ' header-dropdown-item--active' : ''}`}
+              className={`ui-list-row drop-item${option.value === value ? ' header-dropdown-item--active' : ''}`}
               onClick={() => pick(option.value)}
             >
               <span className="trunc med">{option.label}</span>
@@ -140,7 +140,7 @@ function TaskQuickCreateSelect({
   );
 }
 
-export function TaskQuickCreate({ date, onSuccess, onClose }: TaskQuickCreateProps) {
+export function TaskQuickCreate({ date, projectId, onSuccess, onClose }: TaskQuickCreateProps) {
   const { t } = useTranslation();
   const clients = useClientStore((s) => s.clients);
   const projects = useProjectStore((s) => s.projects);
@@ -148,11 +148,12 @@ export function TaskQuickCreate({ date, onSuccess, onClose }: TaskQuickCreatePro
   const showToast = useUIStore((s) => s.showToast);
 
   const [title, setTitle] = useState('');
-  const [selectedClientId, setSelectedClientId] = useState<string>(clients[0]?.id ?? '');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>(projects[0]?.id ?? '');
+  const initialProject = projects.find((project) => project.id === projectId);
+  const [selectedClientId, setSelectedClientId] = useState<string>(initialProject?.clientId ?? clients[0]?.id ?? '');
+  const [selectedProjectId, setSelectedProjectId] = useState<string>(initialProject?.id ?? projects[0]?.id ?? '');
   const [submitting, setSubmitting] = useState(false);
 
-  const rootRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLFormElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const onCloseRef = useRef(onClose);
   const filteredProjects = projects.filter((p) => p.clientId === selectedClientId);
@@ -188,7 +189,7 @@ export function TaskQuickCreate({ date, onSuccess, onClose }: TaskQuickCreatePro
 
   const submit = async () => {
     const trimmed = title.trim();
-    if (!trimmed || submitting) return;
+    if (!trimmed || submitting || !selectedProjectId) return;
     setSubmitting(true);
     try {
       const created = await createTask(trimmed, {
@@ -213,30 +214,13 @@ export function TaskQuickCreate({ date, onSuccess, onClose }: TaskQuickCreatePro
   };
 
   return (
-    <div className="task-quick-create" ref={rootRef}>
-      <div className="task-quick-create-first-row">
-        <input
-          ref={titleRef}
-          type="text"
-          className="task-quick-create-input"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={t('tasks.taskTitlePlaceholder')}
-          aria-label={t('tasks.taskTitlePlaceholder')}
-          maxLength={TASK_TITLE_MAX_LENGTH}
-          disabled={submitting}
-        />
-        <button
-          type="button"
-          className="task-quick-create-btn"
-          onClick={submit}
-          disabled={submitting || !title.trim() || !selectedProjectId}
-          aria-label={t('tasks.createTask')}
-        >
-          <Plus size={14} />
-        </button>
-      </div>
-      <div className="task-quick-create-selects">
+    <form
+      className="ui-panel-body task-quick-create"
+      ref={rootRef}
+      aria-label={t('tasks.addTask')}
+      onSubmit={(event) => { event.preventDefault(); void submit(); }}
+    >
+      {!projectId && <>
         <TaskQuickCreateSelect
           aria-label={t('tasks.selectClient')}
           value={selectedClientId}
@@ -251,7 +235,28 @@ export function TaskQuickCreate({ date, onSuccess, onClose }: TaskQuickCreatePro
           disabled={submitting || filteredProjects.length === 0}
           options={filteredProjects.map((project) => ({ value: project.id, label: project.name }))}
         />
-      </div>
-    </div>
+      </>}
+      <input
+        ref={titleRef}
+        type="text"
+        className="ui-input task-quick-create-input"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        placeholder={t('tasks.taskTitlePlaceholder')}
+        aria-label={t('tasks.taskTitlePlaceholder')}
+        maxLength={TASK_TITLE_MAX_LENGTH}
+        disabled={submitting}
+      />
+      <button
+        type="submit"
+        className="ui-button"
+        disabled={submitting || !title.trim() || !selectedProjectId}
+      >
+        {t('tasks.createTask')}
+      </button>
+      <button type="button" className="ui-button" disabled={submitting} onClick={onClose}>
+        {t('confirm.cancel')}
+      </button>
+    </form>
   );
 }

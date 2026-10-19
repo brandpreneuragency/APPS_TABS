@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   useUIStore,
   selectActiveWorkspaceMode,
@@ -13,6 +13,7 @@ import { FileViewerPanel } from '../fileViewer/FileViewerPanel';
 import { RightPanelSubheader } from '../sidebar/RightPanelSubheader';
 import { TerminalPanel } from '../terminal/TerminalPanel';
 import { SettingsDocument } from '../settings/SettingsDocument';
+import { NotesPage } from '../notes/NotesPage';
 import { GithubAssistantNotice, GithubAssistantSidebar, GithubWorkspace } from '../github/GithubWorkspace';
 import { useTaskStore } from '../../stores/taskStore';
 import { resolveTaskAssistantBinding } from '../../stores/taskAssistantBinding';
@@ -44,6 +45,7 @@ export function AppLayout({
   const editorFontSize = useUIStore((s) => s.editorFontSize);
   const navigationWidth = useUIStore((s) => s.navigationWidth);
   const navigationCollapsed = useUIStore((s) => s.navigationCollapsed);
+  const [githubNavigationContainer, setGithubNavigationContainer] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (editorFontSize === 14) {
@@ -58,7 +60,7 @@ export function AppLayout({
   return (
     <div className="workspace" data-navigation-collapsed={navigationCollapsed} style={{ '--sidebar-width': `${navigationCollapsed ? 0 : navigationWidth}px` } as CSSProperties}>
       <div className="sidebar-panel" aria-hidden={navigationCollapsed} inert={navigationCollapsed}>
-        <LeftNarrowSidebar />
+        <LeftNarrowSidebar githubNavigationRef={setGithubNavigationContainer} />
         <NavigationResizeHandle />
       </div>
       <div id="workspace-panels" className="workspace-panels">
@@ -69,6 +71,7 @@ export function AppLayout({
             leftPanel={leftPanel}
             taskListPanel={taskListPanel}
             subtasksBar={subtasksBar}
+            githubNavigationContainer={githubNavigationContainer}
           />
         </div>
         {modals}
@@ -85,12 +88,14 @@ function UniversalWorkspaceShell({
   leftPanel,
   taskListPanel,
   subtasksBar,
+  githubNavigationContainer,
 }: {
   editor: ReactNode;
   sidebar: ReactNode;
   leftPanel: ReactNode;
   taskListPanel: ReactNode;
   subtasksBar?: ReactNode;
+  githubNavigationContainer: HTMLDivElement | null;
 }) {
   const primaryWrapperOpen = useUIStore((s) => s.primaryWrapperOpen);
   const assistantWrapperOpen = useUIStore((s) => s.assistantWrapperOpen);
@@ -123,6 +128,7 @@ function UniversalWorkspaceShell({
 
   const layout = resolveModeLayout({
     mode,
+    githubNavigationContainer,
     editor,
     leftPanel,
     taskListPanel,
@@ -147,7 +153,9 @@ function UniversalWorkspaceShell({
   ) : (
     <>
       <div id="right-panel-subheader-wrapper" className="right-panel-subheader-wrapper">
-        {mode === 'settings' ? (
+        {mode === 'notes' ? (
+          <RightPanelSubheader mode="writer" workspaceId={null} taskId={null} />
+        ) : mode === 'settings' ? (
           <RightPanelSubheader
             mode="writer"
             workspaceId={null}
@@ -185,6 +193,7 @@ function UniversalWorkspaceShell({
 
 function resolveModeLayout(args: {
   mode: WorkspaceMode;
+  githubNavigationContainer: HTMLDivElement | null;
   editor: ReactNode;
   leftPanel: ReactNode;
   taskListPanel: ReactNode;
@@ -196,6 +205,7 @@ function resolveModeLayout(args: {
     forms: boolean;
     settings: boolean;
     github: boolean;
+    notes: boolean;
   };
   contextPanelWidth: number;
   activeTaskPage: string;
@@ -207,6 +217,7 @@ function resolveModeLayout(args: {
     leftPanel,
     taskListPanel,
     subtasksBar,
+    githubNavigationContainer,
     contextPanelOpenByMode,
     contextPanelWidth,
     activeTaskPage,
@@ -219,7 +230,11 @@ function resolveModeLayout(args: {
   }
 
   if (mode === 'github') {
-    return { primary: <GithubWorkspace /> };
+    return { primary: <GithubWorkspace navigationContainer={githubNavigationContainer} /> };
+  }
+
+  if (mode === 'notes') {
+    return { primary: <NotesPage /> };
   }
 
   if (mode === 'documents') {
@@ -233,7 +248,7 @@ function resolveModeLayout(args: {
           contextPanelOpen={contextPanelOpenByMode.documents}
           contextPanelWidthVw={contextPanelWidth}
           contextPanelId="file-tree-panel"
-          contextPanelStyle={{ padding: '0 0 0 6px' }}
+          contextPanelStyle={{ padding: '0' }}
         />
       ),
     };

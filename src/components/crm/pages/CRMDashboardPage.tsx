@@ -109,33 +109,33 @@ export default function CRMDashboardPage() {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title">CRM Dashboard</div>
           <div className="crm-page-header-meta">
             <span className="crm-page-header-meta-item">
-              <CalendarClock size={11} /> {new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+              <CalendarClock /> {new Date().toLocaleDateString('tr-TR', { weekday: 'long', month: 'long', day: 'numeric' })}
             </span>
             <span className="crm-page-header-meta-item">{leads.length} leads · {deals.length} deals · {companies.length} companies</span>
           </div>
         </div>
         <div className="crm-page-header-actions">
-          <button type="button" className="crm-btn crm-btn--sm" onClick={handleAddLead}>
-            <UserPlus size={12} /> Add lead
+          <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleAddLead}>
+            <UserPlus /> Add lead
           </button>
-          <button type="button" className="crm-btn crm-btn--sm" onClick={handleAddCompany}>
-            <Building2 size={12} /> Add company
+          <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleAddCompany}>
+            <Building2 /> Add company
           </button>
-          <button type="button" className="crm-btn crm-btn--sm" onClick={handleCreateFollowUp}>
-            <CalendarClock size={12} /> Follow-up
+          <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleCreateFollowUp}>
+            <CalendarClock /> Follow-up
           </button>
-          <button type="button" className="crm-btn crm-btn--sm crm-btn--primary" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('list'); }}>
-            <SquarePen size={12} /> Open Forms
+          <button type="button" className="ui-button crm-btn crm-btn--sm ui-button--primary crm-btn--primary" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('list'); }}>
+            <SquarePen /> Open Forms
           </button>
         </div>
       </div>
 
-      <div className="crm-page-body">
+      <div className="ui-panel-body crm-page-body">
         <div className="crm-kpi-row">
           <KPICard label="New Leads" value={kpis.newLeads} icon={UserPlus} delta="this period" deltaPositive />
           <KPICard label="Open Deals" value={kpis.openDeals} icon={KanbanSquare} delta={`${formatCurrency(kpis.totalPipelineValue)} pipeline`} deltaPositive />
@@ -144,10 +144,10 @@ export default function CRMDashboardPage() {
         </div>
 
         <div className="crm-dashboard-grid">
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-header">
               <span className="crm-card-title">Recent Leads</span>
-              <button type="button" className="crm-card-link" onClick={() => setActiveCRMPage('leads')}>View all →</button>
+              <button type="button" className="ui-button crm-card-link" onClick={() => setActiveCRMPage('leads')}>View all →</button>
             </div>
             <div className="crm-card-body">
               {recentLeads.length === 0 ? (
@@ -158,7 +158,7 @@ export default function CRMDashboardPage() {
                   return (
                     <div
                       key={lead.id}
-                      className="crm-compact-row"
+                      className="ui-list-row crm-compact-row"
                       onClick={() => { setActiveLeadId(lead.id); setActiveCRMPage('leads'); }}
                     >
                       <div className="crm-compact-row-main">
@@ -176,10 +176,10 @@ export default function CRMDashboardPage() {
             </div>
           </div>
 
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-header">
               <span className="crm-card-title">Follow-ups Due</span>
-              <button type="button" className="crm-card-link" onClick={handleCreateFollowUp}>Open oldest →</button>
+              <button type="button" className="ui-button crm-card-link" onClick={handleCreateFollowUp}>Open oldest →</button>
             </div>
             <div className="crm-card-body">
               {followUpsDue.length === 0 ? (
@@ -188,7 +188,7 @@ export default function CRMDashboardPage() {
                 followUpsDue.map((lead) => (
                   <div
                     key={lead.id}
-                    className="crm-compact-row"
+                    className="ui-list-row crm-compact-row"
                     onClick={() => { setActiveLeadId(lead.id); setActiveCRMPage('leads'); }}
                   >
                     <div className="crm-compact-row-main">
@@ -204,10 +204,10 @@ export default function CRMDashboardPage() {
             </div>
           </div>
 
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-header">
               <span className="crm-card-title">Pipeline Snapshot</span>
-              <button type="button" className="crm-card-link" onClick={() => setActiveCRMPage('pipeline')}>Open pipeline →</button>
+              <button type="button" className="ui-button crm-card-link" onClick={() => setActiveCRMPage('pipeline')}>Open pipeline →</button>
             </div>
             <div className="crm-card-body">
               {pipelineSnapshot.totalValue > 0 ? (
@@ -241,10 +241,10 @@ export default function CRMDashboardPage() {
             </div>
           </div>
 
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-header">
               <span className="crm-card-title">Recent Form Submissions</span>
-              <button type="button" className="crm-card-link" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('submissions'); }}>Open Forms →</button>
+              <button type="button" className="ui-button crm-card-link" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('submissions'); }}>Open Forms →</button>
             </div>
             <div className="crm-card-body">
               {recentSubmissions.length === 0 ? (
@@ -278,26 +278,26 @@ export default function CRMDashboardPage() {
           </div>
         </div>
 
-        <div className="crm-card">
+        <div className="ui-card crm-card">
           <div className="crm-card-title">Quick actions</div>
           <div className="crm-dashboard-quick-actions">
-            <button type="button" className="crm-btn crm-btn--sm" onClick={handleAddLead}>
-              <UserPlus size={12} /> Add lead
+            <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleAddLead}>
+              <UserPlus /> Add lead
             </button>
-            <button type="button" className="crm-btn crm-btn--sm" onClick={handleAddCompany}>
-              <Building2 size={12} /> Add company
+            <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleAddCompany}>
+              <Building2 /> Add company
             </button>
-            <button type="button" className="crm-btn crm-btn--sm" onClick={handleCreateFollowUp}>
-              <CalendarClock size={12} /> Create follow-up task
+            <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={handleCreateFollowUp}>
+              <CalendarClock /> Create follow-up task
             </button>
-            <button type="button" className="crm-btn crm-btn--sm crm-btn--primary" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('list'); }}>
-              <SquarePen size={12} /> Open Forms module
+            <button type="button" className="ui-button crm-btn crm-btn--sm ui-button--primary crm-btn--primary" onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('list'); }}>
+              <SquarePen /> Open Forms module
             </button>
-            <button type="button" className="crm-btn crm-btn--sm" onClick={() => setActiveCRMPage('pipeline')}>
-              <KanbanSquare size={12} /> Open pipeline
+            <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={() => setActiveCRMPage('pipeline')}>
+              <KanbanSquare /> Open pipeline
             </button>
-            <button type="button" className="crm-btn crm-btn--sm" onClick={() => setActiveCRMPage('contacts')}>
-              <Users size={12} /> Open contacts
+            <button type="button" className="ui-button crm-btn crm-btn--sm" onClick={() => setActiveCRMPage('contacts')}>
+              <Users /> Open contacts
             </button>
           </div>
         </div>

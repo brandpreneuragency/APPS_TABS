@@ -62,7 +62,7 @@ export function TerminalPanel() {
   return (
     <div
       ref={panelRef}
-      className="terminal-panel"
+      className="ui-panel-body terminal-panel"
     >
       <div className="terminal-resize-handle" onMouseDown={onResizeStart} />
       <TerminalTabs

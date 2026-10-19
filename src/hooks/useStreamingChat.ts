@@ -14,8 +14,6 @@ import { loadProviderModelVisibility, visibleProviderModels } from '../services/
 import { cliProviderSessionService } from '../services/providers/sessionService';
 import { cliProviderDefaultWorkspace } from '../services/providers/chatClient';
 import { cliReasoningEffortSettingKey, supportedCliReasoningEffort } from '../services/providers/reasoningEffort';
-import { isMockProviderId, mockProviderModels } from '../services/providers/mockProviders';
-import { mockProviderSessionService } from '../services/providers/mockSessionService';
 import type { ChatProviderId } from '../types';
 import { watchProviderThread, type GithubDispatchContext } from '../services/github/aiEgress';
 
@@ -75,19 +73,8 @@ export function useStreamingChat(
 
     const thread = await db.chatThreads.get(activeThread);
     if (!thread) throw new Error('Could not load the active chat thread.');
-    if (isMockProviderId(thread.origin)) {
-      if (github) throw new Error('GitHub context requires a real Codex or CLI provider.');
-      if (searchWeb) throw new Error(t('codex.searchUnavailable'));
-      const catalogue = mockProviderModels[thread.origin];
-      const preferredModel = (await db.settings.get(`providerModelId:${thread.origin}`))?.value;
-      const chosen = catalogue.find((model) => model.id === preferredModel)
-        ?? catalogue.find((model) => model.isDefault) ?? catalogue[0];
-      await mockProviderSessionService.submit({
-        providerId: thread.origin, modelId: chosen.id, appThreadId: activeThread, mode,
-        workspaceId: contextWorkspaceId, taskId: contextTaskId, settingsTab: contextSettingsTab,
-        text: userText,
-      });
-      return;
+    if (thread.origin === 'mockEcho' || thread.origin === 'mockTools') {
+      throw new Error(t('cliChat.legacyThread'));
     }
     if (!isTauriRuntime()) throw new Error(t('cliChat.desktopOnly'));
     if (searchWeb) throw new Error(t('codex.searchUnavailable'));
@@ -210,11 +197,6 @@ export function useStreamingChat(
   }, [threadId, mode, contextWorkspaceId, contextTaskId, contextSettingsTab, editor, newChat, t]);
 
   const stopStreaming = useCallback(() => {
-    const mockRun = mockProviderSessionService.snapshot();
-    if (mockRun?.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)) {
-      void mockProviderSessionService.stop();
-      return;
-    }
     const cliRun = cliProviderSessionService.snapshot();
     if (cliRun?.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)) {
       void cliProviderSessionService.stop();

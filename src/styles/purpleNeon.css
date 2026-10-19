@@ -1,0 +1,79 @@
+/* Optional surface recipes. All editable values live in tokens.css.
+ * Flat surfaces and existing borders preserve panel/control geometry. */
+:root[data-theme='purple-neon'] {
+  color-scheme: dark;
+}
+
+:root[data-theme='purple-neon'] #header-bar,
+:root[data-theme='purple-neon'] .app-shell #nav-bar.scope-navigation,
+:root[data-theme='purple-neon'] .center-content-panel,
+:root[data-theme='purple-neon'] #ai-sidebar-panel,
+:root[data-theme='purple-neon'] #file-tree-panel {
+  background: var(--neon-panel-surface);
+  border-radius: var(--neon-radius-panel);
+
+}
+
+/* Let the center panel's curved surface show through the board. */
+:root[data-theme='purple-neon'] .task-kanban-page-body,
+:root[data-theme='purple-neon'] .task-kanban-page-body .crm-kanban {
+  background: transparent;
+}
+
+:root[data-theme='purple-neon'] .task-kanban-client-row .crm-kanban-column,
+:root[data-theme='purple-neon'] .task-kanban-add-column,
+:root[data-theme='purple-neon'] #chat-input-card,
+:root[data-theme='purple-neon'] #task-comment-card {
+  background: var(--neon-control-surface);
+
+  border-radius: var(--neon-radius-card);
+}
+
+:root[data-theme='purple-neon'] .crm-kanban-card.task-kanban-card {
+  background: var(--neon-card-surface);
+  border-radius: var(--neon-radius-card);
+
+}
+:root[data-theme='purple-neon'] .crm-kanban-card.task-kanban-card:hover,
+:root[data-theme='purple-neon'] .crm-kanban-card.task-kanban-card.crm-kanban-card--active {
+  background: var(--neon-card-hover);
+
+}
+
+:root[data-theme='purple-neon'] .task-kanban-card-picker,
+:root[data-theme='purple-neon'] .task-kanban-card .tdp-meta-field-btn {
+  background: var(--neon-picker-surface);
+  color: var(--c-text-2);
+
+}
+
+:root[data-theme='purple-neon'] #header-bar .mode-navigation button[aria-pressed='true'],
+:root[data-theme='purple-neon'] .app-shell .scope-navigation .scope-tab[aria-current='page'],
+:root[data-theme='purple-neon'] .app-shell .scope-navigation .scope-tab[aria-selected='true'],
+:root[data-theme='purple-neon'] .app-shell .scope-navigation [data-ws-tab-id][aria-selected='true'],
+:root[data-theme='purple-neon'] .scope-navigation .nav-bar-toolbar .task-list-add-project-btn,
+:root[data-theme='purple-neon'] .right-panel-subheader {
+  background: var(--neon-control-surface);
+  color: var(--c-text-1);
+
+  border-radius: var(--neon-radius-control);
+}
+
+:root[data-theme='purple-neon'] #chat-input-card .btn-send:not(:disabled),
+:root[data-theme='purple-neon'] #task-comment-card .btn-send:not(:disabled) {
+  background: var(--neon-send-surface);
+  color: var(--c-text-1);
+
+}
+
+:root[data-theme='purple-neon'] :is(button, select, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--c-border-2);
+  outline-offset: -2px;
+}
+
+@media (forced-colors: active) {
+  :root[data-theme='purple-neon'] :is(#header-bar, #nav-bar, .center-content-panel, #ai-sidebar-panel, .crm-kanban-card) {
+    box-shadow: none;
+    outline: 1px solid CanvasText;
+  }
+}

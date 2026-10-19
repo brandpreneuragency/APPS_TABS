@@ -1,23 +1,10 @@
 /* =========================================================================
    ReusablePageTemplate — self-contained, scoped styles.
    The root element carries the `.reusable-page-template` class so nothing
-   leaks in or out. All visual tokens are exposed as CSS variables on the
-   root so a host app can override them per-instance.
+   leaks in or out. Design values use the shared contract; panel dimensions remain per-instance.
    ========================================================================= */
 
 .reusable-page-template {
-  /* Defaults (overridable per instance) */
-  --pt-panel-bg: var(--c-background-1);
-  --pt-panel-border: rgba(0, 0, 0, 0.08);
-  --pt-handle-bg: transparent;
-  --pt-handle-bg-active: var(--c-accent-center-panel);
-  --pt-handle-width: 2px;
-  --pt-handle-hit-width: 10px;
-  --pt-header-height: 4vh;
-  --pt-footer-height: 10vh;
-  --pt-text-color: #111111;
-  --pt-radius: 0px;
-
   box-sizing: border-box;
   display: flex;
   flex-direction: row;
@@ -27,7 +14,7 @@
   min-height: 0;
   overflow: hidden;
   background: transparent;
-  color: var(--pt-text-color);
+  color: var(--c-text-1);
   font: inherit;
 }
 
@@ -57,7 +44,7 @@
   min-height: 0;
   min-width: 0;
   background-color: var(--c-background-1);
-  border-color: var(--pt-panel-border);
+  border-color: var(--c-border-1);
   overflow: hidden;
   flex-grow: 0;
   flex-shrink: 0;
@@ -103,7 +90,7 @@
 }
 
 .reusable-page-template__section--footer {
-  height: var(--pt-footer-height);
+  height: var(--pt-footer-height, var(--composer-min-height));
 }
 
 .reusable-page-template__section--main {
@@ -135,8 +122,8 @@
 .reusable-page-template__handle {
   position: relative;
   flex: 0 0 auto;
-  width: var(--pt-handle-width);
-  background: var(--pt-handle-bg);
+  width: var(--c-gap-0);
+  background: transparent;
   cursor: col-resize;
   -webkit-user-select: none;
   user-select: none;
@@ -152,7 +139,7 @@
   left: 50%;
   width: 1px;
   transform: translateX(-50%);
-  background: var(--pt-panel-border);
+  background: var(--c-border-1);
   pointer-events: none;
 }
 
@@ -162,7 +149,7 @@
   top: 0;
   bottom: 0;
   left: 50%;
-  width: var(--pt-handle-hit-width);
+  width: var(--c-space-2);
   transform: translateX(-50%);
   background: transparent;
   pointer-events: none;
@@ -170,11 +157,11 @@
 
 .reusable-page-template__handle:hover::after,
 .reusable-page-template__handle[data-dragging="true"]::after {
-  background: var(--pt-handle-bg-active);
+  background: var(--c-accent-1);
 }
 
 .reusable-page-template__handle:focus-visible {
-  outline: 2px solid var(--c-accent-center-panel);
+  outline: 2px solid var(--c-border-2);
   outline-offset: 1px;
 }
 
@@ -185,22 +172,22 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  height: 32px;
-  padding: 0 8px;
+  height: var(--control-height-sm);
+  padding: 0 var(--c-space-1);
   font-size: var(--fs-xs);
   font-weight: 600;
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
   background-color: var(--c-background-1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 0;
 }
 
 .reusable-page-template__preview-toggle {
   appearance: none;
   background: rgba(0, 0, 0, 0.08);
   color: inherit;
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  border: 0;
   border-radius: var(--radius-sm);
-  padding: 2px 8px;
+  padding: var(--c-gap-0) var(--c-space-1);
   font-size: var(--fs-xs);
   cursor: pointer;
 }

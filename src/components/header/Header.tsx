@@ -22,10 +22,10 @@ export function Header() {
       <ModeNavigation />
       <div className="ai-toggle-col">
         <TaskAuthorityStatus />
-        <button id="nav-btn-font-decrease" type="button" className="ai-toggle-btn" title={t('settings.decreaseTextSize')} aria-label={t('settings.decreaseTextSize')}
-          disabled={!canStepEditorFontSize(fontSize, -1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, -1))}><Minus size={15} /></button>
-        <button id="nav-btn-font-increase" type="button" className="ai-toggle-btn" title={t('settings.increaseTextSize')} aria-label={t('settings.increaseTextSize')}
-          disabled={!canStepEditorFontSize(fontSize, 1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, 1))}><Plus size={15} /></button>
+        <button id="nav-btn-font-decrease" type="button" className="ui-icon-button ai-toggle-btn" title={t('settings.decreaseTextSize')} aria-label={t('settings.decreaseTextSize')}
+          disabled={!canStepEditorFontSize(fontSize, -1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, -1))}><Minus className="ui-icon"  /></button>
+        <button id="nav-btn-font-increase" type="button" className="ui-icon-button ai-toggle-btn" title={t('settings.increaseTextSize')} aria-label={t('settings.increaseTextSize')}
+          disabled={!canStepEditorFontSize(fontSize, 1)} onClick={() => useUIStore.getState().setEditorFontSize(stepEditorFontSize(fontSize, 1))}><Plus className="ui-icon"  /></button>
         <ContextPanelToggle variant="header" />
         <button
           id="header-btn-swap"
@@ -36,9 +36,9 @@ export function Header() {
           disabled={!canSwapWrappers}
           onMouseDown={(event) => event.stopPropagation()}
           onClick={() => toggleWrappersSwapped()}
-          className={`ai-toggle-btn${wrappersSwapped && canSwapWrappers ? ' ai-toggle-btn--on' : ''}`}
+          className={"ui-icon-button " + (`ai-toggle-btn${wrappersSwapped && canSwapWrappers ? ' ai-toggle-btn--on' : ''}`)}
         >
-          <ArrowLeftRight size={16} />
+          <ArrowLeftRight className="ui-icon"  />
         </button>
         <AssistantToggle variant="header" />
       </div>

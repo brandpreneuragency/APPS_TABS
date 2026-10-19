@@ -45,8 +45,8 @@ export function ContactList({ onAddContact }: ContactListProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
       <div className="crm-list-search">
-        <Search size={13} className="crm-list-search-icon" />
-        <input
+        <Search className="crm-list-search-icon" />
+        <input className="ui-input"
           type="text"
           placeholder="Search contacts…"
           value={filters.contact.search ?? ''}
@@ -66,10 +66,10 @@ export function ContactList({ onAddContact }: ContactListProps) {
         const isActive = contact.id === activeContactId;
         const company = contact.companyId ? companies.find((c) => c.id === contact.companyId) : undefined;
         return (
-          <button
+          <button data-active={isActive}
             key={contact.id}
             type="button"
-            className={`crm-list-item${isActive ? ' crm-list-item--active' : ''}`}
+            className={"ui-list-row " + (`crm-list-item${isActive ? ' crm-list-item--active' : ''}`)}
             onClick={() => setActiveContactId(contact.id)}
           >
             <div className="crm-list-item-row">
@@ -89,8 +89,8 @@ export function ContactList({ onAddContact }: ContactListProps) {
       })}
 
       {onAddContact && (
-        <button type="button" className="crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddContact} style={{ marginTop: 6 }}>
-          <Plus size={13} /> Add contact
+        <button type="button" className="ui-button crm-btn crm-btn--ghost crm-btn--sm" onClick={onAddContact} style={{ marginTop: 6 }}>
+          <Plus /> Add contact
         </button>
       )}
     </div>

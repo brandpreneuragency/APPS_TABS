@@ -65,7 +65,7 @@ export default function FormsSettingsPage() {
   );
 
   return (
-    <div className="forms-page forms-page--scroll" style={{ gap: 12 }}>
+    <div className="ui-panel-body forms-page forms-page--scroll" >
       <div className="forms-page-head">
         <h2 className="forms-page-title">Forms Settings</h2>
         <p className="forms-page-subtitle">Defaults, spam protection, notifications, webhooks, embed security and export.</p>
@@ -118,16 +118,16 @@ function DefaultsSection() {
   };
 
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <p className="forms-section-title">
-        <Settings2 size={14} /> Form defaults
+        <Settings2 /> Form defaults
       </p>
       <p className="forms-section-hint">
         Applied to the selected form. New forms inherit the built-in default success message until you change it here.
       </p>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Form</label>
-        <select className="forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
+        <select className="ui-input forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
           {forms.map((f) => (
             <option key={f.id} value={f.id}>
               {f.name}
@@ -135,19 +135,19 @@ function DefaultsSection() {
           ))}
         </select>
       </div>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Default success message</label>
         <textarea
-          className="forms-textarea"
+          className="ui-input forms-textarea"
           value={successMessage}
           onChange={(e) => setSuccessMessage(e.target.value)}
           placeholder="Thanks for your submission!"
         />
       </div>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Default notification email</label>
         <input
-          className="forms-input"
+          className="ui-input forms-input"
           type="email"
           value={notificationEmail}
           onChange={(e) => setNotificationEmail(e.target.value)}
@@ -156,8 +156,8 @@ function DefaultsSection() {
         <span className="forms-field-group-hint">Where new submission notifications are sent (future backend feature).</span>
       </div>
       <div className="forms-actions">
-        <button type="button" className="forms-action-btn forms-action-btn--primary" onClick={save}>
-          <Save size={14} /> Save defaults
+        <button type="button" className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary" onClick={save}>
+          <Save /> Save defaults
         </button>
       </div>
     </div>
@@ -172,9 +172,9 @@ function SpamSection() {
   const [honeypot, setHoneypot] = useState(true);
   return (
     <div className="forms-stack">
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <ShieldCheck size={14} /> Honeypot field
+          <ShieldCheck /> Honeypot field
         </p>
         <p className="forms-section-hint">
           A hidden honeypot field is added to every form. Bots that fill it are flagged with a high spam score.
@@ -195,24 +195,24 @@ function SpamSection() {
         </span>
       </div>
 
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <ShieldCheck size={14} /> Rate limiting
+          <ShieldCheck /> Rate limiting
         </p>
         <p className="forms-section-hint">
           Per-IP / per-domain submission throttling is enforced on the future public VPS endpoint, not the local app.
         </p>
-        <input className="forms-input" disabled placeholder="Future backend rate-limit config" />
+        <input className="ui-input forms-input" disabled placeholder="Future backend rate-limit config" />
       </div>
 
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <ShieldCheck size={14} /> CAPTCHA
+          <ShieldCheck /> CAPTCHA
         </p>
         <p className="forms-section-hint">
           CAPTCHA integration is deferred. The honeypot + allowed-domain + spam-score heuristics cover MVP spam protection.
         </p>
-        <input className="forms-input" disabled placeholder="CAPTCHA provider — coming later" />
+        <input className="ui-input forms-input" disabled placeholder="CAPTCHA provider — coming later" />
       </div>
     </div>
   );
@@ -247,16 +247,16 @@ function NotificationsSection() {
   };
 
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <p className="forms-section-title">
-        <Bell size={14} /> Notifications
+        <Bell /> Notifications
       </p>
       <p className="forms-section-hint">
         Notification email is stored per form. Actual email delivery is a future backend feature.
       </p>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Form</label>
-        <select className="forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
+        <select className="ui-input forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
           {forms.map((f) => (
             <option key={f.id} value={f.id}>
               {f.name}
@@ -264,10 +264,10 @@ function NotificationsSection() {
           ))}
         </select>
       </div>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Notification email</label>
         <input
-          className="forms-input"
+          className="ui-input forms-input"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -275,8 +275,8 @@ function NotificationsSection() {
         />
       </div>
       <div className="forms-actions">
-        <button type="button" className="forms-action-btn forms-action-btn--primary" onClick={save}>
-          <Save size={14} /> Save
+        <button type="button" className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary" onClick={save}>
+          <Save /> Save
         </button>
       </div>
     </div>
@@ -325,19 +325,19 @@ function WebhooksSection() {
   };
 
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <div className="forms-spread">
         <p className="forms-section-title">
-          <Webhook size={14} /> Webhooks
+          <Webhook /> Webhooks
         </p>
         <span className="forms-section-hint">
           {/* CRM_FORMS_WEBHOOK_DELIVERY_TODO lives in the file header */}
           Delivery/retry/logging is deferred (see CRM_FORMS_WEBHOOK_DELIVERY_TODO).
         </span>
       </div>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Form</label>
-        <select className="forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
+        <select className="ui-input forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
           {forms.map((f) => (
             <option key={f.id} value={f.id}>
               {f.name}
@@ -353,13 +353,13 @@ function WebhooksSection() {
         formWebhooks.map((w) => (
           <div className="forms-webhook-row" key={w.id}>
             <input
-              className="forms-input"
+              className="ui-input forms-input"
               value={w.url}
               onChange={(e) => void updateWebhook(w.id, { url: e.target.value })}
               placeholder="https://example.com/webhook"
             />
             <input
-              className="forms-input"
+              className="ui-input forms-input"
               value={w.secret}
               onChange={(e) => void updateWebhook(w.id, { secret: e.target.value })}
               placeholder="Signing secret"
@@ -376,11 +376,11 @@ function WebhooksSection() {
             </label>
             <button
               type="button"
-              className="forms-action-btn forms-action-btn--ghost forms-action-btn--danger"
+              className="ui-icon-button forms-action-btn forms-action-btn--ghost ui-button--danger forms-action-btn--danger"
               onClick={() => void deleteWebhook(w.id)}
               title="Delete webhook"
             >
-              <Trash2 size={14} />
+              <Trash2 />
             </button>
           </div>
         ))
@@ -390,19 +390,19 @@ function WebhooksSection() {
       <p className="forms-section-title" style={{ fontSize: 'var(--fs-xs)' }}>Add webhook</p>
       <div className="forms-webhook-row" style={{ gridTemplateColumns: '1fr 1fr auto' }}>
         <input
-          className="forms-input"
+          className="ui-input forms-input"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           placeholder="https://example.com/webhook"
         />
         <input
-          className="forms-input"
+          className="ui-input forms-input"
           value={secret}
           onChange={(e) => setSecret(e.target.value)}
           placeholder="Signing secret"
         />
-        <button type="button" className="forms-action-btn forms-action-btn--primary" onClick={addWebhook}>
-          <Plus size={14} /> Add
+        <button type="button" className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary" onClick={addWebhook}>
+          <Plus /> Add
         </button>
       </div>
     </div>
@@ -415,18 +415,18 @@ function WebhooksSection() {
 
 function FileUploadsSection() {
   return (
-    <div className="forms-section" style={{ opacity: 0.85 }}>
+    <div className="ui-card forms-section" style={{ opacity: 0.85 }}>
       <p className="forms-section-title">
-        <Upload size={14} /> File uploads
+        <Upload /> File uploads
       </p>
       {/* CRM_FORMS_FILE_UPLOAD_TODO lives in the file header */}
       <p className="forms-section-hint">
         File upload fields can be configured in the form builder, but live upload storage is not enabled yet.
         Published embeds render file fields disabled until VPS storage is connected.
       </p>
-      <input className="forms-input" disabled placeholder="Storage backend — not connected" />
-      <input className="forms-input" disabled placeholder="Max file size — future VPS config" />
-      <input className="forms-input" disabled placeholder="Allowed MIME types — future VPS config" />
+      <input className="ui-input forms-input" disabled placeholder="Storage backend — not connected" />
+      <input className="ui-input forms-input" disabled placeholder="Max file size — future VPS config" />
+      <input className="ui-input forms-input" disabled placeholder="Allowed MIME types — future VPS config" />
       <span className="forms-field-group-hint">
         See CRM_FORMS_FILE_UPLOAD_TODO for the future VPS work (object/server storage, signed upload URLs,
         MIME validation, size limits, security scanning, attachment linking).
@@ -476,17 +476,17 @@ function EmbedSecuritySection() {
   };
 
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <p className="forms-section-title">
-        <Lock size={14} /> Embed security
+        <Lock /> Embed security
       </p>
       <p className="forms-section-hint">
         Allowed domains are configured per form. Leave empty to allow any domain (not recommended). Enforcement
         runs on the future public VPS endpoint (see CRM_FORMS_PUBLIC_CAPTURE_TODO).
       </p>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Form</label>
-        <select className="forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
+        <select className="ui-input forms-select" value={formId ?? ''} onChange={(e) => setActiveFormId(e.target.value)}>
           {forms.map((f) => (
             <option key={f.id} value={f.id}>
               {f.name}
@@ -494,24 +494,24 @@ function EmbedSecuritySection() {
           ))}
         </select>
       </div>
-      <div className="forms-field-group">
+      <div className="ui-field forms-field-group">
         <label className="forms-field-group-label">Allowed domains</label>
         <div className="forms-domains-editor">
-          <Globe size={13} className="forms-muted" />
+          <Globe className="forms-muted" />
           {allowedDomains.length === 0 ? (
             <span className="forms-field-group-hint">Unrestricted (any domain)</span>
           ) : (
             allowedDomains.map((d) => (
               <span className="forms-domain-chip" key={d}>
                 {d}
-                <button type="button" onClick={() => void removeDomain(d)} title="Remove">
-                  <Trash2 size={10} />
+                <button className="ui-icon-button" type="button" onClick={() => void removeDomain(d)} title="Remove">
+                  <Trash2 />
                 </button>
               </span>
             ))
           )}
           <div className="forms-domains-add">
-            <input
+            <input className="ui-input"
               value={newDomain}
               onChange={(e) => setNewDomain(e.target.value)}
               onKeyDown={(e) => {
@@ -519,8 +519,8 @@ function EmbedSecuritySection() {
               }}
               placeholder="example.com"
             />
-            <button type="button" className="forms-action-btn forms-action-btn--ghost" onClick={addDomain}>
-              <Plus size={13} /> Add
+            <button type="button" className="ui-button forms-action-btn forms-action-btn--ghost" onClick={addDomain}>
+              <Plus /> Add
             </button>
           </div>
         </div>
@@ -554,17 +554,17 @@ function ExportSection() {
 
   return (
     <div className="forms-stack">
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Download size={14} /> Submission export
+          <Download /> Submission export
         </p>
         <p className="forms-section-hint">
           Export submissions to a CSV file (RFC 4180 compliant, BOM-prefixed for Excel). Submitted fields are
           flattened under a <code>field_*</code> prefix and UTM/source data under <code>utm_*</code>.
         </p>
-        <div className="forms-field-group">
+        <div className="ui-field forms-field-group">
           <label className="forms-field-group-label">Scope</label>
-          <select className="forms-select" value={exportFormId} onChange={(e) => setExportFormId(e.target.value)}>
+          <select className="ui-input forms-select" value={exportFormId} onChange={(e) => setExportFormId(e.target.value)}>
             <option value="all">All forms ({submissions.length} submissions)</option>
             {forms.map((f) => {
               const count = submissions.filter((s) => s.formId === f.id).length;
@@ -579,25 +579,25 @@ function ExportSection() {
         <div className="forms-actions">
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--primary"
+            className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
             onClick={handleExport}
             disabled={submissions.length === 0}
           >
-            <Download size={14} /> Export CSV
+            <Download /> Export CSV
           </button>
         </div>
       </div>
 
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Download size={14} /> Leads export
+          <Download /> Leads export
         </p>
         <p className="forms-section-hint">
           Leads live in the CRM module. Use CRM Settings to export leads (contacts + companies + lead fields) to CSV.
         </p>
         <div className="forms-actions">
-          <button type="button" className="forms-action-btn" onClick={openCrmSettings}>
-            Open CRM Settings <ArrowRight size={14} />
+          <button type="button" className="ui-button forms-action-btn" onClick={openCrmSettings}>
+            Open CRM Settings <ArrowRight />
           </button>
         </div>
       </div>
@@ -611,7 +611,7 @@ function ExportSection() {
 
 function NoFormsHint() {
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <p className="forms-section-title">No forms available</p>
       <p className="forms-section-hint">Create a form first to configure its settings here.</p>
     </div>

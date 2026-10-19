@@ -26,10 +26,10 @@ export function ToolbarOverflowMenu({ overflowItems, onClose }: ToolbarOverflowM
       <button
         id="toolbar-overflow-menu-btn"
         onClick={() => setOpen(!open)}
-        className="tbar-btn"
+        className="ui-icon-button tbar-btn"
         title="More options"
       >
-        <Menu size={14} />
+        <Menu className="ui-icon"  />
       </button>
       {open && (
         <div id="toolbar-overflow-menu-drop" className="drop" style={{ left: 0, width: 192 }}>

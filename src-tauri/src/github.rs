@@ -1,6 +1,8 @@
 //! Host, redirect, credential-redaction, pagination, and rate-limit rules for
 //! the GitHub native boundary. HTTP execution is intentionally not linked here.
 
+use base64::Engine;
+
 pub const ACCESS_ACCOUNT: &str = "github.oauth.access";
 pub const REFRESH_ACCOUNT: &str = "github.oauth.refresh";
 pub const CACHE_ACCOUNT: &str = "github.cache-key";
@@ -854,7 +856,7 @@ pub async fn execute_transport_request(
     bearer: Option<&str>,
     timeout_ms: u64,
     media: TransportMedia<'_>,
-    session_current: &dyn Fn() -> bool,
+    session_current: &(dyn Fn() -> bool + Sync),
 ) -> Result<NativeHttpResponse, String> {
     accept_safe_media(media.accept, media.content_type, media.api_version)
         .map_err(str::to_string)?;

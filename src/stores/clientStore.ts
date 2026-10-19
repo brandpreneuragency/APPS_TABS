@@ -29,6 +29,7 @@ interface ClientStore {
   createClient: (name: string) => Promise<Client | null>;
   updateClient: (id: string, updates: Partial<Pick<Client, 'name' | 'color'>>) => Promise<void>;
   deleteClient: (id: string) => Promise<void>;
+  reorderClient: (id: string, targetId: string, after: boolean) => Promise<void>;
   getClientById: (id: string | null) => Client | undefined;
 }
 
@@ -142,6 +143,27 @@ export const useClientStore = create<ClientStore>((set, get) => ({
       useProjectStore.setState({ projects: await db.projects.toArray() });
       await useTaskStore.getState().loadTasks();
       showError(err, 'Failed to delete client.');
+    }
+  },
+
+  reorderClient: async (id, targetId, after) => {
+    if (id === targetId) return;
+    try {
+      const orders = await db.transaction('rw', db.clients, async () => {
+        const source = await db.clients.get(id);
+        const target = await db.clients.get(targetId);
+        if (!source || !target) return null;
+        const siblings = (await db.clients.toArray()).filter((client) => client.id !== id)
+          .sort((left, right) => left.order - right.order);
+        const targetIndex = siblings.findIndex((client) => client.id === targetId);
+        siblings.splice(targetIndex + (after ? 1 : 0), 0, source);
+        await Promise.all(siblings.map((client, order) => db.clients.update(client.id, { order })));
+        return new Map(siblings.map((client, order) => [client.id, order]));
+      });
+      if (orders) set((state) => ({ clients: state.clients.map((client) =>
+        orders.has(client.id) ? { ...client, order: orders.get(client.id)! } : client) }));
+    } catch (err) {
+      showError(err, 'Failed to reorder clients.');
     }
   },
 

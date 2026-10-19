@@ -46,7 +46,7 @@ export function ActivityFilters() {
 
       <div className="crm-list-filters">
         <select
-          className="crm-list-filter-select"
+          className="ui-input crm-list-filter-select"
           value={type ?? ''}
           onChange={(e) => setActivityFilters({ type: (e.target.value || undefined) as CRMActivityType | undefined })}
         >
@@ -55,7 +55,7 @@ export function ActivityFilters() {
           ))}
         </select>
         <select
-          className="crm-list-filter-select"
+          className="ui-input crm-list-filter-select"
           value={dateRange}
           onChange={(e) => setDateRange(e.target.value as ActivityDateRange)}
         >
@@ -68,10 +68,10 @@ export function ActivityFilters() {
       <div className="crm-list-section-label">Quick types</div>
       <div className="crm-quick-filters">
         {TYPE_OPTIONS.filter((o) => o.value).map((o) => (
-          <button
+          <button data-active={type === o.value}
             key={o.value}
             type="button"
-            className={`crm-quick-filter${type === o.value ? ' crm-quick-filter--active' : ''}`}
+            className={"ui-button " + (`crm-quick-filter${type === o.value ? ' crm-quick-filter--active' : ''}`)}
             onClick={() => setActivityFilters({ type: (type === o.value ? undefined : o.value) as CRMActivityType | undefined })}
           >
             {o.label} · {counts[o.value ?? ''] ?? 0}

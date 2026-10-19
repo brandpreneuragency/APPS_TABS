@@ -1,65 +1,67 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
-  Calendar,
-  FolderPlus,
-  GripVertical,
-  User,
+  Check,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
   Users,
 } from 'lucide-react';
 import '../crm/crm.css';
 import './taskProjectsKanban.css';
 import './taskDetail.css';
+import './taskCalendar.css';
 import { useTranslation } from 'react-i18next';
-import { formatShortDate } from './taskMetadataUtils';
-import { TaskDueDatePicker } from './TaskCalendarDatePicker';
 import { useTaskStore } from '../../stores/taskStore';
 import { useProjectStore } from '../../stores/projectStore';
-import { kanbanColumnsForClient, projectsForClient, resolveQuickCreateProjectId } from '../../stores/taskSelection';
 import { useClientStore } from '../../stores/clientStore';
+import { useUIStore } from '../../stores/uiStore';
 import type { Task } from '../../types';
-import { AddNewClientButton } from './AddNewClientButton';
-import { TaskKanbanAddTask } from './TaskKanbanAddTask';
+import { useKanbanDropIndicator } from '../../hooks/useKanbanDropIndicator';
+import { sortKanbanCards } from '../../services/kanbanOrder';
+import { NAME_MAX } from '../../stores/taskTreeNames';
+import { resolveCreateProjectName } from './createProjectName';
+import { TaskQuickCreate } from './TaskQuickCreate';
 import './taskList.css';
-
-const PROJECT_DOT_COLORS: Record<string, string> = {
-  'text-blue-500': '#3b82f6',
-  'text-emerald-500': '#10b981',
-  'text-amber-500': '#f59e0b',
-  'text-rose-500': '#f43f5e',
-  'text-violet-500': '#8b5cf6',
-  'text-cyan-500': '#06b6d4',
-  'text-orange-500': '#f97316',
-  'text-pink-500': '#ec4899',
-};
-
-function projectDotColor(color?: string): string {
-  return (color && PROJECT_DOT_COLORS[color]) || 'var(--c-text-3)';
-}
-
-interface Column {
-  id: string; // project id
-  name: string;
-  color?: string;
-  tasks: Task[];
-}
 
 interface TaskKanbanCardProps {
   task: Task;
   isActive: boolean;
   onClick: (taskId: string) => void;
   dragLabel?: string;
+  showActions?: boolean;
 }
 
-export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to move project' }: TaskKanbanCardProps) {
+export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to move project', showActions = false }: TaskKanbanCardProps) {
   const { t } = useTranslation();
-  const updateTask = useTaskStore((s) => s.updateTask);
   const projects = useProjectStore((s) => s.projects);
   const clients = useClientStore((s) => s.clients);
+  const updateTask = useTaskStore((s) => s.updateTask);
+  const deleteTask = useTaskStore((s) => s.deleteTask);
   const project = projects.find((item) => item.id === task.projectId);
   const client = clients.find((item) => item.id === project?.clientId);
   const [isDragging, setIsDragging] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    menuRef.current?.querySelector<HTMLButtonElement>('button:not(:disabled)')?.focus();
+    const outside = (event: MouseEvent) => {
+      if (event.target instanceof Node && !menuRef.current?.contains(event.target) && !menuButtonRef.current?.contains(event.target)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', outside);
+    return () => document.removeEventListener('mousedown', outside);
+  }, [menuOpen]);
 
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>) => {
+    if (e.target instanceof Element && e.target.closest('button')) {
+      e.preventDefault();
+      return;
+    }
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', task.id);
     e.dataTransfer.setData('application/x-task-card', task.id);
@@ -68,7 +70,9 @@ export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to m
 
   return (
     <div
-      className={`crm-kanban-card task-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`}
+      className={`ui-card crm-kanban-card task-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`}
+      data-kanban-card-id={task.id}
+      title={dragLabel}
       draggable
       role="button"
       tabIndex={0}
@@ -83,63 +87,68 @@ export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to m
       onDragStart={handleDragStart}
       onDragEnd={() => setIsDragging(false)}
     >
-      <div className="task-kanban-card-header">
-        <div
-          className="crm-kanban-card-date"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
-          <TaskDueDatePicker
-            value={task.date}
-            onChange={(iso) => { updateTask(task.id, { date: iso }); }}
-            buttonClassName="tdp-meta-field-btn"
-            ariaLabel={t('tasks.dueDateCalendar')}
-            title={task.date || t('tasks.dueDateCalendar')}
-          >
-            <Calendar size={12} />
-            <span className="tdp-meta-field-label">
-              {task.date ? formatShortDate(task.date) : t('tasks.noDate')}
-            </span>
-          </TaskDueDatePicker>
+      <div className="row-xs task-kanban-card-top">
+        <div className="flex items-center gap-1 min-w-0">
+          {client && (
+            <div className="meta trunc">
+              {client.name} <span aria-hidden="true">/</span>
+            </div>
+          )}
+          <span className="meta trunc">
+            {project?.name ?? 'Uncategorized'}
+          </span>
         </div>
-        <div
-          className="task-kanban-card-assignment"
-          onClick={(e) => e.stopPropagation()}
-          onDragStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
-        >
-          <div className="task-kanban-card-picker" title={client?.name ?? t('tasks.selectClient')}>
-            <User size={12} aria-hidden="true" />
-            <span>{client?.name ?? t('tasks.selectClient')}</span>
-            <select
-              aria-label={t('tasks.selectClient')}
-              value={client?.id ?? ''}
-              onChange={(e) => {
-                const clientId = e.target.value;
-                if (clientId === client?.id) return;
-                const projectId = resolveQuickCreateProjectId(clientId, null, projects)
-                  ?? projectsForClient(projects, clientId)[0]?.id;
-                if (projectId) void updateTask(task.id, { projectId });
-              }}
-            >
-              {!client && <option value="" disabled>{t('tasks.selectClient')}</option>}
-              {clients.map((item) => (
-                <option key={item.id} value={item.id} disabled={!projects.some((entry) => entry.clientId === item.id)}>{item.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-        <div
-          className="crm-kanban-card-drag"
-          title={dragLabel}
-          draggable
-          onClick={(e) => e.stopPropagation()}
-          onDragStart={(e) => {
-            e.stopPropagation();
-            handleDragStart(e);
-          }}
-        >
-          <GripVertical size={12} />
-        </div>
+        {showActions && <div className="task-kanban-card-actions">
+          <button ref={menuButtonRef} type="button" className="ui-icon-button task-kanban-card-menu-button"
+            aria-label={t('tasks.actions', { title: task.title })} aria-haspopup="menu" aria-expanded={menuOpen}
+            onClick={(event) => {
+              event.stopPropagation();
+              if (menuOpen) {
+                setMenuOpen(false);
+                return;
+              }
+              const rect = event.currentTarget.getBoundingClientRect();
+              const width = 160;
+              const height = 132;
+              setMenuPosition({
+                left: Math.max(8, Math.min(rect.right - width, window.innerWidth - width - 8)),
+                top: rect.bottom + height <= window.innerHeight - 8 ? rect.bottom : Math.max(8, rect.top - height),
+              });
+              setMenuOpen(true);
+            }}>
+            <MoreHorizontal />
+          </button>
+          {menuOpen && createPortal(<div ref={menuRef} className="drop task-kanban-card-menu" role="menu" aria-label={t('tasks.actions', { title: task.title })}
+            style={menuPosition}
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' || event.key === 'Tab') {
+                setMenuOpen(false);
+                if (event.key === 'Escape') menuButtonRef.current?.focus();
+              }
+              if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+              event.preventDefault();
+              const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('button:not(:disabled)'));
+              const current = buttons.indexOf(document.activeElement as HTMLButtonElement);
+              const index = event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1
+                : (current + (event.key === 'ArrowDown' ? 1 : -1) + buttons.length) % buttons.length;
+              buttons[index]?.focus();
+            }}>
+            <button type="button" className="ui-list-row drop-item" role="menuitem" onClick={() => {
+              setMenuOpen(false);
+              onClick(task.id);
+            }}><Pencil />{t('tasks.edit')}</button>
+            <button type="button" className="ui-list-row drop-item task-kanban-card-menu-done" role="menuitem"
+              disabled={task.status === 'completed'} onClick={() => {
+                setMenuOpen(false);
+                void updateTask(task.id, { status: 'completed' });
+              }}><Check />{t('tasks.done')}</button>
+            <button type="button" className="ui-list-row drop-item task-kanban-card-menu-delete" role="menuitem" onClick={() => {
+              setMenuOpen(false);
+              void deleteTask(task.id);
+            }}><Trash2 />{t('tasks.delete')}</button>
+          </div>, document.body)}
+        </div>}
       </div>
       <div className="crm-kanban-card-title-zone">
         <span className="crm-kanban-card-title">{task.title}</span>
@@ -147,7 +156,7 @@ export function TaskKanbanCard({ task, isActive, onClick, dragLabel = 'Drag to m
       {task.assignees.length > 0 && (
         <div className="crm-kanban-card-footer">
           <span className="crm-kanban-card-meta-item">
-            <Users size={11} />
+            <Users />
             <span className="trunc">{task.assignees.length}</span>
           </span>
         </div>
@@ -160,187 +169,115 @@ export function TaskProjectsKanban() {
   const { t } = useTranslation();
   const tasks = useTaskStore((s) => s.tasks);
   const clients = useClientStore((s) => s.clients);
-  const [clientFilterId, setClientFilterId] = useState<string | null>(null);
-  const activeClientFilterId = clients.some((client) => client.id === clientFilterId) ? clientFilterId : null;
+  const createClient = useClientStore((s) => s.createClient);
+  const showToast = useUIStore((s) => s.showToast);
+  const activeClientFilterId = useTaskStore((s) => s.selectedClientId);
   const activeTaskId = useTaskStore((s) => s.activeTaskId);
   const updateTask = useTaskStore((s) => s.updateTask);
   const openTaskInActiveTab = useTaskStore((s) => s.openTaskInActiveTab);
-  const { projects, createProject } = useProjectStore();
+  const setActiveTaskPage = useUIStore((s) => s.setActiveTaskPage);
+  const setTaskMode = useUIStore((s) => s.setTaskMode);
+  const setContextPanelOpen = useUIStore((s) => s.setContextPanelOpen);
+  const projects = useProjectStore((s) => s.projects);
+  const createProject = useProjectStore((s) => s.createProject);
   const [newProjectClientId, setNewProjectClientId] = useState('');
-
-  const [dropTarget, setDropTarget] = useState<string | null>(null);
-  const [addingProject, setAddingProject] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const newProjectInputRef = useRef<HTMLInputElement>(null);
+  const drop = useKanbanDropIndicator('application/x-task-card');
+  const [error, setError] = useState(false);
+  const [quickCreateProjectId, setQuickCreateProjectId] = useState<string | null>(null);
+  const [adding, setAdding] = useState<'client' | 'project' | null>(null);
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const newNameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (addingProject) newProjectInputRef.current?.focus();
-  }, [addingProject]);
+    if (adding) newNameInputRef.current?.focus();
+  }, [adding]);
 
-  const livingTasks = useMemo(() => tasks.filter((t) => !t.deletedAt), [tasks]);
+  const visibleProjects = projects.filter((project) => !activeClientFilterId || project.clientId === activeClientFilterId);
+  const visibleProjectIds = new Set(visibleProjects.map((project) => project.id));
+  const visibleTasks = tasks.filter((task) => !task.deletedAt && visibleProjectIds.has(task.projectId));
 
-  const columns: Column[] = useMemo(() => {
-    const byId = new Map(livingTasks.map((task) => [task.id, task]));
-    return kanbanColumnsForClient(projects, livingTasks, null).map((col) => ({
-      id: col.id,
-      name: col.name,
-      color: col.color,
-      tasks: col.taskIds
-        .map((id) => byId.get(id))
-        .filter((task): task is Task => task !== undefined),
-    }));
-  }, [projects, livingTasks]);
-
-  const startAddProject = (clientId: string) => {
-    setNewProjectClientId(clientId);
-    setAddingProject(true);
-    setNewProjectName('');
+  const submitNewEntry = async () => {
+    const name = newName.trim();
+    if (!name || !adding || creating || (adding === 'project' && !newProjectClientId)) return;
+    const clientName = resolveCreateProjectName(name, clients.map((client) => client.name));
+    if (adding === 'client' && clientName.status === 'duplicate') {
+      showToast(t('tasks.clientExists', { name }), 'error');
+      return;
+    }
+    setCreating(true);
+    try {
+      if (adding === 'client') {
+        const created = await createClient(name);
+        if (created) {
+          showToast(t('tasks.clientCreated', { name: created.name }), 'info');
+          setAdding(null);
+        }
+      } else if (await createProject(name, newProjectClientId)) setAdding(null);
+    } finally {
+      setCreating(false);
+    }
   };
-
-  const cancelAddProject = () => {
-    setAddingProject(false);
-    setNewProjectName('');
-  };
-
-  const submitNewProject = async () => {
-    const name = newProjectName.trim();
-    if (!name || !newProjectClientId) return;
-    if (await createProject(name, newProjectClientId)) cancelAddProject();
-  };
-
-  const handleMove = async (taskId: string, columnId: string) => {
-    if (!columns.some((col) => col.id === columnId)) return;
-    const task = livingTasks.find((t) => t.id === taskId);
-    if (!task || task.projectId === columnId) return;
-    await updateTask(taskId, { projectId: columnId });
-  };
-
-  const newProjectForm = (clientId: string) => addingProject && newProjectClientId === clientId ? (
-    <div className="task-kanban-add-column task-kanban-add-column--form">
-      <input
-        ref={newProjectInputRef}
-        type="text"
-        className="task-kanban-add-column-input ctrl"
-        value={newProjectName}
-        onChange={(e) => setNewProjectName(e.target.value)}
-        placeholder="Project name"
-        maxLength={80}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') void submitNewProject();
-          if (e.key === 'Escape') cancelAddProject();
-        }}
-      />
-      <div className="task-kanban-add-column-actions">
-        <button
-          type="button"
-          className="crm-btn crm-btn--primary crm-btn--sm"
-          disabled={!newProjectName.trim() || !newProjectClientId}
-          onClick={() => void submitNewProject()}
-        >
-          Add
-        </button>
-        <button type="button" className="crm-btn crm-btn--sm" onClick={cancelAddProject}>
-          Cancel
-        </button>
-      </div>
-    </div>
-  ) : (
-    <button
-      type="button"
-      className="task-kanban-add-column"
-      onClick={() => startAddProject(clientId)}
-      title="Add project"
-    >
-      <FolderPlus size={14} />
-      <span>New project</span>
-    </button>
-  );
 
   return (
-    <div className="crm-page">
-      <div className="crm-page-body" style={{ paddingTop: 14 }}>
-        <div className="task-kanban-client-actions" role="group" aria-label={t('tasks.clients')}>
-          <AddNewClientButton showLabel />
-          <div className="task-kanban-client-filters">
-            <button type="button" aria-pressed={activeClientFilterId === null} onClick={() => setClientFilterId(null)}>
-              {t('tasks.allClients')}
-            </button>
-            {clients.map((client) => (
-              <button key={client.id} type="button" aria-pressed={activeClientFilterId === client.id} onClick={() => setClientFilterId(client.id)}>
-                {client.name}
-              </button>
-            ))}
-          </div>
+    <section className="task-calendar task-projects-calendar" aria-label={t('navigation.projects')}>
+      <div className="task-calendar-toolbar task-projects-toolbar">
+        <div className="task-kanban-client-actions" role="group" aria-label={t('navigation.projects')}>
+          <button type="button" className="ui-button task-list-add-project-btn" aria-label={t('tasks.addNewClient')} title={t('tasks.addNewClient')} disabled={creating} aria-expanded={adding === 'client'} aria-haspopup="dialog" onClick={() => {
+            setNewName('');
+            setAdding(adding === 'client' ? null : 'client');
+          }}><Plus strokeWidth={2.25} /><span>{t('tasks.addNewClient')}</span></button>
+          <button type="button" className="ui-button task-list-add-project-btn" aria-label={t('tasks.addNewProject')} title={t('tasks.addNewProject')} disabled={creating || !clients.length} aria-expanded={adding === 'project'} aria-haspopup="dialog" onClick={() => {
+            setNewProjectClientId(activeClientFilterId ?? clients[0]?.id ?? '');
+            setNewName('');
+            setAdding(adding === 'project' ? null : 'project');
+          }}><Plus />{t('tasks.addProjectToClient')}</button>
         </div>
-
-        {clients.filter((client) => activeClientFilterId === null || client.id === activeClientFilterId).map((client) => (
-          <section key={client.id} className="task-kanban-client-section" aria-label={client.name}>
-            <h2 className="task-kanban-client-heading">{client.name}</h2>
-            <div className="crm-kanban task-kanban-client-row" onDragEnd={() => setDropTarget(null)}>
-          {columns.filter((col) => projects.some((project) => project.id === col.id && project.clientId === client.id)).map((col) => {
-            const isDrop = dropTarget === col.id;
-            return (
-              <div
-                key={col.id}
-                className={`crm-kanban-column${isDrop ? ' crm-kanban-column--drop-target' : ''}`}
-                data-project={col.id}
-              >
-                <div className="crm-kanban-column-header">
-                  <span className="crm-kanban-column-title">
-                    <span
-                      className="crm-kanban-column-dot"
-                      style={{ background: projectDotColor(col.color) }}
-                    />
-                    {col.name}
-                  </span>
-                </div>
-                <div
-                  className="crm-kanban-column-body"
-                  onDragOver={(e) => {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    setDropTarget(col.id);
-                  }}
-                  onDragLeave={(e) => {
-                    const nextTarget = e.relatedTarget;
-                    if (!(nextTarget instanceof Node) || !e.currentTarget.contains(nextTarget)) {
-                      setDropTarget((cur) => (cur === col.id ? null : cur));
-                    }
-                  }}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const taskId =
-                      e.dataTransfer.getData('application/x-task-card') ||
-                      e.dataTransfer.getData('text/plain');
-                    setDropTarget(null);
-                    if (taskId) {
-                      void handleMove(taskId, col.id).catch((err) => {
-                        console.error('[TaskProjectsKanban] Failed to move task:', err);
-                      });
-                    }
-                  }}
-                >
-                  {col.tasks.length === 0 && (
-                    <div className="crm-kanban-column-empty subtle">No tasks</div>
-                  )}
-                  {col.tasks.map((t) => (
-                    <TaskKanbanCard
-                      key={t.id}
-                      task={t}
-                      isActive={t.id === activeTaskId}
-                      onClick={openTaskInActiveTab}
-                    />
-                  ))}
-                </div>
-                <TaskKanbanAddTask projectId={col.id} />
-              </div>
-            );
-          })}
-          {newProjectForm(client.id)}
-            </div>
-          </section>
-        ))}
       </div>
-    </div>
+      {adding && <form key={adding} className="ui-panel-body task-projects-create-project" role="dialog" aria-label={t(adding === 'client' ? 'tasks.addNewClient' : 'tasks.addNewProject')}
+        onSubmit={(event) => { event.preventDefault(); void submitNewEntry(); }}
+        onKeyDown={(event) => { if (event.key === 'Escape' && !creating) setAdding(null); }}>
+        {adding === 'project' && <select className="ui-input" aria-label={t('tasks.selectClient')} value={newProjectClientId} disabled={creating} onChange={(event) => setNewProjectClientId(event.target.value)}>
+          {clients.map((client) => <option key={client.id} value={client.id}>{client.name}</option>)}
+        </select>}
+        <input ref={newNameInputRef} className="ui-input" aria-label={t(adding === 'client' ? 'tasks.clientNamePlaceholder' : 'tasks.projectNamePlaceholder')} placeholder={t(adding === 'client' ? 'tasks.clientNamePlaceholder' : 'tasks.projectNamePlaceholder')} value={newName} maxLength={NAME_MAX} disabled={creating} onChange={(event) => setNewName(event.target.value)} />
+        <button type="submit" className="ui-button" disabled={!newName.trim() || (adding === 'project' && !newProjectClientId) || creating}>{t(adding === 'client' ? 'tasks.addClient' : 'tasks.addProject')}</button>
+        <button type="button" className="ui-button" disabled={creating} onClick={() => setAdding(null)}>{t('confirm.cancel')}</button>
+      </form>}
+      {error && <div role="alert">{t('tasks.moveFailed')}</div>}
+      <div className="task-calendar-board task-calendar-board--week">
+        {visibleProjects.map((project) => {
+          const client = clients.find((item) => item.id === project.clientId);
+          const projectTasks = sortKanbanCards(visibleTasks.filter((task) => task.projectId === project.id));
+          return <section key={project.id} data-project={project.id} aria-label={`${client?.name ?? ''} / ${project.name}`}
+            className={`crm-kanban-column task-calendar-day${drop.targetColumn === project.id ? ' crm-kanban-column--drop-target' : ''}`}
+            {...drop.handlers(project.id, (id, beforeId) => {
+              if (!visibleTasks.some((task) => task.id === id)) return;
+              setError(false);
+              void updateTask(id, { projectId: project.id }, { field: 'projectId', beforeId }).catch(() => setError(true));
+            })}>
+            <div className="crm-kanban-column-header">
+              <span className="task-calendar-day-label task-projects-column-label">
+                {client && <><span className="meta trunc">{client.name}</span><span aria-hidden="true">/</span></>}
+                <strong className="crm-kanban-column-title">{project.name}</strong>
+              </span>
+              <button type="button" className="ui-icon-button" aria-label={`${t('tasks.addTask')} ${project.name}`} title={t('tasks.addTask')}
+                onPointerDown={(event) => event.stopPropagation()}
+                onClick={() => setQuickCreateProjectId(quickCreateProjectId === project.id ? null : project.id)}><Plus /></button>
+            </div>
+            {quickCreateProjectId === project.id && <div className="task-quick-create-wrapper">
+              <TaskQuickCreate projectId={project.id} onClose={() => setQuickCreateProjectId(null)} onSuccess={() => setQuickCreateProjectId(null)} />
+            </div>}
+            <div className="crm-kanban-column-body">
+              {drop.indicator(project.id)}
+              {!projectTasks.length && <div className="crm-kanban-column-empty">{t('navigation.noTasks')}</div>}
+              {projectTasks.map((task) => <TaskKanbanCard key={task.id} task={task} isActive={task.id === activeTaskId} dragLabel={t('tasks.moveToProject')} showActions
+                onClick={(id) => { openTaskInActiveTab(id); setActiveTaskPage('list'); setTaskMode(true); setContextPanelOpen('tasks', true); }} />)}
+            </div>
+          </section>;
+        })}
+        {!visibleProjects.length && <div className="task-kanban-empty">{t('navigation.noProjects')}</div>}
+      </div>
+    </section>
   );
 }

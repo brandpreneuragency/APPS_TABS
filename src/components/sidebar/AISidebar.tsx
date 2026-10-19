@@ -93,7 +93,7 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
           {!hasContext ? (
             <div id="chat-empty-state" className="panel-body empty-state chat-empty-state">
               <div className="chat-empty-state-icon">
-                <Clock size={32} />
+                <Clock className="ui-icon"  />
               </div>
               <p className="chat-empty-state-title">AI sidebar is ready</p>
               <p className="chat-empty-state-subtitle subtle">
@@ -103,7 +103,7 @@ export function AISidebar({ workspaceId, taskId, settingsTab, mode: modeOverride
           ) : showEmptyState ? (
             <div id="chat-empty-state" className="panel-body empty-state chat-empty-state h-full">
               <div className="chat-empty-state-icon">
-                <Clock size={32} />
+                <Clock className="ui-icon"  />
               </div>
               <p className="chat-empty-state-title">Start a conversation</p>
               <p className="chat-empty-state-subtitle subtle">

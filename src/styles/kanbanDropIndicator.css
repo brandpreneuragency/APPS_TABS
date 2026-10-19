@@ -1,0 +1,13 @@
+.crm-kanban-column-body {
+  position: relative;
+}
+
+.kanban-drop-indicator {
+  position: absolute;
+  inset-inline: 4px 6px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--c-accent-1);
+  pointer-events: none;
+  z-index: 1;
+}

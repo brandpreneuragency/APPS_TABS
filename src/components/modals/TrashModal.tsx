@@ -54,10 +54,10 @@ export function TrashModal({ onClose }: TrashModalProps) {
           <button
             onClick={onClose}
             aria-label="Close trash"
-            className="modal-close"
+            className="ui-icon-button modal-close"
             id="trash-close-btn"
           >
-            <X size={18} />
+            <X className="ui-icon"  />
           </button>
         </div>
 
@@ -66,7 +66,7 @@ export function TrashModal({ onClose }: TrashModalProps) {
             <p className="txt-sm subtle">{t('common.loading')}</p>
           ) : deletedTasks.length === 0 ? (
             <div className="col items-center" style={{ padding: '40px 0', gap: 8 }}>
-              <AlertTriangle size={24} className="subtle" />
+              <AlertTriangle  className="ui-icon subtle" />
               <p className="txt-sm subtle">{t('trash.empty')}</p>
             </div>
           ) : (
@@ -86,7 +86,7 @@ export function TrashModal({ onClose }: TrashModalProps) {
                     <span className="txt-sm med trunc">{task.title}</span>
                     <span className="txt-xs subtle">
                       {getProjectName(task.projectId)} &middot; {t('trash.deletedOn')}{' '}
-                      {task.deletedAt ? new Date(task.deletedAt).toLocaleDateString() : '—'}
+                      {task.deletedAt ? new Date(task.deletedAt).toLocaleDateString('tr-TR') : '—'}
                     </span>
                   </div>
 
@@ -94,11 +94,11 @@ export function TrashModal({ onClose }: TrashModalProps) {
                     <button
                       type="button"
                       onClick={() => handleRestore(task.id)}
-                      className="btn-xs row-xs"
+                      className="ui-button btn-xs row-xs"
                       title={t('trash.restore')}
                       style={{ border: '1px solid var(--c-border-1)' }}
                     >
-                      <RotateCcw size={12} />
+                      <RotateCcw className="ui-icon"  />
                       <span>{t('trash.restore')}</span>
                     </button>
 
@@ -106,17 +106,17 @@ export function TrashModal({ onClose }: TrashModalProps) {
                       <button
                         type="button"
                         onClick={() => handlePermanentDelete(task.id)}
-                        className="btn-xs row-xs"
+                        className="ui-button btn-xs row-xs"
                         style={{ background: 'var(--c-danger)', color: '#fff', border: 'none' }}
                       >
-                        <AlertTriangle size={12} />
+                        <AlertTriangle className="ui-icon"  />
                         <span>{t('trash.confirmPermanentDelete')}</span>
                       </button>
                     ) : (
                       <button
                         type="button"
                         onClick={() => setConfirmDeleteId(task.id)}
-                        className="btn-xs"
+                        className="ui-button btn-xs"
                         title={t('trash.deleteForever')}
                         style={{ border: '1px solid var(--c-border-1)', color: '#EF4444' }}
                       >

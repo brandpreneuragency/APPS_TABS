@@ -127,10 +127,10 @@ export function ClientAttachments({ clientId, ownerType, ownerId, records, datab
     setError(result.ok ? null : { key, message: t('clients.attachmentFailed') });
   };
 
-  return <section className="clients-attachments" aria-label={t('clients.attachments')}>
+  return <section className="ui-card clients-attachments" aria-label={t('clients.attachments')}>
     <div className="clients-profile-section-heading">
       <h3>{t('clients.attachments')}</h3>
-      {!readOnly && <label className="clients-button clients-file-picker">
+      {!readOnly && <label className="ui-button clients-button clients-file-picker">
         {t('clients.addAttachment')}
         <input type="file" multiple disabled={busy || visiblePending !== null || attachments.length >= MAX_ATTACHMENTS_PER_OWNER}
           aria-label={t('clients.addAttachment')} onChange={(event) => void selectFiles(event)} />
@@ -141,24 +141,24 @@ export function ClientAttachments({ clientId, ownerType, ownerId, records, datab
       ? <p role="status" className="clients-muted">{t('clients.loading')}</p>
       : state.status === 'error'
         ? <div><p role="alert" className="clients-error">{t('clients.loadFailed')}</p>
-          <button type="button" className="clients-link-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button></div>
+          <button type="button" className="ui-button clients-link-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button></div>
         : attachments.length === 0
           ? <p className="clients-muted">{t('clients.noAttachments')}</p>
           : <ul className="clients-attachment-list">
-            {attachments.map((attachment) => <li key={attachment.id}>
+            {attachments.map((attachment) => <li className="ui-list-row" key={attachment.id}>
               <span className="clients-attachment-name">{attachment.displayName}</span>
               <span className="clients-attachment-size">{formatBytes(attachment.bytes)}</span>
-              {!readOnly && <button type="button" className="clients-link-button"
+              {!readOnly && <button type="button" className="ui-button clients-link-button"
                 aria-label={t('clients.removeAttachment', { name: attachment.displayName })}
                 disabled={busy} onClick={() => void remove(attachment)}>{t('clients.remove')}</button>}
-              <button type="button" className="clients-link-button"
+              <button type="button" className="ui-button clients-link-button"
                 aria-label={t('clients.exportAttachment', { name: attachment.displayName })}
                 onClick={() => void exportFile(attachment)}>{t('clients.export')}</button>
             </li>)}
           </ul>}
-    {visiblePending && <div className="clients-attachment-pending">
+    {visiblePending && <div className="ui-card clients-attachment-pending">
       <span>{visiblePending.file.name} · {formatBytes(visiblePending.file.size)}</span>
-      <button type="button" className="clients-link-button" disabled={busy} onClick={() => void addFile(visiblePending)}>
+      <button type="button" className="ui-button clients-link-button" disabled={busy} onClick={() => void addFile(visiblePending)}>
         {t('clients.retry')}
       </button>
     </div>}

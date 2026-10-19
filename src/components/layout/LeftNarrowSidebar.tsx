@@ -1,5 +1,5 @@
-import { Folder, Layers, Plus, Trash2, Users, UserRoundMinus } from 'lucide-react';
-import { useState } from 'react';
+import { Folder, Layers, ListX, Plus, Users, UserRoundMinus, X } from 'lucide-react';
+import { useLayoutEffect, useRef, useState, type DragEvent, type Ref } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useUIStore } from '../../stores/uiStore';
 import { useWorkspaceStore } from '../../stores/workspaceStore';
@@ -11,9 +11,12 @@ import { TabBar } from '../header/TabBar';
 import { SETTINGS_HEADER_TABS } from '../header/moduleNav';
 import { AddNewClientButton } from '../taskManager/AddNewClientButton';
 import { AddNewProjectButton } from '../taskManager/AddNewProjectButton';
+import { NotesNavigation } from '../notes/NotesNavigation';
+import { ConfirmDialog } from '../ui/ConfirmDialog';
 
-export function LeftNarrowSidebar() {
+export function LeftNarrowSidebar({ githubNavigationRef }: { githubNavigationRef?: Ref<HTMLDivElement> }) {
   const { t } = useTranslation();
+  const githubMode = useUIStore((state) => state.githubMode);
   const taskMode = useUIStore((state) => state.taskMode);
   const crmMode = useUIStore((state) => state.crmMode);
   const activeView = useUIStore((state) => state.activeView);
@@ -21,6 +24,27 @@ export function LeftNarrowSidebar() {
   const crmPage = useUIStore((state) => state.activeCRMPage);
   const formsPage = useUIStore((state) => state.activeFormsPage);
   const clients = useClientStore((state) => state.clients);
+  const deleteClient = useClientStore((state) => state.deleteClient);
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; name: string } | null>(null);
+  const navigationRef = useRef<HTMLElement>(null);
+  const clientPositions = useRef(new Map<string, number>());
+  useLayoutEffect(() => {
+    const rows = navigationRef.current?.querySelectorAll<HTMLElement>('[data-client-id]');
+    if (!rows) return;
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    rows.forEach((row) => {
+      const previousTop = clientPositions.current.get(row.dataset.clientId!);
+      const offset = previousTop === undefined ? 0 : previousTop - row.getBoundingClientRect().top;
+      if (offset && !reducedMotion && row.animate) {
+        row.animate([{ transform: `translateY(${offset}px)` }, { transform: 'translateY(0)' }],
+          { duration: 280, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' });
+      }
+    });
+    clientPositions.current.clear();
+  }, [clients]);
+  const reorderClient = useClientStore((state) => state.reorderClient);
+  const [draggedClientId, setDraggedClientId] = useState<string | null>(null);
+  const [clientDropTarget, setClientDropTarget] = useState<{ id: string; after: boolean } | null>(null);
   const projects = useProjectStore((state) => state.projects);
   const reorderProject = useProjectStore((state) => state.reorderProject);
   const [draggedProject, setDraggedProject] = useState<{ id: string; clientId: string } | null>(null);
@@ -46,10 +70,84 @@ export function LeftNarrowSidebar() {
     } else setSelection(id, null);
   };
 
+  const startClientDrag = (event: DragEvent<HTMLElement>, id: string) => {
+    event.stopPropagation();
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', id);
+    setDraggedProject(null);
+    setDropTarget(null);
+    setDraggedClientId(id);
+  };
+  const endClientDrag = () => {
+    setDraggedClientId(null);
+    setClientDropTarget(null);
+  };
+  const clientDropHandlers = (id: string) => ({
+    'data-client-id': id,
+    'data-client-dragging': draggedClientId === id ? 'true' : undefined,
+    'data-client-drop-position': clientDropTarget?.id === id ? (clientDropTarget.after ? 'after' : 'before') : undefined,
+    onDragOver: (event: DragEvent<HTMLElement>) => {
+      if (!draggedClientId || draggedClientId === id) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = 'move';
+      const bounds = event.currentTarget.getBoundingClientRect();
+      setClientDropTarget({ id, after: event.clientY > bounds.top + bounds.height / 2 });
+    },
+    onDragLeave: (event: DragEvent<HTMLElement>) => {
+      if (event.relatedTarget instanceof Node && event.currentTarget.contains(event.relatedTarget)) return;
+      setClientDropTarget(null);
+    },
+    onDrop: (event: DragEvent<HTMLElement>) => {
+      if (!draggedClientId || draggedClientId === id) return;
+      event.preventDefault();
+      const bounds = event.currentTarget.getBoundingClientRect();
+      navigationRef.current?.querySelectorAll<HTMLElement>('[data-client-id]').forEach((row) => {
+        clientPositions.current.set(row.dataset.clientId!, row.getBoundingClientRect().top);
+      });
+      void reorderClient(draggedClientId, id, event.clientY > bounds.top + bounds.height / 2);
+      endClientDrag();
+    },
+  });
+
+  if (githubMode) {
+    return <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('github.repositories')}>
+      <div ref={githubNavigationRef} className="github-navigation-slot" />
+    </nav>;
+  }
+
+  if (!taskMode && !crmMode && activeView === 'notes') {
+    return <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.notes')}><NotesNavigation /></nav>;
+  }
+
   return (
-    <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.scope')}>
-      {!taskMode && !crmMode && !settings ? <TabBar /> : settings ? (
-        <div className="scope-tabs">
+    <nav ref={navigationRef} id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.scope')}>
+      <div className="nav-bar-header">
+        <div className="nav-bar-toolbar">
+          {taskMode || crmMode || settings ? <AddNewClientButton showLabel /> : (
+            <button
+              id="nav-btn-close-unedited-tabs"
+              type="button"
+              title={t('tabs.closeUneditedTabs')}
+              aria-label={t('tabs.closeUneditedTabs')}
+              onClick={() => { void useWorkspaceStore.getState().closeUneditedWorkspaces(); }}
+            >
+              <ListX size={14} strokeWidth={2.25} aria-hidden="true" />
+              <span>{t('tabs.clearTabs')}</span>
+            </button>
+          )}
+        </div>
+      </div>
+      {!taskMode && !crmMode && !settings ? (
+        <div className="scope-tabs document-navigation">
+          <TabBar />
+          <div className="nav-bar-toolbar">
+            <button id="tab-plus-button" type="button" title={t('tabs.newDocument')}
+              aria-label={t('tabs.newDocument')}
+              onClick={() => void useWorkspaceStore.getState().createWorkspace()}><Plus size={14} /><span>{t('tabs.newDocumentShort')}</span></button>
+          </div>
+        </div>
+      ) : settings ? (
+        <div className="scope-tabs settings-navigation">
           {SETTINGS_HEADER_TABS.map(({ key, icon: Icon }) => (
             <button key={key} type="button" className="scope-tab" aria-current={settingsTab === key ? 'page' : undefined}
               onClick={() => useUIStore.getState().setActiveSettingsSubTab(key)}><Icon size={14} /><span>{t(`navigation.${key}`)}</span></button>
@@ -62,8 +160,11 @@ export function LeftNarrowSidebar() {
               aria-current={!selectedClientId && !selectedProjectId ? 'page' : undefined}
               onClick={() => setSelection(null, null)}><Layers size={14} /><span>{t('navigation.everything')}</span></button>
             {[...clients].sort((left, right) => left.order - right.order).map((client) => (
-              <section key={client.id} className="scope-project-group" aria-label={client.name}>
+              <section key={client.id} className="scope-project-group" aria-label={client.name}
+                {...clientDropHandlers(client.id)}>
                 <AddNewProjectButton clientId={client.id} inlineGroupLabel={client.name}
+                  inlineGroupLabelProps={{ draggable: true,
+                    onDragStart: (event) => startClientDrag(event, client.id), onDragEnd: endClientDrag }}
                   onCreated={(project) => setSelection(client.id, project.id)}>
                 <button type="button" className="scope-tab scope-project-all"
                   aria-current={selectedClientId === client.id && !selectedProjectId ? 'page' : undefined}
@@ -76,6 +177,7 @@ export function LeftNarrowSidebar() {
                       draggable
                       data-drop-position={dropTarget?.id === project.id ? (dropTarget.after ? 'after' : 'before') : undefined}
                       onDragStart={(event) => {
+                        endClientDrag();
                         event.dataTransfer.effectAllowed = 'move';
                         event.dataTransfer.setData('text/plain', project.id);
                         setDraggedProject({ id: project.id, clientId: client.id });
@@ -113,6 +215,7 @@ export function LeftNarrowSidebar() {
             onKeyDown={(event) => {
               const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
               const index = buttons.indexOf(event.target as HTMLButtonElement);
+              if (index < 0) return;
               const next = event.key === 'ArrowDown' ? (index + 1) % buttons.length
                 : event.key === 'ArrowUp' ? (index - 1 + buttons.length) % buttons.length
                 : event.key === 'Home' ? 0 : event.key === 'End' ? buttons.length - 1 : null;
@@ -122,9 +225,21 @@ export function LeftNarrowSidebar() {
               buttons[next]?.click();
             }}>
             {scopes.map(({ id, name, icon: Icon }) => (
-              <button key={id ?? 'everything'} type="button" role="tab" className="scope-tab"
+              <div key={id ?? 'everything'} className="scope-client-row" role="presentation">
+              <button type="button" role="tab" className={`scope-tab${id && id !== noClient?.id && id !== '__no-client__' ? ' scope-tab--removable' : ''}`}
+                {...(id && id !== noClient?.id && id !== '__no-client__' ? {
+                  ...clientDropHandlers(id), draggable: true,
+                  onDragStart: (event: DragEvent<HTMLButtonElement>) => startClientDrag(event, id),
+                  onDragEnd: endClientDrag,
+                } : {})}
                 aria-selected={selectedClientId === id} tabIndex={focusableScopeId === id ? 0 : -1}
                 title={name} onClick={() => void selectScope(id)}><Icon size={14} /><span>{name}</span></button>
+              {id && id !== noClient?.id && id !== '__no-client__' && (
+                <button type="button" className="ui-icon-button scope-client-remove"
+                  title={`${t('explorer.delete')}: ${name}`} aria-label={`${t('explorer.delete')}: ${name}`}
+                  onClick={() => setPendingDelete({ id, name })}><X size={14} /></button>
+              )}
+              </div>
             ))}
           </div>
           {crmMode && !clientsPage && (
@@ -143,20 +258,12 @@ export function LeftNarrowSidebar() {
           )}
         </>
       )}
-      <div className="nav-bar-header nav-bar-footer">
-        <div className="nav-bar-toolbar">
-          {!taskMode && !crmMode && !settings && (
-            <button id="nav-btn-close-unedited-tabs" type="button"
-              title={t('tabs.closeUneditedTabs')} aria-label={t('tabs.closeUneditedTabs')}
-              onClick={() => void useWorkspaceStore.getState().closeUneditedWorkspaces()}><Trash2 size={14} /><span>{t('tabs.clearTabs')}</span></button>
-          )}
-          {!taskMode && !crmMode && !settings ? (
-            <button id="tab-plus-button" type="button" title={t('tabs.newDocument')}
-              aria-label={t('tabs.newDocument')}
-              onClick={() => void useWorkspaceStore.getState().createWorkspace()}><Plus size={14} /><span>{t('tabs.newDocumentShort')}</span></button>
-          ) : <AddNewClientButton showLabel />}
-        </div>
-      </div>
+      {pendingDelete && (
+        <ConfirmDialog message={t('tasks.deleteClientConfirm', { name: pendingDelete.name })}
+          confirmLabel={t('explorer.delete')}
+          onConfirm={() => { void deleteClient(pendingDelete.id); setPendingDelete(null); }}
+          onCancel={() => setPendingDelete(null)} />
+      )}
     </nav>
   );
 }

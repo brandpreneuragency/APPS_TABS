@@ -18,10 +18,10 @@ export function FieldPalette({ formId, existingFields }: FieldPaletteProps) {
 
   return (
     <div className="forms-builder-col forms-builder-palette">
-      <div className="forms-builder-col-head">
+      <div className="ui-toolbar forms-builder-col-head">
         <span className="forms-builder-col-head-title">Fields</span>
       </div>
-      <div className="forms-builder-col-body">
+      <div className="ui-panel-body forms-builder-col-body">
         <div className="forms-builder-palette-list">
           {FIELD_TYPE_META.map((meta) => {
             const Icon = meta.icon;
@@ -31,10 +31,10 @@ export function FieldPalette({ formId, existingFields }: FieldPaletteProps) {
                 type="button"
                 title={`Add ${meta.label} field`}
                 onClick={() => handleAdd(meta.type)}
-                className="forms-builder-palette-btn"
+                className="ui-button forms-builder-palette-btn"
               >
                 <span className="forms-builder-palette-btn-icon">
-                  <Icon size={15} />
+                  <Icon />
                 </span>
                 <span>{meta.label}</span>
               </button>

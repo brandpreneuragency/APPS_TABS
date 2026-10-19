@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { liveQuery } from 'dexie';
 import { Check, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -9,7 +10,6 @@ import { useCodexModelVisibility, visibleCodexModels } from '../../services/code
 import { probeCliProvider, type CliProviderId, type CliProviderModel, type CliProviderProbe } from '../../services/providers/desktopClient';
 import { useProviderModelVisibility, visibleProviderModels } from '../../services/providers/modelVisibility';
 import { cliReasoningEffortSettingKey } from '../../services/providers/reasoningEffort';
-import { mockProviderModels, type MockProviderId } from '../../services/providers/mockProviders';
 import { isTauriRuntime } from '../../services/runtime';
 import { db } from '../../services/db';
 import { useUIStore } from '../../stores/uiStore';
@@ -21,17 +21,11 @@ const providers: Array<{ id: ChatProviderId; name: string }> = [
   { id: 'grok', name: 'Grok' },
   { id: 'commandCode', name: 'Command Code' },
   { id: 'openCode', name: 'OpenCode' },
-  { id: 'mockEcho', name: 'Mock Echo' },
-  { id: 'mockTools', name: 'Mock Tools' },
 ];
 const cliProviderIds: CliProviderId[] = ['grok', 'commandCode', 'openCode'];
 
 function isCliProviderId(id: ChatProviderId): id is CliProviderId {
   return id === 'grok' || id === 'commandCode' || id === 'openCode';
-}
-
-function isMockProviderId(id: ChatProviderId): id is MockProviderId {
-  return id === 'mockEcho' || id === 'mockTools';
 }
 
 type ChatModel = CodexModel | CliProviderModel;
@@ -60,13 +54,11 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
   const grokVisibility = useProviderModelVisibility('grok');
   const commandCodeVisibility = useProviderModelVisibility('commandCode');
   const openCodeVisibility = useProviderModelVisibility('openCode');
-  const mockEchoVisibility = useProviderModelVisibility('mockEcho');
-  const mockToolsVisibility = useProviderModelVisibility('mockTools');
   const openSettings = useUIStore((state) => state.openSettings);
   const hasConnectedFolder = useWorkspaceStore((state) => Boolean(state.workspaces
     .find((workspace) => workspace.id === workspaceId)?.connectedFolders[0]?.path));
 
-  const [modelIds, setModelIds] = useState<Record<ChatProviderId, string>>({ codex: '', grok: '', commandCode: '', openCode: '', mockEcho: '', mockTools: '' });
+  const [modelIds, setModelIds] = useState<Record<ChatProviderId, string>>({ codex: '', grok: '', commandCode: '', openCode: '' });
   const [effort, setEffort] = useState('');
   const [cliEffortPreference, setCliEffortPreference] = useState<{ key: string; value: string }>({ key: '', value: '' });
   const [access, setAccess] = useState<'readOnly' | 'workspaceWrite'>('readOnly');
@@ -78,7 +70,9 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
   const [search, setSearch] = useState('');
   const [selectionError, setSelectionError] = useState('');
   const [selecting, setSelecting] = useState(false);
+  const [modelPopoverPosition, setModelPopoverPosition] = useState<{ left: number; bottom: number } | null>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
+  const modelPopoverRef = useRef<HTMLDivElement>(null);
   const modelButtonRef = useRef<HTMLButtonElement>(null);
   const reasoningButtonRef = useRef<HTMLButtonElement>(null);
   const optionsButtonRef = useRef<HTMLButtonElement>(null);
@@ -87,6 +81,29 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
   const inFlightRef = useRef(new Map<CliProviderId, Promise<void>>());
   const mountedRef = useRef(true);
   const desktop = isTauriRuntime();
+
+  useLayoutEffect(() => {
+    if (openPanel !== 'models') return;
+
+    const updatePosition = () => {
+      const trigger = modelButtonRef.current;
+      if (!trigger) return;
+      const rect = trigger.getBoundingClientRect();
+      const width = Math.min(320, window.innerWidth - 16);
+      setModelPopoverPosition({
+        left: Math.max(8, Math.min(rect.left - 40, window.innerWidth - width - 8)),
+        bottom: Math.max(8, window.innerHeight - rect.top + 8),
+      });
+    };
+
+    updatePosition();
+    window.addEventListener('resize', updatePosition);
+    window.addEventListener('scroll', updatePosition, true);
+    return () => {
+      window.removeEventListener('resize', updatePosition);
+      window.removeEventListener('scroll', updatePosition, true);
+    };
+  }, [openPanel]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -98,7 +115,6 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
       const rows = await Promise.all([
         db.settings.get('codexModelId'), db.settings.get('providerModelId:grok'),
         db.settings.get('providerModelId:commandCode'), db.settings.get('providerModelId:openCode'),
-        db.settings.get('providerModelId:mockEcho'), db.settings.get('providerModelId:mockTools'),
         db.settings.get('codexEffort'),
       ]);
       return {
@@ -107,10 +123,8 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
           grok: typeof rows[1]?.value === 'string' ? rows[1].value : '',
           commandCode: typeof rows[2]?.value === 'string' ? rows[2].value : '',
           openCode: typeof rows[3]?.value === 'string' ? rows[3].value : '',
-          mockEcho: typeof rows[4]?.value === 'string' ? rows[4].value : '',
-          mockTools: typeof rows[5]?.value === 'string' ? rows[5].value : '',
         },
-        effort: typeof rows[6]?.value === 'string' ? rows[6].value : '',
+        effort: typeof rows[4]?.value === 'string' ? rows[4].value : '',
       };
     }).subscribe({
       next: (preferences) => { setModelIds(preferences.modelIds); setEffort(preferences.effort); },
@@ -170,15 +184,17 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
     return () => { active = false; };
   }, [openPanel, providerId, probeOne]);
 
+  const modelPopoverVisible = openPanel === 'models' && modelPopoverPosition !== null;
   useEffect(() => {
-    if (openPanel !== 'models') return;
+    if (!modelPopoverVisible) return;
     searchRef.current?.focus();
-  }, [openPanel]);
+  }, [modelPopoverVisible]);
 
   useEffect(() => {
     if (!openPanel) return;
     const closeOnOutsideClick = (event: PointerEvent) => {
-      if (!controlsRef.current?.contains(event.target as Node)) setOpenPanel(null);
+      const target = event.target as Node;
+      if (!controlsRef.current?.contains(target) && !modelPopoverRef.current?.contains(target)) setOpenPanel(null);
     };
     document.addEventListener('pointerdown', closeOnOutsideClick);
     return () => document.removeEventListener('pointerdown', closeOnOutsideClick);
@@ -191,14 +207,11 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
     setOpenPanel(null);
   };
 
-  const visibilityByProvider = { grok: grokVisibility, commandCode: commandCodeVisibility, openCode: openCodeVisibility, mockEcho: mockEchoVisibility, mockTools: mockToolsVisibility };
+  const visibilityByProvider = { grok: grokVisibility, commandCode: commandCodeVisibility, openCode: openCodeVisibility };
   const catalogue = providers.map((provider) => {
     let models: ChatModel[] = [];
     if (provider.id === 'codex') {
       if (connection && codexVisibility) models = visibleCodexModels(codexModels, codexVisibility);
-    } else if (isMockProviderId(provider.id)) {
-      const visibility = visibilityByProvider[provider.id];
-      if (visibility) models = visibleProviderModels(mockProviderModels[provider.id], visibility);
     } else if (isCliProviderId(provider.id)) {
       const probe = probes[provider.id];
       const visibility = visibilityByProvider[provider.id];
@@ -267,7 +280,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
       title={`${currentProvider.name} / ${chosenName}`} disabled={providerLocked || switchingLocked}
       onClick={() => { setSearch(''); setSelectionError(''); setOpenPanel(openPanel === 'models' ? null : 'models'); }}>
       <span className="chat-model-trigger-label">{chosenName}</span>
-      <ChevronDown size={13} aria-hidden="true" />
+      <ChevronDown className="ui-icon"  aria-hidden="true" />
     </button>
 
     {!providerLocked && <div className="chat-reasoning-control">
@@ -277,7 +290,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
         title={t('codex.reasoning')} disabled={switchingLocked}
         onClick={() => setOpenPanel(openPanel === 'reasoning' ? null : 'reasoning')}>
         <span>{selectedEffort || t('codex.reasoning')}</span>
-        <ChevronDown size={12} aria-hidden="true" />
+        <ChevronDown className="ui-icon"  aria-hidden="true" />
       </button>
       {openPanel === 'reasoning' && <div id="chat-composer-reasoning" className="chat-reasoning-popover"
         role="group" aria-label={t('codex.reasoning')}>
@@ -296,7 +309,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
             closePanel();
           }}>
           <span>{choice || t('codex.defaultEffort')}</span>
-          {selectedEffort === choice && <Check size={14} aria-hidden="true" />}
+          {selectedEffort === choice && <Check className="ui-icon"  aria-hidden="true" />}
         </button>)}
         {effortChoices.length === 0 && <p className="chat-reasoning-help">
           {chosen ? t('cliChat.reasoningUnavailable') : t('cliChat.reasoningChooseModel')}
@@ -304,14 +317,15 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
       </div>}
     </div>}
 
-    {!providerLocked && providerId === 'codex' && <button ref={optionsButtonRef} type="button" className="chat-options-trigger"
+    {!providerLocked && providerId === 'codex' && <button ref={optionsButtonRef} type="button" className="ui-icon-button chat-options-trigger"
       aria-label={t('codex.options')} aria-expanded={openPanel === 'options'} aria-controls="chat-composer-options"
       title={t('codex.options')}
       onClick={() => setOpenPanel(openPanel === 'options' ? null : 'options')}>
-      <SlidersHorizontal size={14} aria-hidden="true" />
+      <SlidersHorizontal className="ui-icon"  aria-hidden="true" />
     </button>}
 
-    {openPanel === 'models' && <div id="chat-composer-models" className="chat-model-popover"
+    {openPanel === 'models' && modelPopoverPosition && createPortal(<div ref={modelPopoverRef} id="chat-composer-models" className="chat-model-popover"
+      style={modelPopoverPosition}
       role="group" aria-label={t('cliChat.model')}>
       <input ref={searchRef} className="chat-model-search" type="search"
         aria-label={t('codex.searchModels')} placeholder={t('codex.searchModels')}
@@ -324,7 +338,6 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
           const status = provider.models.length ? '' : provider.id === 'codex'
             ? !connection ? t('codex.connectForModels')
               : codexModels.length === 0 ? t('codex.noModels') : t('codex.noVisibleModels')
-            : isMockProviderId(provider.id) ? t('cliProviders.noVisibleModels')
             : !desktop ? t('cliProviders.status.desktopOnly')
               : loading[cliId!] ? t('cliProviders.status.checking')
                 : probeErrors[cliId!] ? t('cliProviders.status.checkFailed')
@@ -346,7 +359,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
                 onClick={() => { void selectModel(provider.id, model.id); }}>
                 <span className="chat-model-option-provider">{model.displayName}</span>
                 {needsSignIn && <span className="chat-model-status">{t('cliProviders.status.signInRequired')}</span>}
-                {selected && <Check size={14} aria-hidden="true" />}
+                {selected && <Check className="ui-icon"  aria-hidden="true" />}
               </button>;
             }) : <div className="chat-model-status chat-model-status--empty">{status}</div>}
           </section>;
@@ -363,7 +376,7 @@ export function ChatModelControls({ providerId, providerLocked = false, switchin
         }}>{t('cliProviders.refresh')}</button>
         <button type="button" onClick={() => { setOpenPanel(null); openSettings('tools'); }}>{t('navigation.tools')}</button>
       </div>
-    </div>}
+    </div>, document.body)}
 
     {openPanel === 'options' && providerId === 'codex' && <div id="chat-composer-options" className="chat-options-popover"
       role="group" aria-label={t('codex.options')}>

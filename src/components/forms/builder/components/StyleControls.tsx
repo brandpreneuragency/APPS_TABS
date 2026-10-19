@@ -67,9 +67,9 @@ export function StyleControls({ form }: StyleControlsProps) {
     updateStyle('borderStyle', e.target.value as BorderStyle);
 
   return (
-    <div className="forms-builder-style-controls-inner">
+    <div className="ui-panel-body forms-builder-style-controls-inner">
       {/* ---------- Colors ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Colors</h4>
         <ColorField label="Primary" value={s.primaryColor} onChange={(v) => updateStyle('primaryColor', v)} />
         <ColorField label="Background" value={s.backgroundColor} onChange={(v) => updateStyle('backgroundColor', v)} />
@@ -79,24 +79,24 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Typography ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Typography</h4>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-fontFamily">Font family</label>
           <input
             id="tabs-style-fontFamily"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="text"
             value={s.fontFamily ?? ''}
             placeholder="Inter, system-ui, sans-serif"
             onChange={(e) => updateStyle('fontFamily', e.target.value)}
           />
         </div>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-fontSize">Base font size (px)</label>
           <input
             id="tabs-style-fontSize"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={8}
             max={32}
@@ -109,13 +109,13 @@ export function StyleControls({ form }: StyleControlsProps) {
           value={s.headingColor}
           onChange={(v) => updateStyle('headingColor', v)}
         />
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-headingFontSize">
             Heading font size (px)
           </label>
           <input
             id="tabs-style-headingFontSize"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={8}
             max={48}
@@ -126,13 +126,13 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Spacing & radius ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Spacing &amp; radius</h4>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-padding">Padding (px)</label>
           <input
             id="tabs-style-padding"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={0}
             max={64}
@@ -140,11 +140,11 @@ export function StyleControls({ form }: StyleControlsProps) {
             onChange={onNumber('padding')}
           />
         </div>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-borderRadius">Corner radius (px)</label>
           <input
             id="tabs-style-borderRadius"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={0}
             max={32}
@@ -155,13 +155,13 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Components ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Components</h4>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-buttonStyle">Button style</label>
           <select
             id="tabs-style-buttonStyle"
-            className="forms-builder-style-select"
+            className="ui-input forms-builder-style-select"
             value={s.buttonStyle ?? 'solid'}
             onChange={onButtonStyle}
           >
@@ -170,11 +170,11 @@ export function StyleControls({ form }: StyleControlsProps) {
             <option value="ghost">Ghost</option>
           </select>
         </div>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-inputStyle">Input style</label>
           <select
             id="tabs-style-inputStyle"
-            className="forms-builder-style-select"
+            className="ui-input forms-builder-style-select"
             value={s.inputStyle ?? 'boxed'}
             onChange={onInputStyle}
           >
@@ -183,11 +183,11 @@ export function StyleControls({ form }: StyleControlsProps) {
             <option value="minimal">Minimal</option>
           </select>
         </div>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-layout">Layout</label>
           <select
             id="tabs-style-layout"
-            className="forms-builder-style-select"
+            className="ui-input forms-builder-style-select"
             value={s.layout ?? 'single'}
             onChange={onLayout}
           >
@@ -198,7 +198,7 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Fields ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Fields</h4>
         <ColorField
           label="Field background"
@@ -220,13 +220,13 @@ export function StyleControls({ form }: StyleControlsProps) {
           value={s.fieldTextColor}
           onChange={(v) => updateStyle('fieldTextColor', v)}
         />
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-fieldSpacing">
             Field spacing (px)
           </label>
           <input
             id="tabs-style-fieldSpacing"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={0}
             max={64}
@@ -237,15 +237,15 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Borders ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Borders</h4>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-borderWidth">
             Border width (px)
           </label>
           <input
             id="tabs-style-borderWidth"
-            className="forms-builder-style-input"
+            className="ui-input forms-builder-style-input"
             type="number"
             min={0}
             max={16}
@@ -253,13 +253,13 @@ export function StyleControls({ form }: StyleControlsProps) {
             onChange={onNumber('borderWidth')}
           />
         </div>
-        <div className="forms-builder-style-row">
+        <div className="ui-field forms-builder-style-row">
           <label className="forms-builder-style-label" htmlFor="tabs-style-borderStyle">
             Border style
           </label>
           <select
             id="tabs-style-borderStyle"
-            className="forms-builder-style-select"
+            className="ui-input forms-builder-style-select"
             value={s.borderStyle ?? 'solid'}
             onChange={onBorderStyle}
           >
@@ -272,7 +272,7 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Buttons ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Buttons</h4>
         <ColorField
           label="Button background"
@@ -292,7 +292,7 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Messages ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Messages</h4>
         <ColorField
           label="Success text"
@@ -317,13 +317,13 @@ export function StyleControls({ form }: StyleControlsProps) {
       </section>
 
       {/* ---------- Custom CSS ---------- */}
-      <section className="forms-builder-style-group">
+      <section className="ui-card forms-builder-style-group">
         <h4 className="forms-builder-style-group-title">Custom CSS</h4>
         <p className="forms-builder-style-hint">
           Applied only to the published / preview form output, not the builder UI.
         </p>
         <textarea
-          className="forms-builder-style-textarea"
+          className="ui-input forms-builder-style-textarea"
           value={s.customCss ?? ''}
           placeholder={'.forms-embed-root {\n  /* overrides */\n}'}
           spellCheck={false}
@@ -346,7 +346,7 @@ function ColorField({ label, value, onChange }: ColorFieldProps) {
   const swatch = isValidHex(value) ? value : '#000000';
   const fieldId = `tabs-style-color-${label.replace(/\s+/g, '-').toLowerCase()}`;
   return (
-    <div className="forms-builder-style-row">
+    <div className="ui-field forms-builder-style-row">
       <label className="forms-builder-style-label" htmlFor={`${fieldId}-hex`}>
         {label}
       </label>
@@ -361,7 +361,7 @@ function ColorField({ label, value, onChange }: ColorFieldProps) {
         />
         <input
           id={`${fieldId}-hex`}
-          className="forms-builder-style-input forms-builder-style-input--hex"
+          className="ui-input forms-builder-style-input forms-builder-style-input--hex"
           type="text"
           value={value ?? ''}
           placeholder="#000000"

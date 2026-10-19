@@ -116,7 +116,7 @@ export function CRMNoteInput({ onSubmit, placeholder = 'Add a note…', busy }: 
               title="Attach file"
               disabled={busy}
             >
-              <Plus size={14} />
+              <Plus />
             </ComposerIconButton>
             <input ref={fileInputRef} type="file" style={{ display: 'none' }} />
           </ComposerLeft>

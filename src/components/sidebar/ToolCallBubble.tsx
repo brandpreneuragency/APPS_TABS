@@ -15,7 +15,7 @@ interface ToolCallBubbleProps {
 const MAX_PRETTY_LINES = 6;
 
 function ToolIcon({ name }: { name: string }) {
-  if (name === 'shell_exec') return <Terminal size={14} />;
+  if (name === 'shell_exec') return <Terminal className="ui-icon"  />;
   return <span className="tool-call-bubble__fallback-icon">⚙</span>;
 }
 
@@ -41,12 +41,12 @@ export function ToolCallBubble({ message, onApprove, onReject }: ToolCallBubbleP
         <span className="tool-call-bubble__name">{tc.name}</span>
         {tc.status === 'pending' && (
           <span className="tool-call-bubble__status">
-            <Shield size={11} /> {t('chat.tools.awaitingApproval')}
+            <Shield className="ui-icon"  /> {t('chat.tools.awaitingApproval')}
           </span>
         )}
         {tc.status === 'done' && (
           <span className="tool-call-bubble__status">
-            <Zap size={11} /> {t('chat.tools.executed')}
+            <Zap className="ui-icon"  /> {t('chat.tools.executed')}
           </span>
         )}
         {tc.status === 'rejected' && (
@@ -84,14 +84,14 @@ export function ToolCallBubble({ message, onApprove, onReject }: ToolCallBubbleP
             className="tool-call-bubble__btn tool-call-bubble__btn--approve"
             onClick={() => onApprove?.(message.id)}
           >
-            <Check size={13} /> {t('chat.tools.approve')}
+            <Check className="ui-icon"  /> {t('chat.tools.approve')}
           </button>
           <button
             type="button"
             className="tool-call-bubble__btn tool-call-bubble__btn--reject"
             onClick={() => onReject?.(message.id)}
           >
-            <X size={13} /> {t('chat.tools.reject')}
+            <X className="ui-icon"  /> {t('chat.tools.reject')}
           </button>
         </div>
       )}

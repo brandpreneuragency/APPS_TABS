@@ -13,7 +13,7 @@ interface TemplateCardProps {
 
 function dateLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric', year: 'numeric' });
   } catch {
     return iso;
   }
@@ -30,13 +30,13 @@ export function TemplateCard({
   const fieldCount = template.schema.fields.filter((f) => f.type !== 'submit').length;
 
   return (
-    <div className="forms-template-card">
+    <div className="ui-card forms-template-card">
       <div className="forms-template-card-head">
         <span className="forms-kpi-card-icon">
-          <LayoutPanelTop size={15} />
+          <LayoutPanelTop />
         </span>
         <span className="forms-list-item-meta">
-          <Copy size={11} /> {fieldCount} fields
+          <Copy /> {fieldCount} fields
         </span>
       </div>
       <div>
@@ -51,28 +51,28 @@ export function TemplateCard({
       <div className="forms-template-card-actions">
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--primary"
+          className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
           onClick={() => onCreate(template)}
           title="Create a new form from this template"
         >
-          <Plus size={14} /> Use
+          <Plus /> Use
         </button>
-        <button type="button" className="forms-action-btn forms-action-btn--ghost" onClick={() => onPreview(template)} title="Preview fields">
-          <Eye size={14} />
+        <button type="button" className="ui-icon-button forms-action-btn forms-action-btn--ghost" onClick={() => onPreview(template)} title="Preview fields">
+          <Eye />
         </button>
-        <button type="button" className="forms-action-btn forms-action-btn--ghost" onClick={() => onRename(template)} title="Rename">
-          <Pencil size={14} />
+        <button type="button" className="ui-icon-button forms-action-btn forms-action-btn--ghost" onClick={() => onRename(template)} title="Rename">
+          <Pencil />
         </button>
-        <button type="button" className="forms-action-btn forms-action-btn--ghost" onClick={() => onDuplicate(template)} title="Duplicate">
-          <Copy size={14} />
+        <button type="button" className="ui-icon-button forms-action-btn forms-action-btn--ghost" onClick={() => onDuplicate(template)} title="Duplicate">
+          <Copy />
         </button>
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--ghost forms-action-btn--danger"
+          className="ui-icon-button forms-action-btn forms-action-btn--ghost ui-button--danger forms-action-btn--danger"
           onClick={() => onDelete(template)}
           title="Delete template"
         >
-          <Trash2 size={14} />
+          <Trash2 />
         </button>
       </div>
     </div>

@@ -67,7 +67,7 @@ function ToolBtn({
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       title={title}
-      className={`tbar-btn${active ? ' tbar-btn--on' : ''}`}
+      className={"ui-icon-button " + (`tbar-btn${active ? ' tbar-btn--on' : ''}`)}
     >
       {children}
     </button>
@@ -85,7 +85,7 @@ function StyleBtn({
       onMouseDown={(e) => e.preventDefault()}
       onClick={onClick}
       title={title}
-      className={`tbar-btn${active ? ' tbar-btn--on' : ''}`}
+      className={`ui-button ui-button--compact ui-button--ghost tbar-btn${active ? ' tbar-btn--on' : ''}`}
       style={{ fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)', fontWeight: 500, paddingLeft: 0, paddingRight: 0 }}
     >
       {label}
@@ -315,13 +315,13 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
     >
       <button
         type="button"
-        className="selection-toolbar-close"
+       className="ui-icon-button selection-toolbar-close"
         title={t('editor.closeToolbar')}
         aria-label={t('editor.closeToolbar')}
         onMouseDown={(e) => e.preventDefault()}
         onClick={closeToolbar}
       >
-        <X size={14} strokeWidth={2} />
+        <X className="ui-icon" strokeWidth={2} />
       </button>
       <div
         className="drop selection-toolbar"
@@ -344,7 +344,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('link') || linkOpen}
           title="Link"
         >
-          <Link size={13} />
+          <Link className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -354,7 +354,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('bold')}
           title="Bold"
         >
-          <Bold size={13} />
+          <Bold className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -364,7 +364,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('italic')}
           title="Italic"
         >
-          <Italic size={13} />
+          <Italic className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -374,7 +374,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('underline')}
           title="Underline"
         >
-          <Underline size={13} />
+          <Underline className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -384,7 +384,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('strike')}
           title="Strikethrough"
         >
-          <Strikethrough size={13} />
+          <Strikethrough className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -394,7 +394,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('bulletList')}
           title="Bullet list"
         >
-          <List size={13} />
+          <List className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -404,7 +404,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={editor?.isActive('orderedList')}
           title="Number list"
         >
-          <ListOrdered size={13} />
+          <ListOrdered className="ui-icon" />
         </ToolBtn>
       </div>
 
@@ -419,7 +419,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={alignIndex > 0}
           title={alignLabel}
         >
-          <AlignIcon size={13} />
+          <AlignIcon className="ui-icon" />
         </ToolBtn>
         <ToolBtn
           onClick={() => {
@@ -429,9 +429,9 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           active={colorOpen}
           title="Text color"
         >
-          <span style={{ position: 'relative', display: 'inline-block', width: 13, height: 13, lineHeight: 1 }}>
+          <span style={{ position: 'relative', display: 'inline-block', width: 'var(--c-icon-1)', height: 'var(--c-icon-1)', lineHeight: 1 }}>
             <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>A</span>
-            <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2.5, background: currentColor ?? 'var(--c-text-2)', borderRadius: 'var(--radius-sm)' }} />
+            <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2.5, background: currentColor ?? 'var(--c-text-3)', borderRadius: 'var(--radius-sm)' }} />
           </span>
         </ToolBtn>
         <ToolBtn
@@ -441,7 +441,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
           }}
           title="Clear formatting"
         >
-          <RemoveFormatting size={13} />
+          <RemoveFormatting className="ui-icon" />
         </ToolBtn>
       </div>
 
@@ -454,7 +454,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
             onChange={(e) => setHref(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') insertLink(); }}
             placeholder="https://..."
-            className="ctrl-xs min-w-0 flex-1"
+            className="ui-input ctrl-xs min-w-0 flex-1"
           />
           <button
             id="selection-link-submit"
@@ -462,7 +462,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
             onMouseDown={(e) => e.preventDefault()}
             onClick={insertLink}
             disabled={!href.trim()}
-            className="btn-brand btn-xs"
+            className="ui-button ui-button--primary btn-brand btn-xs"
             style={{ flexShrink: 0 }}
           >
             {editor?.isActive('link') ? 'Update' : 'Insert'}
@@ -473,7 +473,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={removeLink}
-              className="btn-xs"
+              className="ui-button btn-xs"
               style={{ flexShrink: 0, border: '1px solid var(--c-border-1)' }}
             >
               Remove
@@ -496,7 +496,7 @@ export function SelectionToolbar({ editor, editorScrollRef }: SelectionToolbarPr
                 height: 18,
                 borderRadius: 'var(--radius-sm)',
                 background: color,
-                border: currentColor === color ? '2px solid var(--c-brand-1)' : '1px solid var(--c-border-1)',
+                border: currentColor === color ? '2px solid var(--c-border-2)' : '1px solid var(--c-border-1)',
                 padding: 0,
                 cursor: 'pointer',
                 flexShrink: 0,

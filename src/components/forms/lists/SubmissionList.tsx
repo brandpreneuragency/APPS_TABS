@@ -29,7 +29,7 @@ function submissionLabel(fields: Record<string, unknown>): string {
 
 function timeLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString('tr-TR', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -84,8 +84,8 @@ export function SubmissionList() {
   return (
     <>
       <div className="forms-list-search">
-        <Search size={13} className="forms-muted" />
-        <input
+        <Search className="forms-muted" />
+        <input className="ui-input"
           type="text"
           placeholder="Search submissions"
           value={search}
@@ -95,10 +95,10 @@ export function SubmissionList() {
 
       <div className="forms-list-filters">
         {STATUS_FILTERS.map((f) => (
-          <button
+          <button data-active={statusFilter === f.key}
             key={f.key}
             type="button"
-            className={`forms-filter-chip${statusFilter === f.key ? ' forms-filter-chip--active' : ''}`}
+            className={"ui-button " + (`forms-filter-chip${statusFilter === f.key ? ' forms-filter-chip--active' : ''}`)}
             onClick={() => setStatusFilter(f.key)}
           >
             {f.label}
@@ -108,8 +108,8 @@ export function SubmissionList() {
 
       <div className="forms-list-filters">
         <select
-          className="forms-select"
-          style={{ height: 24, padding: '0 6px', fontSize: 'var(--fs-xs)', flex: '1 1 110px' }}
+          className="ui-input forms-select"
+          style={{ fontSize: 'var(--fs-xs)', flex: '1 1 110px' }}
           value={formFilter}
           onChange={(e) => setFormFilter(e.target.value)}
         >
@@ -121,8 +121,8 @@ export function SubmissionList() {
           ))}
         </select>
         <select
-          className="forms-select"
-          style={{ height: 24, padding: '0 6px', fontSize: 'var(--fs-xs)', flex: '1 1 110px' }}
+          className="ui-input forms-select"
+          style={{ fontSize: 'var(--fs-xs)', flex: '1 1 110px' }}
           value={domainFilter}
           onChange={(e) => setDomainFilter(e.target.value)}
         >
@@ -143,11 +143,11 @@ export function SubmissionList() {
         filtered.map((s) => {
           const isActive = s.id === activeSubmissionId;
           return (
-            <button
+            <button data-active={isActive}
               key={s.id}
               type="button"
               onClick={() => setActiveSubmissionId(s.id)}
-              className={`forms-list-item${isActive ? ' forms-list-item--active' : ''}`}
+              className={"ui-list-row " + (`forms-list-item${isActive ? ' forms-list-item--active' : ''}`)}
             >
               <span className="forms-list-item-title">
                 <span className="trunc forms-grow">{submissionLabel(s.fields)}</span>

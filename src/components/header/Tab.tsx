@@ -121,11 +121,11 @@ export function Tab({ doc, isActive, onSelect, onClose, onRename, charLimit }: T
             onClick={(e) => e.stopPropagation()}
             title={t('tabs.renameTab')}
             placeholder={t('tabs.tabNamePlaceholder')}
-            className="txt-xs med bg-transparent outline-none w-24" style={{ borderBottom: '1px solid var(--c-accent-center-panel)' }}
+            className="txt-xs med bg-transparent outline-none w-24" style={{ borderBottom: '1px solid var(--c-border-2)' }}
           />
         ) : (
           <>
-            <FileText size={12} className="mr-1 flex-shrink-0" />
+            <FileText  className="ui-icon mr-1 flex-shrink-0" />
             <span className={`txt-xs med trunc${isReplaceable ? ' italic' : ''}`}>
               {(doc.title ?? '').slice(0, charLimit)}{(doc.title ?? '').length > charLimit ? '…' : ''}
             </span>
@@ -139,9 +139,9 @@ export function Tab({ doc, isActive, onSelect, onClose, onRename, charLimit }: T
             e.stopPropagation();
             if (hasEdits) { setConfirmClose(true); } else { onClose(); }
           }}
-          className="tab-close"
+          className="ui-icon-button tab-close"
         >
-          <X size={12} />
+          <X className="ui-icon"  />
         </button>
       </>
 

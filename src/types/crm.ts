@@ -117,6 +117,7 @@ export interface CRMLead {
  */
 export interface CRMDeal {
   id: string;
+  order?: number;
   title: string;
   leadId?: string;
   contactId?: string;

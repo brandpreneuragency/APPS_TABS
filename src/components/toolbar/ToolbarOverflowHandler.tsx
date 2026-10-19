@@ -78,7 +78,7 @@ export function ToolbarOverflowHandler({ children, className = '' }: ToolbarOver
           <button
             id="toolbar-overflow-trigger"
             onClick={() => setShowOverflow((v) => !v)}
-            className="tbar-btn"
+            className="ui-icon-button tbar-btn"
             title="More options"
           >
             <svg className="icon-base" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">

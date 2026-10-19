@@ -3,18 +3,20 @@ import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(resolve(process.cwd(), 'src/components/clients/clients.css'), 'utf8');
-const tokens = readFileSync(resolve(process.cwd(), 'src/index.css'), 'utf8');
+const tokens = readFileSync(resolve(process.cwd(), 'src/styles/tokens.css'), 'utf8');
+const controls = readFileSync(resolve(process.cwd(), 'src/styles/controls.css'), 'utf8');
 
-function resolvesToDefaultAccent(value: string): boolean {
-  return value.includes('var(--c-accent-1)') && /--c-accent-1\s*:\s*#[\da-f]{6}/i.test(tokens);
+function hasApprovedFocusOutline(value: string): boolean {
+  const resolved = value.replace(/var\(--focus-width\)/g, tokens.match(/--focus-width:\s*([^;]+)/)?.[1] ?? '');
+  return /outline:\s*2px solid var\(--c-border-2\)/.test(resolved) && /--c-border-2\s*:\s*#[\da-f]{3,6}/i.test(tokens);
 }
 
 describe('Clients focus visibility', () => {
-  it('uses the existing default accent when the optional panel accent is absent', () => {
+  it('keeps panel and shared navigation focus visible in the approved border palette', () => {
     const panelFocus = css.match(/\.clients-workspace-content:focus-visible\s*\{([^}]+)\}/)?.[1] ?? '';
-    const categoryFocus = css.match(/\.clients-category-tab:focus-visible\s*\{([^}]+)\}/)?.[1] ?? '';
+    const categoryFocus = controls.match(/\.ui-list-row:focus-visible\s*\{([^}]+)\}/)?.[1] ?? '';
 
-    expect(resolvesToDefaultAccent(panelFocus)).toBe(true);
-    expect(resolvesToDefaultAccent(categoryFocus)).toBe(true);
+    expect(hasApprovedFocusOutline(panelFocus)).toBe(true);
+    expect(hasApprovedFocusOutline(categoryFocus)).toBe(true);
   });
 });

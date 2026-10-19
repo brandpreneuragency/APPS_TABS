@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode, type HTMLAttributes } from 'react';
 import { Check, Folder, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../stores/projectStore';
@@ -12,10 +12,11 @@ interface AddNewProjectButtonProps {
   label?: string;
   onCreated?: (project: Project) => void;
   inlineGroupLabel?: string;
+  inlineGroupLabelProps?: HTMLAttributes<HTMLSpanElement>;
   children?: ReactNode;
 }
 
-export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLabel, children }: AddNewProjectButtonProps) {
+export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLabel, inlineGroupLabelProps, children }: AddNewProjectButtonProps) {
   const { t } = useTranslation();
   const resolvedLabel = label ?? t('tasks.addNewProject');
   const createProject = useProjectStore((s) => s.createProject);
@@ -83,11 +84,11 @@ export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLab
   return (
     <div className={inlineGroupLabel !== undefined ? 'scope-project-content' : 'task-list-add-project'} ref={rootRef}>
       <div className={inlineGroupLabel !== undefined ? 'scope-project-heading' : undefined}>
-      {inlineGroupLabel !== undefined && <span title={inlineGroupLabel}>{inlineGroupLabel}</span>}
+      {inlineGroupLabel !== undefined && <span title={inlineGroupLabel} {...inlineGroupLabelProps}>{inlineGroupLabel}</span>}
       <button
         ref={triggerRef}
         type="button"
-        className="task-list-add-project-btn"
+        className="ui-icon-button task-list-add-project-btn"
         title={resolvedLabel}
         aria-label={resolvedLabel}
         aria-expanded={open}
@@ -102,7 +103,7 @@ export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLab
           });
         }}
       >
-        <Plus size={14} strokeWidth={2.25} />
+        <Plus strokeWidth={2.25} />
       </button>
       </div>
       {children}
@@ -120,11 +121,11 @@ export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLab
           onMouseDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
         >
-          {inlineGroupLabel !== undefined && <Folder size={14} />}
+          {inlineGroupLabel !== undefined && <Folder />}
           <input
             ref={inputRef}
             type="text"
-            className="task-list-add-project-input"
+            className="ui-input task-list-add-project-input"
             value={name}
             maxLength={NAME_MAX}
             placeholder={t('tasks.projectNamePlaceholder')}
@@ -134,12 +135,12 @@ export function AddNewProjectButton({ clientId, label, onCreated, inlineGroupLab
           />
           <button
             type="submit"
-            className="task-list-add-project-submit"
+            className={`${inlineGroupLabel !== undefined ? 'ui-icon-button' : 'ui-button'} task-list-add-project-submit`}
             aria-label={t('tasks.addProject')}
             title={t('tasks.addProject')}
             disabled={submitting || !name.trim()}
           >
-            {inlineGroupLabel !== undefined ? <Check size={14} /> : t('tasks.addProject')}
+            {inlineGroupLabel !== undefined ? <Check /> : t('tasks.addProject')}
           </button>
         </form>
       )}

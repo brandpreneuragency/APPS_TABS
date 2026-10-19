@@ -26,7 +26,7 @@ vi.mock('../../stores/clientStore', () => ({ useClientStore: (selector?: (state:
   const state = { clients: [] };
   return selector ? selector(state) : state;
 } }));
-vi.mock('./TaskProjectsKanban', () => ({ TaskKanbanCard: ({ task, onClick }: { task: Task; onClick: (id: string) => void }) => <button onClick={() => onClick(task.id)}>{task.title}</button> }));
+vi.mock('./TaskProjectsKanban', () => ({ TaskKanbanCard: ({ task, onClick }: { task: Task; onClick: (id: string) => void }) => <button className="crm-kanban-card" data-kanban-card-id={task.id} onClick={() => onClick(task.id)}>{task.title}</button> }));
 const task: Task = { id: 'task-1', title: 'Scheduled task', content: '', date: '2026-09-15', projectId: 'project-1', status: 'pending', importance: 'medium', assignees: [], createdAt: 1, updatedAt: 1, order: 0 };
 const setup = (tasks = [task]) => {
   const onSetDate = vi.fn();
@@ -109,13 +109,13 @@ describe('TaskCalendarView', () => {
     vi.setSystemTime(new Date(2026, 8, 15, 23, 59, 58));
     setup();
     expect(screen.getByRole('button', { name: 'navigation.today' })).toBeInTheDocument();
-    expect(within(screen.getByRole('button', { name: 'navigation.today' })).getByText('15 EYLÜL, SALI - 23:59:58')).toHaveAttribute('datetime', new Date().toISOString());
+    expect(within(screen.getByRole('button', { name: 'navigation.today' })).getByText('15 EYLÜL, SAL - 23:59:58')).toHaveAttribute('datetime', new Date().toISOString());
 
     act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByText('15 EYLÜL, SALI - 23:59:59')).toBeInTheDocument();
+    expect(screen.getByText('15 EYLÜL, SAL - 23:59:59')).toBeInTheDocument();
 
     act(() => vi.advanceTimersByTime(1000));
-    expect(screen.getByText('16 EYLÜL, ÇŞMBA - 00:00:00')).toBeInTheDocument();
+    expect(screen.getByText('16 EYLÜL, ÇAR - 00:00:00')).toBeInTheDocument();
     expect(screen.getByRole('region', { name: '2026-09-15' })).not.toHaveClass('task-calendar-day--today');
     expect(screen.getByRole('region', { name: '2026-09-16' })).toHaveClass('task-calendar-day--today');
 
@@ -127,11 +127,11 @@ describe('TaskCalendarView', () => {
     expect(screen.getByRole('button', { name: '16 Eylül 2026 Çarşamba' })).toHaveAttribute('aria-pressed', 'true');
   });
 
-  it('reschedules only recognized live tasks and changes only their date', () => {
+  it('reschedules only recognized live tasks with their drop position', () => {
     setup();
     const day = screen.getByRole('region', { name: '2026-09-16' });
     fireEvent.drop(day, { dataTransfer: { getData: () => task.id } });
-    expect(updateTask).toHaveBeenCalledWith(task.id, { date: '2026-09-16' });
+    expect(updateTask).toHaveBeenCalledWith(task.id, { date: '2026-09-16' }, { field: 'date', beforeId: null });
     fireEvent.drop(day, { dataTransfer: { getData: () => 'unknown' } });
     expect(updateTask).toHaveBeenCalledTimes(1);
   });
@@ -143,5 +143,20 @@ describe('TaskCalendarView', () => {
     expect(screen.queryByText('Other project')).not.toBeInTheDocument();
     expect(screen.queryByText('Deleted')).not.toBeInTheDocument();
     expect(screen.queryByText('Undated')).not.toBeInTheDocument();
+  });
+
+  it('shows the line and reorders within the same calendar day', () => {
+    setup([task, { ...task, id: 'task-2', title: 'Second task', order: 1 }]);
+    const card = screen.getByText('Second task');
+    vi.spyOn(card, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 160, height: 60 } as DOMRect);
+    const dataTransfer = { types: ['application/x-task-card'], getData: () => task.id, dropEffect: '' };
+    for (const type of ['dragover', 'drop']) {
+      const event = new MouseEvent(type, { bubbles: true, cancelable: true, clientY: 110 });
+      Object.defineProperty(event, 'dataTransfer', { value: dataTransfer });
+      fireEvent(card, event);
+      if (type === 'dragover') expect(card.parentElement?.querySelector('.kanban-drop-indicator')).toBeInTheDocument();
+    }
+    expect(updateTask).toHaveBeenCalledWith(task.id, { date: task.date }, { field: 'date', beforeId: 'task-2' });
+    expect(document.querySelector('.kanban-drop-indicator')).toBeNull();
   });
 });

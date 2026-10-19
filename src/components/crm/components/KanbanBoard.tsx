@@ -1,13 +1,14 @@
-import { useState } from 'react';
-import type { CRMDeal, PipelineStage, CRMContact, CRMCompany, CRMDealStage } from '../../../types/crm';
+import type { CRMDeal, PipelineStage, CRMContact, CRMCompany } from '../../../types/crm';
 import { KanbanCard } from './KanbanCard';
+import { useKanbanDropIndicator } from '../../../hooks/useKanbanDropIndicator';
+import { sortKanbanCards } from '../../../services/kanbanOrder';
 
 interface KanbanBoardProps {
   stages: PipelineStage[];
   deals: CRMDeal[];
   contacts: CRMContact[];
   companies: CRMCompany[];
-  onMoveDeal?: (dealId: string, toStage: CRMDeal['stage']) => void;
+  onMoveDeal?: (dealId: string, toStage: CRMDeal['stage'], beforeId: string | null) => void;
   onSelectDeal?: (dealId: string) => void;
   onEditDeal?: (dealId: string) => void;
   activeDealId?: string | null;
@@ -25,22 +26,18 @@ export function KanbanBoard({
 }: KanbanBoardProps) {
   const contactMap = new Map(contacts.map((c) => [c.id, c]));
   const companyMap = new Map(companies.map((c) => [c.id, c]));
-  const [dropTargetStage, setDropTargetStage] = useState<CRMDealStage | null>(null);
-
-  const handleDragEnd = () => {
-    setDropTargetStage(null);
-  };
+  const drop = useKanbanDropIndicator('application/x-crm-deal');
 
   return (
-    <div className="crm-kanban" onDragEnd={handleDragEnd}>
+    <div className="crm-kanban">
       {stages.map((stage) => {
-        const stageDeals = deals.filter((d) => d.stage === stage.key);
+        const stageDeals = sortKanbanCards(deals.filter((d) => d.stage === stage.key));
         const totalValue = stageDeals.reduce((sum, d) => sum + (d.value ?? 0), 0);
         const valueLabel =
           totalValue > 0
             ? `$${new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(totalValue)}`
             : '';
-        const isDropTarget = dropTargetStage === stage.key;
+        const isDropTarget = drop.targetColumn === stage.key;
         return (
           <div key={stage.id} className={`crm-kanban-column${isDropTarget ? ' crm-kanban-column--drop-target' : ''}`} data-stage={stage.key}>
             <div className="crm-kanban-column-header">
@@ -55,25 +52,11 @@ export function KanbanBoard({
             </div>
             <div
               className="crm-kanban-column-body"
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'move';
-                setDropTargetStage(stage.key);
-              }}
-              onDragLeave={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node | null)) {
-                  setDropTargetStage((cur) => (cur === stage.key ? null : cur));
-                }
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                const dealId =
-                  e.dataTransfer.getData('application/x-crm-deal') ||
-                  e.dataTransfer.getData('text/plain');
-                setDropTargetStage(null);
-                if (dealId) onMoveDeal?.(dealId, stage.key);
-              }}
+              {...drop.handlers(stage.key, (dealId, beforeId) => {
+                if (deals.some((deal) => deal.id === dealId)) onMoveDeal?.(dealId, stage.key, beforeId);
+              })}
             >
+              {drop.indicator(stage.key)}
               {stageDeals.length === 0 && (
                 <div className="crm-kanban-column-empty subtle">No deals</div>
               )}

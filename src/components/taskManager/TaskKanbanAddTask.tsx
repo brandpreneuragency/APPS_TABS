@@ -47,8 +47,8 @@ export function TaskKanbanAddTask({ projectId }: { projectId: string }) {
   };
 
   if (!open) return (
-    <button ref={buttonRef} type="button" className="task-kanban-add-btn" onClick={() => setOpen(true)}>
-      <Plus size={12} /> {t('tasks.addTask')}
+    <button ref={buttonRef} type="button" className="ui-button task-kanban-add-btn" onClick={() => setOpen(true)}>
+      <Plus /> {t('tasks.addTask')}
     </button>
   );
 
@@ -72,7 +72,7 @@ export function TaskKanbanAddTask({ projectId }: { projectId: string }) {
       <input
         ref={inputRef}
         type="text"
-        className="task-kanban-add-column-input ctrl"
+        className="ui-input task-kanban-add-column-input"
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         placeholder={t('tasks.taskTitlePlaceholder')}
@@ -81,10 +81,10 @@ export function TaskKanbanAddTask({ projectId }: { projectId: string }) {
         disabled={submitting}
       />
       <div className="task-kanban-add-column-actions">
-        <button type="submit" className="crm-btn crm-btn--primary crm-btn--sm" disabled={submitting || !title.trim()}>
+        <button type="submit" className="ui-button ui-button--primary" disabled={submitting || !title.trim()}>
           {t('tasks.createTask')}
         </button>
-        <button type="button" className="crm-btn crm-btn--sm" disabled={submitting} onClick={cancel}>
+        <button type="button" className="ui-button" disabled={submitting} onClick={cancel}>
           {t('confirm.cancel')}
         </button>
       </div>

@@ -28,7 +28,7 @@ export function FormsWorkspace() {
 
   return (
     <div id="forms-workspace" className="forms-workspace panel">
-      <div className="forms-workspace-body panel-body">{renderFormsPage(activeFormsPage)}</div>
+      <div className="forms-workspace-body">{renderFormsPage(activeFormsPage)}</div>
     </div>
   );
 }

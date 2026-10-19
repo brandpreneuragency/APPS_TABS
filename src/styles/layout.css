@@ -119,9 +119,6 @@ body {
   border-radius: inherit;
   /* No swap animation on columns/areas/widths */
   transition: none;
-  --primary-min-width: 140px;
-  --assistant-min-width: 320px;
-  --shell-handle-width: 6px;
 }
 
 /* Both wrappers: primary keeps a usable minimum; assistant track is clamped. */
@@ -161,9 +158,7 @@ html[data-resizing] * {
   user-select: none !important;
 }
 
-html[data-resizing='assistant'] .main-resize-handle,
-html[data-resizing='context'] .context-resize-handle {
-}
+
 
 .primary-workspace-wrapper {
   grid-area: primary;
@@ -232,7 +227,7 @@ html[data-resizing='context'] .context-resize-handle {
   height: 100%;
   width: 100%;
   overflow: hidden;
-  border-radius: var(--radius-sm);
+  border-radius: 0px;
 }
 
 .contextual-panel {
@@ -319,28 +314,19 @@ html[data-resizing='context'] .context-resize-handle {
 
 /* Stable leading slot for inner contextual-panel toggle (Phase 4). */
 .center-content-panel > .subtasks-bar-wrapper {
-  padding: 6px;
+  padding: var(--c-space-1);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   flex-shrink: 0;
   min-width: 0;
 }
 
 .context-panel-toggle {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
   box-sizing: border-box;
 }
 
 #nav-bar .context-panel-toggle {
-  width: var(--div-h-1);
-  height: var(--div-h-1);
-  min-width: var(--div-h-1);
-  min-height: var(--div-h-1);
   border-radius: var(--radius-sm);
 }
 
@@ -348,7 +334,7 @@ html[data-resizing='context'] .context-resize-handle {
 :root .context-panel-toggle.tbar-btn--on,
 :root .context-panel-toggle.context-panel-toggle--on,
 :root .assistant-toggle.tbar-btn--on {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   background: transparent !important;
 }
 
@@ -455,11 +441,11 @@ html[data-resizing='context'] .context-resize-handle {
 }
 
 .panel-header {
-  flex: 0 0 var(--panel-header-height);
-  min-height: var(--panel-header-height);
+  flex: 0 0 var(--control-height-sm);
+  min-height: var(--control-height-sm);
   display: flex;
   align-items: center;
-  padding-inline: var(--panel-padding);
+  padding-inline: var(--c-space-1);
 }
 
 .panel-body {
@@ -472,26 +458,23 @@ html[data-resizing='context'] .context-resize-handle {
 
 .panel-footer {
   flex: 0 0 auto;
-  min-height: var(--panel-footer-min-height);
-  padding: var(--space-3);
+  min-height: var(--composer-min-height);
+  padding: var(--c-space-3);
 }
 
 @media (max-width: 640px) {
-  :root {
-    --main-panel-min-width: 0;
-  }
 
   .workspace {
     grid-template-columns:
       var(--sidebar-width)
       minmax(0, 1fr);
-  }
+}
 
   .optional-toolbar-label,
   .secondary-panel-label,
   .secondary-meta {
     display: none;
-  }
+}
 }
 
 /* =========================================================
@@ -503,12 +486,12 @@ html[data-resizing='context'] .context-resize-handle {
  * The `.panel` class adds min-width: 0 / min-height: 0 and
  * confirms flex-column + overflow: hidden. No conflict. */
 
-/* Task list HEADER: keep its small --task-list-header-height
- * instead of the panel-header default (--panel-header-height, 48px). */
+/* Task list HEADER: keep its small --control-height-sm
+ * instead of the panel-header default (--control-height-sm, 48px). */
 #task-list-header.panel-header {
   flex: 0 0 auto;
   min-height: 0;
-  height: var(--task-list-header-height);
+  height: var(--control-height-sm);
   background-color: var(--c-background-1);
   padding-inline: 0;
   /* Agent 8: header itself becomes a container context for
@@ -554,7 +537,7 @@ html[data-resizing='context'] .context-resize-handle {
   flex: 0 0 auto;
   width: 100%;
   min-height: 0;
-  padding: 6px 12px 12px;
+  padding: var(--c-space-1);
   border: none;
   border-radius: var(--radius-sm);
   background-color: transparent;
@@ -565,7 +548,7 @@ html[data-resizing='context'] .context-resize-handle {
  * The `.panel` class adds min-width/min-height: 0. */
 .panel#task-detail-panel {
   margin: 0;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
 }
 
 /* Thread (the scrollable comment list): it is the panel body. */
@@ -602,8 +585,8 @@ html[data-resizing='context'] .context-resize-handle {
   overflow-y: auto;
   background-color: transparent;
   border-bottom: none;
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: var(--c-space-3);
+  padding-right: var(--c-space-3);
   margin-left: 0;
   margin-right: 0;
 }
@@ -641,7 +624,7 @@ html[data-resizing='context'] .context-resize-handle {
 .ai-sidebar-composer.panel-footer {
   flex: 0 0 auto;
   min-height: 0;
-  padding: 6px;
+  padding: var(--c-space-1);
   /* Agent 8: container context for the chat input
    * composer in the right detail panel. */
   container-type: inline-size;
@@ -671,7 +654,7 @@ html[data-resizing='context'] .context-resize-handle {
 .panel#center-panel {
   width: 100%;
   background-color: var(--c-background-2);
-  border-radius: var(--radius-sm);
+  border-radius: 0px;
 }
 
 /* Center panel body: wraps the editor / task detail panel. */
@@ -702,8 +685,8 @@ html[data-resizing='context'] .context-resize-handle {
   flex: 1 1 auto;
   min-height: 0;
   min-width: 0;
-  margin: 0;
-  padding: 6px 40px;
+  margin-top: var(--c-space-1);
+  padding: var(--c-space-0) var(--editor-inset);
 }
 
 /* Document title sits at the top of the editor pane, not in the toolbar. */
@@ -712,7 +695,7 @@ html[data-resizing='context'] .context-resize-handle {
   width: 100%;
   flex-shrink: 0;
   min-width: 0;
-  margin: 0 0 8px;
+  margin: 0 0 var(--c-space-1);
 }
 
 #scroll-main .editor-topbar-title,
@@ -720,7 +703,7 @@ html[data-resizing='context'] .context-resize-handle {
   display: block;
   width: 100%;
   height: auto;
-  min-height: 32px;
+  min-height: var(--c-sq-button);
   padding-left: 0;
   padding-right: 0;
   text-align: left;
@@ -749,7 +732,7 @@ html[data-resizing='context'] .context-resize-handle {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 6px 6px 0 0;
+  padding: var(--c-space-1);
   gap: 0;
   position: relative;
 }
@@ -764,7 +747,7 @@ html[data-resizing='context'] .context-resize-handle {
  * Rules:
  *  - Named containers only (`@container task-list-panel`,
  *    `@container main-panel`, `@container detail-panel`).
- *  - Token values only (`var(--space-*)`, `var(--font-*)`,
+ *  - Token values only (`var(--c-space-*)`, `var(--fs-*)`,
  *    `var(--control-height-*)`).
  *  - Hide only secondary / optional elements. Never hide
  *    primary title, send button, input field, or required
@@ -780,8 +763,7 @@ html[data-resizing='context'] .context-resize-handle {
  * ========================================================= */
 
 /* ---- Task list panel ----
- * Default width is `var(--task-list-width)` which resolves
- * to `clamp(280px, 24vw, 420px)`. The container queries
+ * Panel width is controlled by the workspace shell. The container queries
  * below target narrow panel widths below that range:
  *  - <= 340px: collapse card padding and hide optional
  *    secondary metadata (project label + due date).
@@ -792,14 +774,14 @@ html[data-resizing='context'] .context-resize-handle {
  */
 @container task-list-panel (max-width: 340px) {
   .task-item {
-    padding: var(--space-2);
-    gap: var(--space-1);
-  }
+    padding: var(--c-space-1);
+    gap: var(--c-gap-1);
+}
 
   .task-item .meta,
   .task-item .subtle {
-    font-size: var(--font-xs);
-  }
+    font-size: var(--fs-xs);
+}
 }
 
 @container task-list-panel (max-width: 300px) {
@@ -814,7 +796,7 @@ html[data-resizing='context'] .context-resize-handle {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-  }
+}
 }
 
 @container task-list-panel (max-width: 260px) {
@@ -823,13 +805,13 @@ html[data-resizing='context'] .context-resize-handle {
   #task-list-content > div[role='heading'],
   #task-list-content > div.subtle[style*='uppercase'] {
     display: none;
-  }
+}
 
   /* Header tabs shrink their inner padding so all three
    * (list / calendar / projects) fit. */
   #task-list-header {
-    padding: 0 var(--space-1);
-  }
+    padding: 0 var(--c-gap-1);
+}
 }
 
 /* ---- Main panel ----
@@ -857,7 +839,7 @@ html[data-resizing='context'] .context-resize-handle {
    * labels (e.g. file path text) become icon-only. */
   .editor-breadcrumbs .breadcrumb-text {
     display: none;
-  }
+}
 }
 
 @container main-panel (max-width: 420px) {
@@ -865,23 +847,22 @@ html[data-resizing='context'] .context-resize-handle {
    * detail panel is at its narrowest. */
   #task-detail-panel .comment-thread > .comment-meta {
     display: none;
-  }
+}
 }
 
 @container main-panel (max-width: 360px) {
   #task-detail-panel {
-    margin-left: var(--space-1);
-    margin-right: var(--space-1);
-  }
+    margin-left: var(--c-gap-1);
+    margin-right: var(--c-gap-1);
+}
 
   #task-comment-card {
     padding: 0;
-  }
+}
 }
 
 /* ---- Detail panel ----
- * Default width is `var(--right-panel-width)` =
- * `clamp(360px, 32vw, 540px)`. The detail panel hosts
+ * Panel width is controlled by the workspace shell. The detail panel hosts
  * the AI sidebar (chat thread + chat composer) or the
  * file viewer. The container queries below target the
  * chat composer + chat thread + chat empty state.
@@ -898,7 +879,7 @@ html[data-resizing='context'] .context-resize-handle {
 @container detail-panel (max-width: 520px) {
   .chat-input-bottom-col--agent .chat-input-dropup-label {
     display: none;
-  }
+}
 }
 
 @container detail-panel (max-width: 420px) {
@@ -907,38 +888,38 @@ html[data-resizing='context'] .context-resize-handle {
    * remains. */
   [data-message-id] > .subtle {
     display: none;
-  }
+}
 }
 
 @container detail-panel (max-width: 360px) {
   .detail-meta-row,
   .tdp-comment-row {
     flex-wrap: wrap;
-    gap: var(--space-2);
-  }
+    gap: var(--c-space-1);
+}
 
   .comment-meta-secondary,
   .detail-secondary-action-label {
     display: none;
-  }
+}
 
   #chat-input-card {
     padding: 0;
-  }
+}
 
   .composer-row {
-    gap: var(--space-1);
-  }
+    gap: var(--c-gap-1);
+}
 }
 
 @container detail-panel (max-width: 320px) {
   .detail-tabs {
     overflow-x: auto;
-  }
+}
 
   .chat-empty-state-subtitle {
     display: none;
-  }
+}
 }
 
 /* ---- Task list content (inner list) ----
@@ -955,7 +936,7 @@ html[data-resizing='context'] .context-resize-handle {
   .task-list-header-tab span,
   .task-list-tab-text {
     display: none;
-  }
+}
 }
 
 /* ---- Chat composer (inside AI sidebar) ----
@@ -965,13 +946,11 @@ html[data-resizing='context'] .context-resize-handle {
 @container chat-composer (max-width: 360px) {
   .chat-input-bottom-col--agent {
     display: none;
-  }
+}
 }
 
 @container chat-composer (max-width: 280px) {
-  .chat-input-bottom-col--tools .chat-input-dropup-btn {
-    width: var(--control-height-sm);
-  }
+
 }
 
 /* ---- Comment composer (inside task detail panel) ----
@@ -981,7 +960,7 @@ html[data-resizing='context'] .context-resize-handle {
 @container comment-composer (max-width: 320px) {
   .task-comment-bottom-col--left .composer-left--fill {
     display: none;
-  }
+}
 }
 
 /* ---- Chat thread (inside AI sidebar) ----
@@ -991,5 +970,5 @@ html[data-resizing='context'] .context-resize-handle {
 @container chat-thread (max-width: 360px) {
   [data-message-id] > .subtle {
     display: none;
-  }
+}
 }

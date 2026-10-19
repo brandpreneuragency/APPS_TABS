@@ -67,7 +67,7 @@ export function WorkspaceShell({
   const style = {
     ['--assistant-wrapper-width' as string]: assistantWidthCss,
     ['--primary-min-width' as string]: `${primaryMinPx}px`,
-    ['--assistant-min-width' as string]: `${ASSISTANT_MIN_PX}px`,
+
     ['--shell-handle-width' as string]: `${HANDLE_WIDTH_PX}px`,
   } as CSSProperties;
 

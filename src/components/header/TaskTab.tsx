@@ -35,9 +35,9 @@ export function TaskTab({ task, isActive, onSelect, onClose, charLimit }: TaskTa
           e.stopPropagation();
           onClose();
         }}
-        className="tab-close"
+        className="ui-icon-button tab-close"
       >
-        <X size={10} />
+        <X className="ui-icon"  />
       </button>
     </div>
   );

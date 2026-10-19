@@ -6,25 +6,6 @@
  * ========================================================= */
 
 /* Panel 1 — empty state */
-.forms-list-search-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--c-text-2);
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-}
-
-.forms-list-search-btn:hover {
-  background: var(--c-background-2);
-  color: var(--c-text-1);
-}
 
 .forms-list-empty {
   display: flex;
@@ -32,49 +13,26 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 24px 16px;
+  padding: var(--c-space-1);
 }
 
 /* Panel 1 — footer + quick add */
 .forms-list-footer {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
-}
-
-.forms-list-add-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  height: 32px;
-  padding: 0 10px;
-  border: 1px solid var(--c-border-1);
-  outline: none;
-  background: var(--c-background-1);
-  color: var(--c-text-1);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  border-radius: var(--radius-sm);
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.forms-list-add-btn:hover {
-  border-color: var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
+  padding: var(--c-space-1);
 }
 
 .forms-list-footer-hint {
   font-size: var(--fs-xs);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 /* Stub page helpers (overwritten by later Forms page agents) */
 .forms-page {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--c-gap-1);
 }
 
 .forms-page-title {

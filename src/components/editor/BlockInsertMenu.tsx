@@ -318,11 +318,11 @@ export function BlockInsertMenu({ editor, editorScrollRef }: BlockInsertMenuProp
     >
       <button
         type="button"
-        className="block-insert-handle"
+       className="ui-icon-button block-insert-handle"
         aria-label={t('editor.addBlock')}
         onClick={() => setMenuOpen((open) => !open)}
       >
-        <Plus size={8} strokeWidth={2.5} />
+        <Plus className="ui-icon" strokeWidth={2.5} />
       </button>
 
       {menuOpen && (
@@ -335,7 +335,7 @@ export function BlockInsertMenu({ editor, editorScrollRef }: BlockInsertMenuProp
               role="menuitem"
               onClick={() => runAction(action)}
             >
-              <Icon size={15} />
+              <Icon className="ui-icon" />
               <span>{label}</span>
             </button>
           ))}

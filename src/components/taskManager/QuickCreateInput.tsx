@@ -30,7 +30,7 @@ function ProjectDropdown({ show, projects, onPick }: { show: boolean; projects: 
       style={{ left: 0, bottom: '100%', minWidth: 192, marginBottom: 0 }}
     >
       {projects.map((p) => (
-        <button key={p.id} type="button" className="drop-item" onClick={() => onPick(p.name)} style={{ fontSize: 'var(--fs-sm)' }}>
+        <button key={p.id} type="button" className="ui-list-row drop-item" onClick={() => onPick(p.name)} style={{ fontSize: 'var(--fs-sm)' }}>
           {p.name}
         </button>
       ))}
@@ -152,7 +152,7 @@ export function QuickCreateInput({
     if (effectiveDate === getTomorrowIso()) return 'Tomorrow';
     const parsedDate = new Date(effectiveDate);
     if (Number.isNaN(parsedDate.getTime())) return effectiveDate;
-    return parsedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return parsedDate.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
   })();
 
   const handleSend = async () => {
@@ -242,7 +242,7 @@ export function QuickCreateInput({
                   type="button"
                   onClick={() => setShowProjectPicker(!showProjectPicker)}
                   disabled={!!selectedProjectId}
-                  className="btn-icon task-quick-create-dropup-btn"
+                  className="ui-button task-quick-create-dropup-btn"
                   data-kind="project"
                   data-active={hasProjectValue ? 'true' : 'false'}
                   title={hasProjectValue ? `Project: ${projectButtonLabel}` : 'No Project'}
@@ -251,10 +251,10 @@ export function QuickCreateInput({
                   aria-expanded={!selectedProjectId && showProjectPicker}
                 >
                   {hasProjectValue && (
-                    <Folder size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
+                    <Folder className="task-quick-create-dropup-icon" aria-hidden="true" />
                   )}
                   <span className="trunc med task-quick-create-dropup-label">{projectButtonLabel}</span>
-                  <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
+                  <ChevronDown className="task-quick-create-dropup-chevron" aria-hidden="true" />
                 </button>
                 <ProjectDropdown show={!selectedProjectId && showProjectPicker} projects={clientProjects} onPick={handleProjectPick} />
               </div>
@@ -262,16 +262,16 @@ export function QuickCreateInput({
                 <TaskDueDatePicker
                   value={effectiveDate ?? ''}
                   onChange={handleDatePick}
-                  buttonClassName="btn-icon task-quick-create-dropup-btn"
+                  buttonClassName="ui-button task-quick-create-dropup-btn"
                   ariaLabel={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
                   title={hasDateValue ? `Due: ${dateButtonLabel}` : 'No Due Date'}
                   buttonProps={{ 'data-kind': 'date', 'data-active': hasDateValue ? 'true' : 'false' } as React.ButtonHTMLAttributes<HTMLButtonElement>}
                 >
                   {hasDateValue && (
-                    <Calendar size={12} className="task-quick-create-dropup-icon" aria-hidden="true" />
+                    <Calendar className="task-quick-create-dropup-icon" aria-hidden="true" />
                   )}
                   <span className="trunc med task-quick-create-dropup-label">{dateButtonLabel}</span>
-                  <ChevronDown size={12} className="task-quick-create-dropup-chevron" aria-hidden="true" />
+                  <ChevronDown className="task-quick-create-dropup-chevron" aria-hidden="true" />
                 </TaskDueDatePicker>
               </div>
             </div>

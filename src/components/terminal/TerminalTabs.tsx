@@ -37,11 +37,12 @@ export function TerminalTabs({ onSelect, activeId }: TerminalTabsProps) {
   };
 
   return (
-    <div className="terminal-tabs-strip">
+    <div className="ui-toolbar terminal-tabs-strip">
       {terminals.map((tItem) => (
         <div
           key={tItem.id}
-          className={`terminal-tab${tItem.id === activeId ? ' terminal-tab--active' : ' terminal-tab--passive'}`}
+          data-active={tItem.id === activeId}
+          className={`ui-button terminal-tab${tItem.id === activeId ? ' terminal-tab--active' : ' terminal-tab--passive'}`}
           onClick={() => onSelect(tItem.id)}
           onDoubleClick={() => {
             setEditingId(tItem.id);
@@ -51,7 +52,7 @@ export function TerminalTabs({ onSelect, activeId }: TerminalTabsProps) {
           {editingId === tItem.id ? (
             <input
               autoFocus
-              className="terminal-tab-rename-input"
+              className="ui-input terminal-tab-rename-input"
               aria-label={t('terminal.renameTerminal')}
               placeholder={tItem.name}
               value={draft}
@@ -68,32 +69,32 @@ export function TerminalTabs({ onSelect, activeId }: TerminalTabsProps) {
           )}
           <button
             type="button"
-            className="terminal-tab-close"
+            className="ui-icon-button terminal-tab-close"
             title={t('terminal.closeTerminal')}
             aria-label={t('terminal.closeTerminal')}
             onClick={(e) => void handleClose(e, tItem.id)}
           >
-            <X size={12} />
+            <X />
           </button>
         </div>
       ))}
       <button
         type="button"
-        className="terminal-new-tab"
+        className="ui-icon-button terminal-new-tab"
         onClick={handleNew}
         title={t('terminal.newTerminal')}
         aria-label={t('terminal.newTerminal')}
       >
-        <Plus size={12} />
+        <Plus />
       </button>
       <button
         type="button"
-        className="terminal-hide-panel"
+        className="ui-icon-button terminal-hide-panel"
         onClick={() => setTerminalPanelOpen(false)}
         title={t('terminal.hideTerminal')}
         aria-label={t('terminal.hideTerminal')}
       >
-        <X size={14} />
+        <X />
       </button>
     </div>
   );

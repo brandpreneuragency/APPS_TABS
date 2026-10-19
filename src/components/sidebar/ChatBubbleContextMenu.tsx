@@ -55,7 +55,7 @@ export function ChatBubbleContextMenu({
         onClick={() => { onReply(); onClose(); }}
         className="drop-item"
       >
-        <Reply size={12} />
+        <Reply className="ui-icon"  />
         Reply
       </button>
       <button
@@ -64,7 +64,7 @@ export function ChatBubbleContextMenu({
         className="drop-item"
         style={{ color: 'var(--c-danger)' }}
       >
-        <Trash2 size={12} />
+        <Trash2 className="ui-icon"  />
         Delete
       </button>
     </div>

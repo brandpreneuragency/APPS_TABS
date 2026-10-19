@@ -77,13 +77,13 @@ const mdStyles = {
   h1: { fontSize: 26, fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)', lineHeight: 1.2 },
   h2: { fontSize: 22, fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)', lineHeight: 1.3 },
   h3: { fontSize: 18, fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)', lineHeight: 1.35 },
-  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
+  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-3)' },
   ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   li: { lineHeight: 1.625 },
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
-  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
+  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-3)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
   pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' },
   inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
   codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)' },
@@ -91,7 +91,7 @@ const mdStyles = {
   thead: { background: 'var(--c-background-4)' },
   th: { border: '1px solid var(--c-border-1)', padding: '6px 12px', textAlign: 'left' as const, fontWeight: 600, color: 'var(--c-text-1)' },
   td: { border: '1px solid var(--c-border-1)', padding: '6px 12px', color: 'var(--c-text-1)' },
-  a: { color: 'var(--c-accent-center-panel)', textDecoration: 'underline' },
+  a: { color: 'var(--c-accent-1)', textDecoration: 'underline' },
   hr: { borderColor: 'var(--c-border-1)', margin: '12px 0' },
 } as const;
 
@@ -152,12 +152,12 @@ function ReasoningBox({ content, streaming }: { content: string; streaming: bool
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', textAlign: 'left', color: 'var(--c-text-2)', background: 'transparent', border: 'none', cursor: 'pointer' }}
+        className="w-full" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', textAlign: 'left', color: 'var(--c-text-3)', background: 'transparent', border: 'none', cursor: 'pointer' }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'var(--c-background-4)'; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <span className="med">{streaming ? 'Reasoning…' : 'Reasoning'}</span>
-        <ChevronDown size={12} style={{ transform: open ? undefined : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
+        <ChevronDown className="ui-icon"  style={{ transform: open ? undefined : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
       </button>
       {open && (
         <div className="subtle" style={{ padding: '4px 12px 12px 12px', whiteSpace: 'pre-wrap', borderTop: '1px solid var(--c-border-1)', lineHeight: 1.625, maxHeight: 256, overflowY: 'auto' }}>
@@ -183,8 +183,7 @@ function SectionBlock({ heading, content, defaultOpen }: { heading: string; cont
         onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
       >
         <ChevronRight
-          size={13}
-          className="shrink-0" style={{ color: 'var(--c-info)', transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : undefined }}
+          className="ui-icon shrink-0" style={{ color: 'var(--c-accent-3)', transition: 'transform 0.2s', transform: open ? 'rotate(90deg)' : undefined }}
         />
         <span className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' }}>{heading}</span>
       </button>
@@ -259,9 +258,9 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
             cursor: 'pointer',
           }}
         >
-          <div style={{ width: 3, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-center-panel)', flexShrink: 0 }} />
+          <div style={{ width: 3, borderRadius: 'var(--radius-sm)', background: 'var(--c-accent-1)', flexShrink: 0 }} />
           <div style={{ overflow: 'hidden', minWidth: 0 }}>
-            <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-center-panel)', marginBottom: 2 }}>
+            <div className="semibold" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-accent-1)', marginBottom: 2 }}>
               {message.replyTo.sender}
             </div>
             <div className="subtle trunc" style={{ fontSize: 'var(--fs-sm)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -280,7 +279,7 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
       <div onContextMenu={handleContextMenu} style={{ wordBreak: 'break-word', overflow: 'hidden', cursor: 'context-menu' }}>
         {/* Still inside the <think> block — show spinner/placeholder */}
         {isStreaming && !content && (
-          <p className={thinking ? undefined : 'streaming-cursor'} style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', opacity: thinking ? 0.5 : undefined }}>
+          <p className={thinking ? undefined : 'streaming-cursor'} style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-3)', opacity: thinking ? 0.5 : undefined }}>
             {thinking ? 'Thinking…' : ''}
           </p>
         )}
@@ -318,18 +317,18 @@ export function AssistantMessage({ message, isStreaming, editor, onReplyMessage 
               type="button"
               onClick={handleCopy}
               title={copied ? 'Copied!' : 'Copy'}
-              className="btn-icon"
+              className="ui-icon-button btn-icon"
             >
-              {copied ? <Check size={13} /> : <Copy size={13} />}
+              {copied ? <Check className="ui-icon"  /> : <Copy className="ui-icon"  />}
             </button>
             {message.suggestedText && (
               <button
                 type="button"
                 onClick={handleApplyChange}
                 title="Apply suggestion to editor"
-                className="btn-icon"
+                className="ui-icon-button btn-icon"
               >
-                <PenLine size={13} />
+                <PenLine className="ui-icon"  />
               </button>
             )}
           </div>

@@ -40,10 +40,11 @@ export function CRMWorkspace() {
 
   if (activeCRMPage === 'projects') return <TaskProjectsKanban />;
   if (activeCRMPage === 'clients') return <ClientsWorkspace />;
+  if (activeCRMPage === 'forms') return <FormsWorkspace />;
 
   return (
     <div id="crm-workspace" className="crm-workspace panel">
-      <div className="crm-workspace-body panel-body">{renderCRMPage(activeCRMPage)}</div>
+      <div className="crm-workspace-body">{renderCRMPage(activeCRMPage)}</div>
     </div>
   );
 }

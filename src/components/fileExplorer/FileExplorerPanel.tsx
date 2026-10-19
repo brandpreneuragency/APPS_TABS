@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { Fragment, useState, useRef, useEffect, useCallback } from 'react';
 import type React from 'react';
 import {
   SquarePlus, SquareSlash, Search, X,
@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { findNodeByFullPath, useWorkspaceStore, type TreeNode as TreeNodeType } from '../../stores/workspaceStore';
 import { useUIStore } from '../../stores/uiStore';
 import { TreeNode } from './TreeNode';
+import { TreeDropZone } from './TreeDropZone';
 import { FileTreeTabs } from './FileTreeTabs';
 import { MockFileTreeShowcase } from './MockFileTreeShowcase';
 
@@ -60,6 +61,7 @@ export function FileExplorerPanel() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchDropdownOpen, setSearchDropdownOpen] = useState(false);
   const [searchIndexing, setSearchIndexing] = useState(false);
+  const [treeDragging, setTreeDragging] = useState(false);
   const rootInputRef = useRef<HTMLInputElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -70,6 +72,19 @@ export function FileExplorerPanel() {
   const searchMatches = rootNode?.children && searchActive
     ? collectSearchMatches(rootNode.children, normalizedSearch)
     : [];
+
+  useEffect(() => {
+    if (!treeDragging) return;
+    const clear = () => setTreeDragging(false);
+    document.addEventListener('dragend', clear, true);
+    document.addEventListener('drop', clear, true);
+    window.addEventListener('blur', clear);
+    return () => {
+      document.removeEventListener('dragend', clear, true);
+      document.removeEventListener('drop', clear, true);
+      window.removeEventListener('blur', clear);
+    };
+  }, [treeDragging]);
 
   useEffect(() => {
     if (rootInput && rootInputRef.current) {
@@ -230,30 +245,30 @@ export function FileExplorerPanel() {
               onClick={() => startRootNew('new-file')}
               title={t('explorer.newFile')}
               aria-label={t('explorer.newFile')}
-              className="btn-icon"
+             className="ui-icon-button btn-icon"
             >
-              <SquarePlus size={12} />
+              <SquarePlus className="ui-icon" />
             </button>
             <button
               type="button"
               onClick={() => startRootNew('new-folder')}
               title={t('explorer.newFolder')}
               aria-label={t('explorer.newFolder')}
-              className="btn-icon"
+             className="ui-icon-button btn-icon"
             >
-              <SquareSlash size={12} />
+              <SquareSlash className="ui-icon" />
             </button>
             <button
               ref={searchButtonRef}
               type="button"
-              className="btn-icon"
+             className="ui-icon-button btn-icon"
               title={t('explorer.searchFiles')}
               aria-label={t('explorer.searchFiles')}
               aria-expanded={searchDropdownOpen}
               aria-controls="filetree-search"
               onClick={() => setSearchDropdownOpen((open) => !open)}
             >
-              <Search size={12} />
+              <Search className="ui-icon" />
             </button>
           </div>
         )}
@@ -286,12 +301,12 @@ export function FileExplorerPanel() {
             {searchQuery && (
               <button
                 type="button"
-                className="filetree-search-clear"
+               className="ui-icon-button filetree-search-clear"
                 title={t('explorer.clearSearch')}
                 aria-label={t('explorer.clearSearch')}
                 onClick={() => setSearchQuery('')}
               >
-                <X size={12} />
+                <X className="ui-icon" />
               </button>
             )}
           </div>
@@ -312,8 +327,8 @@ export function FileExplorerPanel() {
                 style={{ fontSize: 'var(--fs-sm)' }}
               >
                 {node.kind === 'file'
-                  ? <File size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />
-                  : <Folder size={11} style={{ flexShrink: 0, color: 'var(--c-text-2)' }} />}
+                  ? <File className="ui-icon" style={{ flexShrink: 0, color: 'var(--c-text-3)' }} />
+                  : <Folder className="ui-icon" style={{ flexShrink: 0, color: 'var(--c-text-3)' }} />}
                 <span className="trunc med">{node.name}</span>
               </button>
             ))}
@@ -332,7 +347,15 @@ export function FileExplorerPanel() {
     <div className="panel flex-col h-full" style={{ display: 'flex', minHeight: 0 }}>
       {renderToolbar()}
       {/* Body */}
-      <div className="panel-body ai-scroll flex-1 overflow-y-a" style={{ minHeight: 0, padding: '6px 6px 6px 0' }}>
+      <div
+        className={`panel-body ai-scroll flex-1 overflow-y-a${treeDragging ? ' filetree-dragging' : ''}`}
+        style={{ minHeight: 0, padding: '0 var(--c-space-1)' }}
+        onDragStartCapture={(event) => {
+          if (event.target instanceof Element && event.target.closest('[data-tree-node]')) {
+            setTreeDragging(true);
+          }
+        }}
+      >
         {error && (
           <p style={{ fontSize: 'var(--fs-xs)', color: '#EF4444', marginBottom: 8, lineHeight: 1.375 }}>{error}</p>
         )}
@@ -345,11 +368,14 @@ export function FileExplorerPanel() {
 
         {rootNode?.children && (
           <ul id="filetree-list" style={{
-            display: 'flex', flexDirection: 'column', gap: 1,
+            display: 'flex', flexDirection: 'column',
             listStyle: 'none', padding: 0, margin: 0,
           }}>
             {rootNode.children.map((child) => (
-              <TreeNode key={child.path} node={child} depth={0} />
+              <Fragment key={child.path}>
+                <TreeDropZone targetDirFullPath={rootNode.fullPath} depth={0} />
+                <TreeNode node={child} depth={0} />
+              </Fragment>
             ))}
 
             {/* Root-level inline new entry */}
@@ -357,21 +383,21 @@ export function FileExplorerPanel() {
               <li
                 className="tree-node row-xs"
                 style={{
-                  '--tree-depth': 0, height: 28, fontSize: 'var(--fs-xs)',
+                  '--tree-depth': 0, height: 'var(--control-height-sm)', fontSize: 'var(--fs-xs)',
                   color: 'var(--c-text-1)',
                 } as React.CSSProperties}
               >
                 <span className="shrink-0" style={{ width: 14 }} />
                 {rootInput.mode === 'new-file'
-                  ? <File size={13} className="shrink-0 subtle" />
-                  : <Folder size={13} className="shrink-0" style={{ color: 'var(--c-text-2)' }} />
+                  ? <File className="ui-icon shrink-0 subtle" />
+                  : <Folder className="ui-icon shrink-0" style={{ color: 'var(--c-text-3)' }} />
                 }
                 <input
                   ref={rootInputRef}
                   title={rootInput.mode === 'new-file' ? t('explorer.newFileName') : t('explorer.newFolderName')}
                   placeholder={rootInput.mode === 'new-file' ? t('explorer.filenamePlaceholder') : t('explorer.folderPlaceholder')}
-                  className="ctrl-xs flex-1 min-w-0"
-                  style={{ marginLeft: 4, marginRight: 12, borderColor: 'var(--c-accent-center-panel)' }}
+                  className="ui-input ctrl-xs flex-1 min-w-0"
+                  style={{ marginLeft: 4, marginRight: 12 }}
                   value={rootInputValue}
                   onChange={(e) => setRootInputValue(e.target.value)}
                   onKeyDown={handleRootInputKey}
@@ -379,6 +405,7 @@ export function FileExplorerPanel() {
                 />
               </li>
             )}
+            <TreeDropZone targetDirFullPath={rootNode.fullPath} depth={0} end />
           </ul>
         )}
       </div>

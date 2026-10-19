@@ -1,10 +1,7 @@
-/* =========================================================
- * Token foundation imports Ã¢â‚¬â€ must come BEFORE any other
- * rule so the cascade resolves in this order:
- *   tokens Ã¢â€ â€™ density Ã¢â€ â€™ layout Ã¢â€ â€™ utilities Ã¢â€ â€™ legacy index.css
- * ========================================================= */
+/* Shared values and control roles precede the existing shell and feature layout. */
 @import "./styles/tokens.css";
-@import "./styles/density.css";
+@import "./styles/purpleNeon.css";
+@import "./styles/controls.css";
 @import "./styles/layout.css";
 @import "./styles/panels.css";
 @import "./styles/utilities.css";
@@ -20,107 +17,6 @@ select:focus-visible {
   outline: none;
   border: none;
 }
-
-:root {
-  /* Border radii: compact corners and pill/circular shapes. */
-  --radius-sm: 6px;
-  --radius-full: 50px;
-
-  /* Layout Tokens */
-  --layout-border: var(--c-border-1);
-  --left-bg: var(--c-background-3);
-  --center-bg: var(--c-background-2);
-  --right-bg: var(--c-background-3);
-
-  /* Soft warm palette inspired by screenshots */
-  --c-background-0: #252525;
-  --c-background-1: #111;
-  --c-background-2: #0f0f0f;
-  --c-background-3: #030303;
-  --c-background-4: #030303;
-
-
-  /* Panel Accents */
-  --c-red: #df1c1c;
-  --c-red-muted:#df1c1c94;
-  --c-green:#6ece21e1;
-  --c-green-muted:#6fce2185;
-  --c-yellow:#f7bd00;
-  --c-yellow-muted:#f7bd00b4;
---c-accent-1:#24a18d;
---c-accent-2:#24a18cb4;
---c-accent-3:#666666;
-
-  /* Text Layers */
-  --c-text-1: #fff;
-  --c-text-2: #ccc;
-  --c-text-3: #999999;
-
-  /* Borders - single soft tone, no harsh contrast */
-  --c-border-1: #2e2e2e;
-  --c-border-2: #333;
-  --border: var(--c-border-1);
-
-  /* Status / Utility */
-  --c-danger: #ef4444;
-  --c-warning: #f59e0b;
-  --c-success: #22c55e;
-  --c-info: #3b82f6;
-  --c-overlay: rgba(0,0,0,0.35);
-
-  /* Division height tokens Ã¢â‚¬â€ DEPRECATED. Use the control-height-*
-   tokens from src/styles/tokens.css instead. The legacy names
-   are kept as aliases that resolve to the new token values so
-   older selectors continue to render at a stable size. The
-   previous `vh` values caused the entire UI to scale with the
-   viewport (4vh Ã¢â€°Ë† 43 px at 1080p, but 24 px at 800Ãƒâ€”600). */
-  --div-h-0: var(--control-height-xs);
-  --div-h-1: var(--control-height-sm);
-  --div-h-2: 64px;
-  --div-h-3: var(--control-height-xl);
-
-
-  /* Typography - fluid */
-  --c-font-1: 'Inter', sans-serif;
-  --font-fluid-10: clamp(10px, 0.5vw, 12px);
-  --font-fluid-12: clamp(11px, 0.6vw, 13px);
-  --font-fluid-14: clamp(12px, 0.7vw, 14px);
-  --font-fluid-16: clamp(14px, 0.8vw, 16px);
-  /* Size tokens */
-  --fs-xs: var(--font-fluid-10);   /* extra small */
-  --fs-sm: var(--font-fluid-12);   /* small */
-  --fs-base: var(--font-fluid-12); /* base */
-  /* Line-height ratios — smaller type is looser; larger type tightens */
-  --lh-ratio-10: 1.5;
-  --lh-ratio-12: 1.45;
-  --lh-ratio-14: 1.4;
-  --lh-ratio-16: 1.35;
-  --lh-xs: var(--lh-ratio-10);
-  --lh-sm: var(--lh-ratio-10);
-  --lh-base: var(--lh-ratio-12);
-
-}
-
-/* Text-size overrides Ã¢â‚¬â€ actually scale tokens up */
-:root[data-text-size="14"] {
-  --fs-xs: var(--font-fluid-12);
-  --fs-sm: var(--font-fluid-14);
-  --fs-base: var(--font-fluid-14);
-  --lh-xs: var(--lh-ratio-12);
-  --lh-sm: var(--lh-ratio-12);
-  --lh-base: var(--lh-ratio-14);
-}
-
-:root[data-text-size="16"] {
-  --fs-xs: var(--font-fluid-14);
-  --fs-sm: var(--font-fluid-16);
-  --fs-base: var(--font-fluid-16);
-  --lh-xs: var(--lh-ratio-14);
-  --lh-sm: var(--lh-ratio-14);
-  --lh-base: var(--lh-ratio-16);
-}
-
-
 
 /*GLOBAL RESETS*/
 *, *::before, *::after {
@@ -246,11 +142,11 @@ p.txt-xs{margin: 0px;}
 
 .editor-topbar-title {
   max-width: 100%;
-  padding: 2px 6px;
+  padding: var(--c-gap-0) var(--c-space-0);
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-weight: 700;
   cursor: text;
   text-align: left;
@@ -259,7 +155,7 @@ p.txt-xs{margin: 0px;}
   text-overflow: ellipsis;
 }
 .editor-topbar-title:hover {
-  background: var(--c-hover, rgba(0, 0, 0, 0.04));
+  background: var(--c-background-2);
 }
 
 /* Editor topbar title button: no border, transparent background (overrides .ctrl-xs when both classes apply) */
@@ -272,6 +168,9 @@ button.ctrl-xs.editor-topbar-title {
   background-color: transparent;
   width: 100%;
   font-size: var(--fs-sm);
+  justify-content: flex-start;
+  height: var(--c-sq-button);
+  min-height: var(--c-sq-button);
 }
 .ctrl-xs.editor-topbar-title-input,
 input.ctrl-xs.editor-topbar-title-input {
@@ -279,17 +178,16 @@ input.ctrl-xs.editor-topbar-title-input {
 }
 .editor-topbar-title-input {
   max-width: 100%;
-  padding: 2px 6px;
-  border: 1px solid var(--c-border, #d4d4d4);
+  padding: var(--c-gap-0) var(--c-space-0);
+  border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
-  background: var(--c-bg, #fff);
+  background: var(--c-background-3);
   color: var(--c-text-1);
   outline: none;
 }
 .editor-topbar-title-input:focus {
   flex: 1;
   min-width: 0;
-  border-color: var(--c-accent, #4a90e2);
 }
 
 /* Override button background for context window button */
@@ -309,7 +207,7 @@ input.ctrl-xs.editor-topbar-title-input {
 /*HEADER*/
 #header-bar {
   display: flex;
-  margin: 2px 0px 0px;
+  margin: var(--c-gap-0) 0px 0px;
   height: 100%;
   flex: 1 1 auto;
   flex-wrap: nowrap;
@@ -368,7 +266,7 @@ input.ctrl-xs.editor-topbar-title-input {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 6px 6px 6px 6px;
+  padding: var(--c-space-1);
   background-color: var(--c-background-4);
 }
 
@@ -377,7 +275,7 @@ input.ctrl-xs.editor-topbar-title-input {
   align-items: stretch;
   min-width: 0;
   min-height: 0;
-  height: 32px;
+  height: var(--control-height-sm);
   padding-left: 0;
   padding-right: 0;
   background-color: var(--c-background-4);
@@ -392,10 +290,12 @@ input.ctrl-xs.editor-topbar-title-input {
 
 .app-titlebar__main {
   display: flex;
+  align-items: center;
+  justify-content: center;
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
-  height: 32px;
+  height: var(--control-height-sm);
   overflow: hidden;
 }
 
@@ -407,22 +307,25 @@ input.ctrl-xs.editor-topbar-title-input {
 
 .app-titlebar__window-controls {
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  justify-content: center;
   flex: 0 0 auto;
+  width: 90px;
   height: 100%;
   background: transparent;
 }
 
 .app-titlebar__window-control {
-  width: 39px;
-  min-width: 32px;
-  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  max-width: var(--control-height-sm);
+  max-height: var(--control-height-sm);
   border: 0;
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: default;
 }
 
@@ -451,11 +354,11 @@ input.ctrl-xs.editor-topbar-title-input {
   min-height: 0;
 }
 
-.tabs-row .tbar-btn {
+.tabs-row .tbar-btn:not(.ui-icon-button) {
   width: fit-content;
   height: 100%;
   padding: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 /* "+" new-tab button Ã¢â‚¬â€ last child of .tabs-row.
@@ -520,13 +423,14 @@ input.ctrl-xs.editor-topbar-title-input {
   flex-wrap: nowrap;
   justify-content: flex-start;
   align-items: center;
-  height: 32px;
+  height: var(--control-height-sm);
   column-gap: 0px;
   width: 100%;
   min-width: 0;
-  padding: 6px;
-  padding-left: 20px;
-  border-radius: var(--radius-full);
+  padding: var(--c-space-0);
+  padding-left: var(--c-space-2);
+  border: var(--border-width) solid var(--c-border-1);
+  border-radius: var(--radius-sm);
   background-color: var(--c-background-3);
 }
 .task-toggle-bar-row > .task-title-input {
@@ -540,13 +444,13 @@ input.ctrl-xs.editor-topbar-title-input {
 }
 .task-title-bar-spread {
   justify-content: space-between;
-  column-gap: 12px;
+  column-gap: var(--c-space-0);
 }
 .task-title-bar-left {
   flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  column-gap: 12px;
+  column-gap: var(--c-space-3);
   min-width: 0;
 }
 .task-title-bar-left > .tdp-meta-controls {
@@ -569,11 +473,7 @@ input.ctrl-xs.editor-topbar-title-input {
 .task-toggle-bar-row > .subtask-section-toggle {
   display: grid;
   place-items: center;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   background: transparent;
   border: 0;
   border-radius: var(--radius-sm);
@@ -583,10 +483,7 @@ input.ctrl-xs.editor-topbar-title-input {
   color: var(--c-text-1);
   background: var(--c-background-2);
 }
-.task-toggle-bar-row > .tdp-meta-swap-btn,
-.task-toggle-bar-row > .context-panel-toggle {
-  flex: 0 0 auto;
-}
+
 .task-toggle-bar-row > .tdp-meta-swap-btn {
   margin-left: auto;
 }
@@ -618,19 +515,14 @@ input.ctrl-xs.editor-topbar-title-input {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 32px;
-  width: 0px;
-  height: 32px;
-  min-height: 32px;
-  padding: 0;
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .tdp-meta-swap-btn svg {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .tdp-meta-swap-btn:hover {
   background: var(--c-background-2);
@@ -642,15 +534,13 @@ input.ctrl-xs.editor-topbar-title-input {
 button.task-title-input {
   display: flex;
   align-items: center;
-  height: 20px;
-  min-height: 20px;
   width: 100%;
   flex: 1;
   margin-bottom: 0;
   padding-top: 0;
   padding-bottom: 0;
   padding-left: 0;
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
   border-top: none;
   border-right: none;
   border-bottom: none;
@@ -674,8 +564,6 @@ button.task-title-input:focus-visible,
 button.task-title-input:active {
   display: flex;
   align-items: center;
-  height: 20px;
-  min-height: 20px;
   outline: none;
   border-top: none;
   border-right: none;
@@ -685,7 +573,7 @@ button.task-title-input:active {
   padding-top: 0;
   padding-bottom: 0;
   padding-left: 0;
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
   font-size: var(--fs-sm);
   font-weight: 600;
   line-height: 1.3;
@@ -694,13 +582,11 @@ button.task-title-input:active {
 }
 input.task-title-input {
   display: block;
-  height: 20px;
-  min-height: 20px;
   width: 100%;
   flex: 1;
   min-width: 0;
   padding: 0;
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
   border: none;
   border-radius: var(--radius-sm);
   background-color: transparent;
@@ -712,18 +598,15 @@ input.task-title-input {
   outline: none;
   box-shadow: none;
   box-sizing: border-box;
-  vertical-align: middle;
   appearance: none;
   -webkit-appearance: none;
 }
 input.task-title-input:focus,
 input.task-title-input:focus-visible {
-  height: 20px;
-  min-height: 20px;
   flex: 1;
   min-width: 0;
   padding: 0;
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
   border: none;
   outline: none;
   box-shadow: none;
@@ -734,20 +617,16 @@ input.task-title-input:focus-visible {
 }
 
 .subtasks-toggle-btn {
-  flex: 0 0 var(--div-h-1);
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   margin-top: 0;
   margin-bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   vertical-align: middle;
-  padding: 0;
   border: none;
   border-radius: var(--radius-sm);
   background-color: var(--c-background-1);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
@@ -756,19 +635,17 @@ input.task-title-input:focus-visible {
   color: var(--c-accent-1);
 }
 .task-toggle-bar--on .subtasks-toggle-btn {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .subtasks-toggle-btn svg {
-  color: var(--c-text-2);
-  width: 16px;
-  height: 16px;
+  color: var(--c-text-3);
 }
 
 .tabs-dropdown-left {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 4px;
+  gap: var(--c-gap-1);
   width: 100%;
 }
 
@@ -785,7 +662,7 @@ input.task-title-input:focus-visible {
   flex: 1 1 auto;
   min-width: 0;
   gap: 0;
-  height: 32px;
+  height: var(--control-height-sm);
   vertical-align: middle;
   padding: 0;
   overflow-x: auto;
@@ -834,17 +711,17 @@ input.task-title-input:focus-visible {
 .tabs-row > .tab-active {
   max-width: 180px;
   width: fit-content;
-  padding-top: 6px;
-  padding-right: 12px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-0);
+  padding-right: var(--c-space-3);
+  padding-bottom: var(--c-space-0);
 }
 
 .tabs-row > .tab-passive {
   max-width: 180px;
   width: fit-content;
   min-width: unset;
-  padding-left: 12px;
-  padding-right: 12px;
+  padding-left: var(--c-space-3);
+  padding-right: var(--c-space-3);
 }
 
 /* Workspace tabs: wider fit-content so folder names stay readable */
@@ -858,7 +735,7 @@ input.task-title-input:focus-visible {
 .tabs-row > .tab-passive svg {
   padding-top: 0;
   padding-bottom: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 /* Workspace tab drag-to-reorder (subtle) */
@@ -888,7 +765,7 @@ input.task-title-input:focus-visible {
   bottom: 6px;
   width: 2px;
   border-radius: var(--radius-sm);
-  background: var(--c-accent-2, var(--c-accent-center-panel, #6b8afd));
+  background: var(--c-accent-2, var(--c-accent-1, #6b8afd));
   pointer-events: none;
   opacity: 0.85;
   transition: opacity 0.12s ease;
@@ -956,8 +833,8 @@ input.task-title-input:focus-visible {
   height: 24px;
   margin-top: 0;
   margin-bottom: 0;
-  gap: 4px;
-  background: var(--c-background-2);
+  gap: var(--c-gap-1);
+  background: var(--c-background-1);
   width: fit-content;
 }
 
@@ -977,41 +854,41 @@ input.task-title-input:focus-visible {
   border-radius: var(--radius-sm);
   height: 100%;
   margin-top: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   font-weight: 500;
   line-height: var(--line-normal);
-  padding-top: 8px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-1);
+  padding-bottom: var(--c-space-0);
 }
 
 [id^="tab-doc-passive"] {
   border-radius: var(--radius-sm);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-0);
+  padding-bottom: var(--c-space-0);
 }
 
 [id^="tab-module-passive"] {
   border-radius: var(--radius-sm);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  gap: 4px;
+  padding-top: var(--c-space-0);
+  padding-bottom: var(--c-space-0);
+  gap: var(--c-gap-1);
 }
 
 [id^="tab-ws-passive"] {
   border-radius: var(--radius-sm);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  gap: 4px;
+  padding-top: var(--c-space-0);
+  padding-bottom: var(--c-space-0);
+  gap: var(--c-gap-1);
 }
 
 [id^="tab-doc-passive"]:hover {
@@ -1026,7 +903,7 @@ input.task-title-input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
+  gap: var(--c-gap-1);
   width: fit-content;
 }
 
@@ -1037,15 +914,15 @@ input.task-title-input:focus-visible {
 
 .tabs-dropdown-toggle {
   width: 182px;
-  height: 32px;
+  height: var(--control-height-sm);
   border: none;
   border-radius: var(--radius-sm);
   background: var(--c-background-2);
   color: var(--c-text-1);
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 12px;
+  gap: var(--c-gap-1);
+  padding: 0 var(--c-space-3);
   font-size: var(--fs-sm);
   font-weight: 700;
   cursor: pointer;
@@ -1073,7 +950,7 @@ input.task-title-input:focus-visible {
   right: 0;
   max-height: 330px;
   overflow-y: auto;
-  padding: 6px 0;
+  padding: var(--c-space-0) 0;
 }
 
 .tabs-dropdown-item {
@@ -1082,7 +959,7 @@ input.task-title-input:focus-visible {
   background: transparent;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   padding: 7px 9px;
   cursor: pointer;
   color: var(--c-text-1);
@@ -1107,15 +984,12 @@ input.task-title-input:focus-visible {
   margin-left: 0;
   border: none;
   background: transparent;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
-  padding: 0;
   font-size: var(--fs-sm);
   border-radius: var(--radius-sm);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   transition: color 0.15s, background-color 0.15s;
 }
@@ -1133,7 +1007,7 @@ input.task-title-input:focus-visible {
 }
 
 .tabs-doc-marker--clean {
-  border: 1px solid var(--c-text-2);
+  border: 0;
   background: transparent;
 }
 
@@ -1143,7 +1017,7 @@ input.task-title-input:focus-visible {
 
 .tabs-dropdown-rename-input {
   border: none;
-  border-bottom: 1px solid var(--c-accent-1);
+  border-bottom: 1px solid var(--c-border-2);
   background: transparent;
   color: var(--c-text-1);
   outline: none;
@@ -1152,18 +1026,15 @@ input.task-title-input:focus-visible {
 }
 
 .tabs-dropdown-add {
-  width: 28px;
-  height: 28px;
   border-radius: var(--radius-sm);
   border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .tab-active {
-  background: var(--c-background-2);
+  background: var(--c-background-1);
   border-top: none;
   border-right: none;
   border-left: none;
@@ -1171,7 +1042,7 @@ input.task-title-input:focus-visible {
   border-radius: var(--radius-sm);
   height: 24px;
   margin-top: 0;
-  gap: 4px;
+  gap: var(--c-gap-1);
   color: white;
   font-size: var(--fs-sm);
   font-weight: 500;
@@ -1188,7 +1059,7 @@ input.task-title-input:focus-visible {
   border-radius: var(--radius-sm);
   height: 100%;
   min-width: unset;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1;
@@ -1220,15 +1091,15 @@ input.task-title-input:focus-visible {
   background: unset;
   background-color: rgba(211, 211, 211, 0);
   border-radius: var(--radius-sm);
-  height: 32px;
-  margin-top: 4px;
+  height: var(--control-height-sm);
+  margin-top: var(--c-gap-1);
   margin-bottom: 0;
 }
 
 [id^="tab-ws-passive"].tab-passive,
 [id^="tab-ws-passive"].tab-passive:hover {
   background-color: rgba(30, 30, 30, 0);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -1239,8 +1110,8 @@ input.task-title-input:focus-visible {
   width: fit-content;
   vertical-align: middle;
   line-height: var(--line-normal);
-  padding-left: 6px;
-  padding-right: 6px;
+  padding-left: var(--c-space-0);
+  padding-right: var(--c-space-0);
 }
 
 [id^="tab-doc-active"] span.txt-xs {
@@ -1254,8 +1125,8 @@ input.task-title-input:focus-visible {
 
 #scroll-tabs {
   overflow-x: scroll;
-  gap: 6px;
-  padding: 0 6px;
+  gap: var(--c-space-0);
+  padding: 0 var(--c-space-0);
   align-items: center;
 }
 
@@ -1268,19 +1139,16 @@ input.task-title-input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
-  min-height: 32px;
-  width: var(--div-h-1);
-  flex-shrink: 0;
-  margin: 4px 0 0;
+  margin: var(--c-gap-1) 0 0;
   border: none;
   border-radius: var(--radius-full);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   transition: background-color 0.15s;
   z-index: 1;
 }
 #tab-plus-button {
+  border-radius: var(--radius-sm);
   background-color: rgba(34, 34, 34, 0);
 }
 #tab-plus-button-task {
@@ -1292,43 +1160,31 @@ input.task-title-input:focus-visible {
 }
 #tab-plus-button svg,
 #tab-plus-button-task svg {
-  width: 12px;
-  height: 12px;
   font-size: var(--fs-sm);
 }
 
 [id^="tab-doc-"] svg.lucide-file-text {
-  width: 12px;
-  height: 12px;
   flex-shrink: 0;
 }
 
 [id^="tab-module-"] svg.lucide {
-  width: 12px;
-  height: 12px;
   flex-shrink: 0;
 }
 
 /* Tab close button Ã¢â‚¬â€ visible on every tab so users always know how to close it.
    Subdued by default, fully prominent on hover. */
 .tab-close {
-  flex-shrink: 0;
-  width: fit-content;
-  height: fit-content;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-sm);
-  margin-left: 6px;
+  margin-left: var(--c-space-0);
   transition: background-color 0.15s, color 0.15s, opacity 0.15s;
   opacity: 0.5;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 /* Active tab close button -- white for visibility on accent backgrounds */
@@ -1381,15 +1237,12 @@ input.task-title-input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
-  flex-shrink: 0;
   border-radius: var(--radius-sm);
-  border: 1px solid #cfcfcf;
+  border: 0;
   transition: all 0.1s;
   cursor: pointer;
   background: var(--c-background-3);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .header-toggle--on {
   background: var(--c-background-4);
@@ -1406,11 +1259,11 @@ input.task-title-input:focus-visible {
 /*SIDEBAR NAV*/
 .side-nav-tab {
   flex: 1;
-  height: var(--div-h-1);
+  height: var(--control-height-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   padding: 0;
   font-size: var(--fs-sm);
   font-weight: 600;
@@ -1419,7 +1272,7 @@ input.task-title-input:focus-visible {
   background: transparent;
   cursor: pointer;
   border-radius: var(--radius-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .side-nav-tab--on {
   color: var(--c-accent-1);
@@ -1459,22 +1312,22 @@ input.task-title-input:focus-visible {
   display: flex;
   align-items: center;
   overflow-x: scroll !important;
-  gap: 6px;
-  padding: 0 6px;
+  gap: var(--c-space-0);
+  padding: 0 var(--c-space-0);
   justify-content: flex-start;
 }
 .filetree-tabs-tabs {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--c-space-0);
 }
 
 .filetree-tab {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   height: 30px;
-  padding: 0 12px;
+  padding: 0 var(--c-space-3);
   font-size: var(--fs-sm);
   font-weight: 500;
   line-height: 1;
@@ -1485,7 +1338,7 @@ input.task-title-input:focus-visible {
 }
 .filetree-tab-passive {
   background: var(--c-background-2);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   margin: 0;
 }
 .filetree-tab-passive:hover {
@@ -1494,25 +1347,21 @@ input.task-title-input:focus-visible {
 }
 .filetree-tab.filetree-tab-active {
   background: var(--c-background-2);
-  color: var(--c-accent-left-panel);
+  color: var(--c-accent-1);
 }
 .filetree-tab:hover .filetree-tab-close {
   opacity: 1;
 }
 .filetree-tab-close {
-  flex-shrink: 0;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   font-size: var(--fs-sm);
-  padding: 0;
   opacity: 0;
   transition: opacity 0.15s;
 }
@@ -1524,19 +1373,14 @@ input.task-title-input:focus-visible {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 2px;
+  gap: var(--c-gap-0);
   width: fit-content;
   height: fit-content;
   flex-shrink: 0;
   margin-left: auto;
-  margin-right: 4px;
+  margin-right: var(--c-gap-1);
 }
 .filetree-actions .btn-icon {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  padding: 0;
   box-sizing: border-box;
 }
 .filetree-actions .btn-icon:hover {
@@ -1558,7 +1402,7 @@ input.task-title-input:focus-visible {
   border: none;
   border-bottom: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
-  padding: 8px 36px 8px 12px;
+  padding: var(--c-space-1) 36px var(--c-space-1) var(--c-space-3);
   outline: none;
   background: transparent;
   color: var(--c-text-1);
@@ -1572,21 +1416,19 @@ input.task-title-input:focus-visible {
   color: var(--c-text-3);
 }
 .filetree-search-input:focus {
-  border-bottom-color: var(--c-accent-1);
+  border-bottom-color: var(--c-border-2);
   background: transparent;
 }
 .filetree-search-clear {
   position: absolute;
   right: 5px;
   display: flex;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   align-items: center;
   justify-content: center;
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
 }
 .filetree-search-clear:hover {
@@ -1597,8 +1439,8 @@ input.task-title-input:focus-visible {
   display: flex;
   height: 28px;
   align-items: center;
-  padding: 0 12px;
-  color: var(--c-text-2);
+  padding: 0 var(--c-space-3);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   list-style: none;
 }
@@ -1613,7 +1455,7 @@ input.task-title-input:focus-visible {
 }
 .filetree-bc-label {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   white-space: nowrap;
 }
 .filetree-bc-root {
@@ -1627,7 +1469,7 @@ input.task-title-input:focus-visible {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  margin-left: 8px;
+  margin-left: var(--c-space-1);
 }
 .editor-bc-segment {
   display: inline-flex;
@@ -1636,17 +1478,17 @@ input.task-title-input:focus-visible {
   flex-shrink: 0;
 }
 .editor-bc-sep {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   flex-shrink: 0;
 }
 .editor-bc-ellipsis {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   flex-shrink: 0;
 }
 .editor-bc-label {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   white-space: nowrap;
 }
 .editor-bc-root {
@@ -1656,14 +1498,6 @@ input.task-title-input:focus-visible {
 .editor-bc-doc {
   color: var(--c-accent-1);
   font-weight: 500;
-}
-
-#filetree-list .tree-node svg.lucide {
-  width: 12px;
-  height: 12px;
-}
-#filetree-list .tree-node .trunc {
-  font-size: var(--fs-sm);
 }
 
 .tree-node {
@@ -1701,16 +1535,13 @@ ul {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   border-radius: var(--radius-sm);
   font-size: var(--fs-sm);
-  flex-shrink: 0;
   transition: background-color 0.15s, color 0.15s;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .tbar-btn--on {
   background: var(--c-background-4);
@@ -1735,12 +1566,14 @@ ul {
   flex-direction: row;
   align-items: center;
   width: 100%;
-  height: 32px;
+  height: var(--control-height-sm);
   flex-shrink: 0;
-  border-bottom: none;
-  border-radius: var(--radius-full);
+  border: var(--border-width) solid var(--c-border-1);
+  border-radius: var(--radius-sm);
   background-color: var(--c-background-3);
-  padding: 0 6px;
+  padding: 0;
+  padding-left: var(--c-space-0);
+  padding-right: var(--c-space-0);
   margin-top: 0;
   margin-bottom: 0px;
 }
@@ -1764,22 +1597,20 @@ ul {
   align-items: center;
   min-width: 0;
   height: fit-content;
+  column-gap: var(--c-gap-0);
 }
 .editor-topbar-col--right {
   justify-content: flex-end;
-  column-gap: 0px; row-gap: 0px;
+  column-gap: var(--c-gap-0);
+  row-gap: var(--c-gap-0);
 }
 
 #editor-topbar .tbar-btn {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
   box-sizing: border-box;
 }
 
 #editor-topbar-context {
-  margin-left: 4px;
+  margin-left: 0;
 }
 
 #editor-topbar .tbar-btn:hover,
@@ -1794,12 +1625,11 @@ ul {
 #editor-topbar .assistant-toggle:focus,
 #editor-topbar .context-panel-toggle:focus-visible,
 #editor-topbar .assistant-toggle:focus-visible {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
-#editor-topbar .context-panel-toggle:hover,
-#editor-topbar .assistant-toggle:hover {
-  color: var(--c-accent-1);
+#editor-topbar .tbar-btn:hover {
+  color: var(--c-text-1);
 }
 
 .editor-pane {
@@ -1819,19 +1649,19 @@ ul {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px;
-  background: var(--c-background-1);
+  gap: var(--c-gap-1);
+  padding: var(--c-space-0);
+  background: var(--c-background-3);
   border: 1px solid var(--c-border-2);
   border-radius: var(--radius-sm);
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
 }
 .editor-topbar-search-footer {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-space-1);
   width: 100%;
 }
 .editor-topbar-search-actions {
@@ -1893,13 +1723,13 @@ ul {
   font-weight: 700;
   line-height: 1.4;
   color: var(--c-text-1);
-  padding: 4px 0 8px 0;
+  padding: var(--c-gap-1) 0 var(--c-space-1) 0;
   margin-bottom: 16px;
   transition: border-color 0.15s;
   font-family: var(--c-font-1);
 }
 .doc-title-field:focus {
-  border-bottom-color: var(--c-accent-1);
+  border-bottom-color: var(--c-border-2);
 }
 .doc-title-field::placeholder {
   color: var(--c-text-3);
@@ -1921,10 +1751,10 @@ ul {
   color: var(--c-accent-1);
 }
 .tiptap-editor blockquote {
-  border-left: 3px solid var(--c-accent-1);
+  border-left: 0;
   padding-left: 1rem;
   margin: 1rem 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-style: italic;
 }
 .tiptap-editor code {
@@ -1971,7 +1801,7 @@ ul {
 .tiptap-editor mark {
   background: var(--c-background-4);
   border-radius: var(--radius-sm);
-  padding: 0 2px;
+  padding: 0 var(--c-gap-0);
 }
 .tiptap-editor ol {
   list-style-type: decimal;
@@ -2028,7 +1858,7 @@ ul {
   position: relative;
   min-width: 1em;
   border: 1px solid var(--c-border-1);
-  padding: 8px 6px;
+  padding: var(--c-space-1) var(--c-space-0);
   vertical-align: top;
 }
 .tiptap-editor th {
@@ -2058,20 +1888,20 @@ ul {
 .tiptap-editor ul[data-type='taskList'] li {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 .tiptap-editor ul[data-type='taskList'] li::before {
   display: none;
 }
 .tiptap-editor ul[data-type='taskList'] li > label {
   display: flex;
-  padding-top: 6px;
+  padding-top: var(--c-space-0);
 }
 .tiptap-editor ul[data-type='taskList'] li > div {
   flex: 1;
 }
 .tiptap-editor ul[data-type='taskList'] li[data-checked='true'] > div {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   text-decoration: line-through;
 }
 .block-insert-overlay {
@@ -2083,28 +1913,20 @@ button.block-insert-handle {
   align-items: center;
   justify-content: center;
   margin: 0;
-  width: 12px;
-  height: 12px;
-  min-width: 12px;
-  min-height: 12px;
-  padding: 0;
   line-height: 0;
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-full);
-  color: var(--c-text-2);
-  background: var(--center-bg);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+  color: var(--c-text-3);
+  background: var(--c-background-2);
+
   cursor: pointer;
 }
 button.block-insert-handle svg {
   display: block;
-  width: 8px;
-  height: 8px;
   flex-shrink: 0;
 }
 .block-insert-handle:hover {
   color: var(--c-text-1);
-  border-color: var(--c-accent-1);
   background: var(--c-background-2);
 }
 .block-insert-menu {
@@ -2123,7 +1945,7 @@ button.block-insert-handle svg {
   line-height: 1.6;
   color: var(--c-text-1);
   margin: 0;
-  padding: 6px;
+  padding: var(--c-space-0);
   min-height: 200px;
   width: 100%;
   background: transparent;
@@ -2153,57 +1975,7 @@ button.block-insert-handle svg {
   font-weight: 600;
   font-size: var(--fs-sm);
 }
-/*SHARED - INPUTS*/
-.ctrl {
-  font-size: var(--fs-sm);
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  outline: none;
-  background: var(--c-background-3);
-  color: var(--c-text-1);
-  transition: border-color 0.15s;
-}
-.ctrl--flat {
-  border-color: var(--c-border-1);
-  background: transparent;
-}
-.ctrl--flat:focus {
-  border-color: rgba(35, 114, 68, 1);
-}
-.ctrl--lg {
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-}
-.ctrl--mono {
-  font-family: var(--c-font-1);
-}
-.ctrl-sm {
-  font-size: var(--fs-sm);
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  padding: 4px 6px;
-  outline: none;
-  background: var(--c-background-3);
-  color: var(--c-text-1);
-  transition: border-color 0.15s;
-}
-.ctrl-sm:focus {
-  border-color: var(--c-accent-1);
-}
-.ctrl-xs {
-  font-size: var(--fs-sm);
-  border: 1px solid var(--c-border-1);
-  border-radius: var(--radius-sm);
-  padding: 2px 8px;
-  outline: none;
-  background: var(--c-background-3);
-  color: var(--c-text-1);
-  transition: border-color 0.15s;
-}
-.ctrl-xs:focus {
-  border-color: var(--c-accent-1);
-}
+/* Shared input and button appearance is owned by styles/controls.css. */
 /* Editor topbar title button: no border, transparent background */
 .ctrl-xs.editor-topbar-title,
 button.ctrl-xs.editor-topbar-title {
@@ -2212,7 +1984,11 @@ button.ctrl-xs.editor-topbar-title {
   border-style: none;
   border-image: none;
   background-color: transparent;
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
+}
+button.ctrl-xs.editor-topbar-title:hover {
+  color: var(--c-text-1);
 }
 .ctrl-xs.editor-topbar-title-input,
 input.ctrl-xs.editor-topbar-title-input {
@@ -2222,12 +1998,7 @@ input.ctrl-xs.editor-topbar-title-input {
 input.ctrl-xs.editor-topbar-search-input {
   background-color: var(--c-background-2);
 }
-.ctrl::placeholder {
-  color: var(--c-text-3);
-}
-.ctrl:focus {
-  border-color: var(--c-accent-1);
-}
+
 
 
 
@@ -2239,17 +2010,7 @@ input.ctrl-xs.editor-topbar-search-input {
 
 /*SHARED - BUTTONS*/
 
-/* Global button baseline Ã¢â‚¬â€ all 199 buttons connect to these tokens */
-button {
-  height: var(--control-height-sm);
-  width: var(--control-height-sm);
-  box-sizing: border-box;
-}
 
-button:hover {
-  background: none;
-  color: var(--c-accent-1);
-}
 
 /* Task list items: `.task-item` auto-sizes to its content
    (meta row + title). No fixed height â€” the button grows
@@ -2263,7 +2024,7 @@ button.task-item,
 .settings-list-item {
   height: auto;
   min-height: 0;
-  padding: 12px;
+  padding: var(--c-space-3);
   border: none;
   border-left: none;
   border-image: none;
@@ -2305,81 +2066,14 @@ button.calendar-task-row {
   width: 100%;
 }
 
-#settings-panel button.btn {
-  height: fit-content;
-}
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-  border: none;
-  padding: 6px 12px;
-  background: var(--c-background-3);
-  color: var(--c-text-2);
-}
-.btn-brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  background: var(--c-accent-1);
-  color: #fff;
-  border: none;
-  border-radius: var(--radius-sm);
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-.btn-brand:hover {
-  opacity: 0.9;
-}
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: background-color 0.15s, color 0.15s;
-  border: none;
-  background: transparent;
-  padding: 0;
-  flex-shrink: 0;
-}
-.btn-icon:hover {
-  background: var(--c-background-2);
-  color: var(--c-accent-1);
-}
-.btn-icon.composer-tool-button:hover {
-  background: transparent;
-}
-.btn-icon .lucide-folder-plus {
-  height: 13px;
-}
-.btn-icon .lucide-file-plus {
-  width: 14px;
-}
+
+
 .btn-send {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  min-width: 0;
-  min-height: 0;
   border-radius: var(--radius-full);
-  padding-top: 0px;
-  padding-bottom: 0px;
-  padding-left: 6px;
-  padding-right: 6px;
   margin-right: 0;
   transition: opacity 0.15s, transform 0.15s;
   cursor: pointer;
@@ -2399,58 +2093,24 @@ button.calendar-task-row {
 }
 :root #chat-input-card .btn-send {
   background-color: var(--c-accent-2);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .btn-send:not(:disabled):hover {
   background: var(--c-accent-1);
   background-color: var(--c-accent-1);
   color: var(--c-text-1);
 }
-.btn-xs {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-sm);
-  font-size: var(--fs-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.15s;
-  padding: 6px 12px;
-  white-space: nowrap;
-}
-.btn:hover {
-  background: var(--c-background-4);
-  color: var(--c-text-1);
-}
-.btn--primary {
-  background: var(--c-accent-1);
-  color: #fff;
-}
-.btn--primary:hover {
-  opacity: 0.9;
-  color: #fff;
-}
-.btn--secondary {
-  background: var(--c-background-3);
-  color: var(--c-text-2);
-}
-.btn--secondary:hover {
-  background: var(--c-background-4);
-  color: var(--c-text-1);
-}
+
 .nav-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
-  flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: none;
   transition: all 0.1s;
   cursor: pointer;
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .nav-btn--on {
   background: var(--c-background-4);
@@ -2467,11 +2127,11 @@ button.calendar-task-row {
 .nav-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .nav-btn:disabled:hover {
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 #nav-btn-settings {
   border-radius: var(--radius-sm);
@@ -2487,30 +2147,30 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--div-h-1);
+  min-height: var(--control-height-sm);
   flex-shrink: 0;
   border-radius: var(--radius-sm);
   border: none;
   transition: all 0.1s;
   cursor: pointer;
   background: transparent;
-  color: var(--c-text-2);
-  padding: 0 6px;
-  gap: 6px;
+  color: var(--c-text-3);
+  padding: 0 var(--c-space-0);
+  gap: var(--c-space-0);
 }
 
 #nav-bar .mode-btn,
 #right-nav-bar .mode-btn {
-  width: var(--div-h-1);
+  width: var(--control-height-sm);
   margin-top: 0;
-  padding: 8px 0;
+  padding: var(--c-space-1) 0;
   border-radius: var(--radius-sm);
   flex-direction: column;
 }
 
 #nav-bar #nav-btn-tasks {
-  height: var(--div-h-1);
-  min-height: var(--div-h-1);
+  height: var(--control-height-sm);
+  min-height: var(--control-height-sm);
   gap: 0;
   border-radius: var(--radius-sm);
 }
@@ -2578,7 +2238,7 @@ button.calendar-task-row {
   align-items: center;
   width: fit-content;
   height: fit-content;
-  gap: 4px;
+  gap: var(--c-gap-1);
   padding-top: 7px;
   padding-bottom: 7px;
   padding-left: 0;
@@ -2599,7 +2259,7 @@ button.calendar-task-row {
   height: 100%;
   margin-top: auto;
   justify-content: flex-end;
-  padding-bottom: 12px;
+  padding-bottom: var(--c-space-3);
   border-top: none;
 }
 
@@ -2619,14 +2279,14 @@ button.calendar-task-row {
   padding: 0;
 }
 .panel-s-sm {
-  padding: 8px 12px;
+  padding: var(--c-space-1) var(--c-space-3);
 }
 /*SHARED - PILLS*/
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 6px;
+  gap: var(--c-space-0);
+  padding: var(--c-gap-1) var(--c-space-0);
   border-radius: var(--radius-sm);
   font-size: var(--fs-sm);
   font-weight: 500;
@@ -2638,7 +2298,7 @@ button.calendar-task-row {
 
 }
 .pill--xs {
-  padding: 2px 6px;
+  padding: var(--c-gap-0) var(--c-space-0);
   font-size: var(--fs-sm);
 }
 
@@ -2654,12 +2314,12 @@ button.calendar-task-row {
 }
 .label {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .label-sm {
   font-size: var(--fs-sm);
   font-weight: 700;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 
 }
 .med {
@@ -2668,20 +2328,20 @@ button.calendar-task-row {
 }
 .meta {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .semibold {
   font-weight: 600;
 }
 .subtle {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .txt-base {
   font-size: var(--fs-sm);
 }
 .txt-sm {
-  font-size: var( --font-fluid-12);
+  font-size: var( --fs-sm);
 }
 .txt-xs {
   font-size: var(--fs-sm);
@@ -2694,12 +2354,12 @@ button.calendar-task-row {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  gap: 4px;
-  padding: 4px;
+  gap: var(--c-gap-1);
+  padding: var(--c-gap-1);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
   background: var(--c-background-2);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+
   overflow: hidden;
   animation: fadeIn 0.1s ease-out;
 }
@@ -2707,16 +2367,16 @@ button.calendar-task-row {
   position: absolute;
   z-index: 2147483647;
   margin: 0;
-  padding: 4px;
+  padding: var(--c-gap-1);
   min-width: 192px;
   border: 1px solid var(--c-border-1);
   background: var(--c-background-2);
 }
 .dropdown-menu {
-  padding: 4px;
+  padding: var(--c-gap-1);
 }
 .chat-history-dropdown {
-  padding: 4px;
+  padding: var(--c-gap-1);
 }
 
 /* Specific styles for dropdown in chat input */
@@ -2760,11 +2420,11 @@ button.calendar-task-row {
 .drop-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   width: 100%;
   min-width: 0;
   min-height: 34px;
-  padding: 6px 8px;
+  padding: var(--c-space-0) var(--c-space-1);
   font-size: var(--fs-sm);
   line-height: var(--line-tight);
   color: var(--c-text-1);
@@ -2810,7 +2470,7 @@ button.calendar-task-row {
 .drop-item:focus-visible {
   position: relative;
   z-index: 1;
-  outline: 2px solid var(--c-accent-2);
+  outline: 2px solid var(--c-border-2);
   outline-offset: -2px;
 }
 .drop-item .med {
@@ -2827,14 +2487,13 @@ button.calendar-task-row {
   box-sizing: border-box;
 }
 .metadata-pill-wrap .header-dropdown-button {
-  height: 22px;
-  padding: 2px 12px;
+  padding: var(--c-gap-0) var(--c-space-3);
 }
 .header-dropdown-button {
-  height: 32px;
+  height: var(--control-height-sm);
   justify-content: space-between;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: var(--c-gap-1);
+  padding: var(--c-space-0) var(--c-space-3);
   border-radius: var(--radius-sm);
   border: none;
   background: transparent;
@@ -2847,9 +2506,6 @@ button.calendar-task-row {
   background: var(--c-background-2);
 }
 #btn-chat-clear {
-  height: var(--div-h-1);
-  width: var(--div-h-1);
-  padding: 0;
   justify-content: center;
 }
 .header-dropdown-label-text {
@@ -2858,7 +2514,7 @@ button.calendar-task-row {
 }
 .header-dropdown-menu {
   top: 100%;
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
 }
 .header-dropdown-menu--left {
   left: 0;
@@ -2874,29 +2530,29 @@ button.calendar-task-row {
 }
 .header-dropdown-menu--wide {
   width: 288px;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: var(--c-space-1);
+  padding-bottom: var(--c-space-1);
 }
 .header-dropdown-menu--match {
   left: 0;
   right: 0;
 }
 .header-dropdown-label {
-  padding: 6px 12px;
+  padding: var(--c-space-0) var(--c-space-3);
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   text-transform: uppercase;
 }
 .header-dropdown-empty {
-  padding: 8px 12px;
+  padding: var(--c-space-1) var(--c-space-3);
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .header-dropdown-separator {
   border-top: 1px solid var(--c-border-1);
-  margin-top: 4px;
-  padding-top: 4px;
+  margin-top: var(--c-gap-1);
+  padding-top: var(--c-gap-1);
 }
 .header-dropdown-item--active {
   background-color: var(--c-accent-3);
@@ -2913,18 +2569,18 @@ button.calendar-task-row {
   align-items: flex-start;
 }
 .header-dropdown-item--spacious {
-  gap: 12px;
-  padding: 8px 12px;
+  gap: var(--c-space-3);
+  padding: var(--c-space-1) var(--c-space-3);
 }
 @keyframes fadeIn {
   from {
     opacity: 0;
     transform: translateY(-4px);
-  }
+}
   to {
     opacity: 1;
     transform: translateY(0);
-  }
+}
 }
 /*SHARED - MODALS*/
 .modal {
@@ -2954,15 +2610,14 @@ button.calendar-task-row {
   align-items: center;
   padding: 16px 20px;
   border-top: 1px solid var(--c-border-1);
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 .modal-close {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   transition: color 0.15s;
   background: none;
   border: none;
-  padding: 0;
 }
 .modal-close:hover {
   color: var(--c-text-1);
@@ -3038,7 +2693,7 @@ button.calendar-task-row {
 }
 
 .provider-accordion-trigger:focus-visible {
-  outline: 1px solid var(--c-accent-1);
+  outline: 1px solid var(--c-border-2);
   outline-offset: -1px;
 }
 
@@ -3064,7 +2719,7 @@ button.calendar-task-row {
 }
 
 .provider-model-row:focus-visible {
-  outline: 1px solid var(--c-accent-1);
+  outline: 1px solid var(--c-border-2);
   outline-offset: -1px;
 }
 
@@ -3096,7 +2751,7 @@ button.calendar-task-row {
 }
 
 .agent-accordion-trigger:focus-visible {
-  outline: 1px solid var(--c-accent-1);
+  outline: 1px solid var(--c-border-2);
   outline-offset: -1px;
 }
 
@@ -3107,7 +2762,7 @@ button.calendar-task-row {
 .agent-scope-badge {
   font-size: var(--fs-sm);
   font-weight: 500;
-  padding: 2px 8px;
+  padding: var(--c-gap-0) var(--c-space-1);
   border-radius: var(--radius-full);
   white-space: nowrap;
 }
@@ -3117,13 +2772,13 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--c-space-3) 16px;
   border: 1px dashed var(--c-border-1);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
@@ -3132,12 +2787,11 @@ button.calendar-task-row {
 
 .new-agent-btn:hover {
   background: var(--c-background-2);
-  border-color: var(--c-accent-1);
   color: var(--c-text-1);
 }
 
 .new-agent-btn:focus-visible {
-  outline: 2px solid var(--c-accent-1);
+  outline: 2px solid var(--c-border-2);
   outline-offset: 1px;
 }
 
@@ -3146,13 +2800,13 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   width: 100%;
-  padding: 12px 16px;
+  padding: var(--c-space-3) 16px;
   border: 1px dashed var(--c-border-1);
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
   font-weight: 500;
   cursor: pointer;
@@ -3166,7 +2820,7 @@ button.calendar-task-row {
 }
 
 .connect-provider-btn:focus-visible {
-  outline: 2px solid var(--c-accent-1);
+  outline: 2px solid var(--c-border-2);
   outline-offset: 1px;
 }
 
@@ -3216,8 +2870,8 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 12px 20px;
+  gap: var(--c-space-1);
+  padding: var(--c-space-3) 20px;
   border-top: 1px solid var(--c-border-1);
   flex-shrink: 0;
 }
@@ -3242,7 +2896,7 @@ button.calendar-task-row {
 }
 
 .model-switch:focus-visible {
-  outline: 2px solid var(--c-accent-1);
+  outline: 2px solid var(--c-border-2);
   outline-offset: 2px;
 }
 
@@ -3250,7 +2904,7 @@ button.calendar-task-row {
   background: var(--c-background-3);
   border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: var(--c-space-3);
   pointer-events: none;
 }
 
@@ -3261,7 +2915,7 @@ button.calendar-task-row {
     height: 100%;
     max-height: calc(100dvh - 32px);
     border-radius: var(--radius-sm);
-  }
+}
 }
 
 /*ARCHIVE SETUP MODAL - removed: classes not used in any component */
@@ -3274,12 +2928,17 @@ button.calendar-task-row {
   max-width: 400px;
   width: 90%;
 }
+.confirm-box.notes-dialog {
+  background: var(--c-background-2);
+  border: solid var(--border-width) var(--c-border-1);
+  padding: var(--c-space-2);
+}
 #confirm-dialog {
   border: 1px solid var(--c-border-1);
   margin-top: 300px;
   justify-content: center;
 }
-.confirm-box button {
+.confirm-box button:not(.ui-icon-button):not(.notes-color-option):not(.notes-icon-button) {
   width: fit-content;
 }
 .confirm-overlay {
@@ -3290,7 +2949,7 @@ button.calendar-task-row {
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: var(--space-10);
+  padding-top: calc(4 * var(--c-space-2));
 }
 .confirm-overlay--anchored {
   padding: 0;
@@ -3309,7 +2968,7 @@ button.calendar-task-row {
   z-index: 200;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 /*SHARED - LAYOUT HELPERS*/
 .block {
@@ -3318,7 +2977,7 @@ button.calendar-task-row {
 .col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 .flex {
   display: flex;
@@ -3341,17 +3000,17 @@ button.calendar-task-row {
   gap: 0;
 }
 .gap-1 {
-  gap: 4px;
+  gap: var(--c-gap-1);
 }
 .gap-1\.5,
 .gap-1-5 {
-  gap: 6px;
+  gap: var(--c-space-0);
 }
 .gap-2 {
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 .gap-3 {
-  gap: 12px;
+  gap: var(--c-space-3);
 }
 .gap-4 {
   gap: 16px;
@@ -3371,12 +3030,12 @@ button.calendar-task-row {
 .row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 .row-xs {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   margin-left: 0;
   margin-right: 0;
 }
@@ -3504,31 +3163,31 @@ button.calendar-task-row {
 }
 /*SHARED - PADDING*/
 .pb-1 {
-  padding-bottom: 4px;
+  padding-bottom: var(--c-gap-1);
 }
 .pl-3 {
-  padding-left: 12px;
+  padding-left: var(--c-space-3);
 }
 .pr-3 {
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
 }
 .pr-1 {
-  padding-right: 4px;
+  padding-right: var(--c-gap-1);
 }
 .pr-1\.5,
 .pr-1-5 {
-  padding-right: 6px;
+  padding-right: var(--c-space-0);
 }
 .pt-3 {
-  padding-top: 12px;
+  padding-top: var(--c-space-3);
 }
 .px-2 {
-  padding-left: 8px;
-  padding-right: 8px;
+  padding-left: var(--c-space-1);
+  padding-right: var(--c-space-1);
 }
 .px-3 {
-  padding-left: 6px;
-  padding-right: 6px;
+  padding-left: var(--c-space-0);
+  padding-right: var(--c-space-0);
 }
 .px-4 {
   padding-left: 16px;
@@ -3536,25 +3195,25 @@ button.calendar-task-row {
 }
 .py-1\.5,
 .py-1-5 {
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-0);
+  padding-bottom: var(--c-space-0);
 }
 .py-12 {
   padding-top: 48px;
   padding-bottom: 48px;
 }
 .py-2 {
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: var(--c-space-1);
+  padding-bottom: var(--c-space-1);
 }
 .py-2\.5,
 .py-2-5 {
-  padding-top: 12px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-3);
+  padding-bottom: var(--c-space-0);
 }
 .py-3 {
-  padding-top: 12px;
-  padding-bottom: 12px;
+  padding-top: var(--c-space-3);
+  padding-bottom: var(--c-space-3);
 }
 /*SHARED - MARGIN*/
 .mb-0 {
@@ -3562,37 +3221,37 @@ button.calendar-task-row {
 }
 .mb-0\.5,
 .mb-0-5 {
-  margin-bottom: 2px;
+  margin-bottom: var(--c-gap-0);
 }
 .mb-2 {
-  margin-bottom: 8px;
+  margin-bottom: var(--c-space-1);
 }
 .mb-3 {
-  margin-bottom: 12px;
+  margin-bottom: var(--c-space-3);
 }
 .ml-1 {
-  margin-left: 4px;
+  margin-left: var(--c-gap-1);
 }
 .mr-0 {
   margin-right: 0;
 }
 .mt-0\.5,
 .mt-0-5 {
-  margin-top: 2px;
+  margin-top: var(--c-gap-0);
 }
 .mt-1 {
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
 }
 .mt-1\.5,
 .mt-1-5 {
-  margin-top: 6px;
+  margin-top: var(--c-space-0);
 }
 .mt-auto {
   margin-top: auto;
 }
 .mx-3 {
-  margin-left: 12px;
-  margin-right: 12px;
+  margin-left: var(--c-space-3);
+  margin-right: var(--c-space-3);
 }
 .mx-4 {
   margin-left: 16px;
@@ -3630,7 +3289,7 @@ button.calendar-task-row {
   transition: opacity 0.15s;
 }
 .tt-primary {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .tt-primary:hover {
   color: var(--c-text-1);
@@ -3640,7 +3299,7 @@ button.calendar-task-row {
 }
 #task-comment-thread .meta {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 /* ============================================================
@@ -3648,10 +3307,7 @@ button.calendar-task-row {
    (panel-root shell rules moved to src/styles/panels.css)
    ============================================================ */
 
-:root .btn-brand {
-  background: linear-gradient(135deg, #c2410c 0%, #ea580c 100%);
-  color: #fff;
-}
+
 
 /*APP LAYOUT*/
 :root #left-resize-handle {
@@ -3659,7 +3315,6 @@ button.calendar-task-row {
   width: 1px;
   min-width: 1px;
   border: none;
-  border-right: 1px solid #000;
 }
 :root #left-resize-handle:hover {
   background: var(--c-background-2);
@@ -3681,7 +3336,7 @@ button.calendar-task-row {
   padding: 0px;
 }
 :root #header-bar .tabs-row {
-  height: 32px;
+  height: var(--control-height-sm);
 }
 
 /* AI Sidebar Toggle Column */
@@ -3689,27 +3344,21 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  gap: var(--c-gap-0);
   width: fit-content;
   height: 100%;
   flex-shrink: 0;
 }
 .ai-toggle-btn {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
   box-sizing: border-box;
   background: transparent;
   background-color: transparent;
   border: none;
   cursor: pointer;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .ai-toggle-btn:hover {
   background: transparent;
@@ -3721,7 +3370,7 @@ button.calendar-task-row {
   background: transparent;
   background-color: transparent;
   color: var(--c-accent-1);
-  outline: 2px solid var(--c-accent-center-panel);
+  outline: 2px solid var(--c-border-2);
   outline-offset: -2px;
 }
 .ai-toggle-btn--on {
@@ -3731,10 +3380,10 @@ button.calendar-task-row {
 .ai-toggle-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .ai-toggle-btn:disabled:hover {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root .tabs-dropdown-toggle {
   background: transparent;
@@ -3748,32 +3397,30 @@ button.calendar-task-row {
   background: var(--c-background-4);
 }
 :root .tabs-dropdown-menu {
-  background: var(--center-bg);
-  border: 1px solid var(--layout-border);
+  background: var(--c-background-2);
+  border: 1px solid var(--c-border-1);
   border-radius: var(--radius-sm);
 }
 :root .tabs-dropdown-item:hover,
 :root .tabs-dropdown-item--active {
   background: var(--c-background-2);
 }
-:root .tabs-doc-marker--clean {
-  border-color: var(--c-text-2);
-}
+
 :root .tabs-doc-marker--edited {
-  background: var(--c-accent-left-panel);
+  background: var(--c-accent-1);
 }
 :root .tabs-dropdown-close:hover {
   background: var(--c-background-2);
 }
 :root .tab-active {
-  background: var(--c-background-2);
+  background: var(--c-background-1);
   border-top: none;
   border-right: none;
   border-left: none;
   border-bottom: none;
   border-radius: var(--radius-sm);
   height: 24px;
-  gap: 4px;
+  gap: var(--c-gap-1);
   color: var(--c-text-1);
 }
 :root [id^="tab-doc-active"].tab-active,
@@ -3786,8 +3433,8 @@ button.calendar-task-row {
   height: 24px;
   margin-top: 0;
   margin-bottom: 0;
-  gap: 4px;
-  background: var(--c-background-2);
+  gap: var(--c-space-0);
+  background: var(--c-background-1);
   width: fit-content;
 }
 
@@ -3796,11 +3443,11 @@ button.calendar-task-row {
 }
 :root [id^="tab-doc-passive"].tab-passive {
   border-radius: var(--radius-sm);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: var(--c-space-0);
+  padding-bottom: var(--c-space-0);
   background-color: rgba(26, 26, 26, 0);
 }
 :root [id^="tab-doc-passive"].tab-passive:hover {
@@ -3836,19 +3483,21 @@ button.calendar-task-row {
   background: unset;
   background-color: rgba(211, 211, 211, 0);
   border-radius: var(--radius-sm);
-  height: 32px;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
 }
 
 :root [id^="tab-ws-passive"].tab-passive,
 :root [id^="tab-ws-passive"].tab-passive:hover {
-  background-color: rgba(30, 30, 30, 0);
-  height: 32px;
+  background-color: transparent;
+  height: var(--control-height-sm);
   margin-top: 0;
   margin-bottom: 0;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  padding-top: 0;
+  padding-right: var(--c-space-0);
+  padding-bottom: 0;
+  padding-left: var(--c-space-1);
 }
 
 :root #tab-plus-button,
@@ -3858,18 +3507,14 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 32px;
-  min-height: 32px;
-  width: var(--topbar-height);
-  flex-shrink: 0;
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
   border-radius: var(--radius-full);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   z-index: 1;
 }
 :root #tab-plus-button {
+  border-radius: var(--radius-sm);
   background-color: rgba(34, 34, 34, 0);
-  width: var(--div-h-1);
 }
 :root #tab-plus-button:hover,
 :root #tab-plus-button-task:hover {
@@ -3883,7 +3528,7 @@ button.calendar-task-row {
 
 /*SIDEBAR NAV*/
 :root .side-nav-tab {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root .side-nav-tab--on {
   color: var(--c-accent-1);
@@ -3919,7 +3564,7 @@ button.calendar-task-row {
 
 :root .filetree-tab-passive {
   background: var(--c-background-2);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   border: 1px solid var(--c-border-1);
 }
 :root .filetree-tab-passive:hover {
@@ -3936,7 +3581,7 @@ button.calendar-task-row {
   color: var(--c-danger);
 }
 :root .editor-breadcrumbs {
-  margin-left: 12px;
+  margin-left: var(--c-space-3);
 }
 /*CENTER PANEL - EDITOR (shell rules moved to src/styles/panels.css) */
 :root #editor-card-wrapper {
@@ -3961,7 +3606,7 @@ button.calendar-task-row {
   transition: border-color 0.15s;
 }
 :root .doc-title-field:focus {
-  border-bottom-color: var(--c-accent-1);
+  border-bottom-color: var(--c-border-2);
 }
 :root .doc-title-field::placeholder {
   color: var(--c-text-3);
@@ -4024,7 +3669,7 @@ button.calendar-task-row {
 :root .drop {
   background: var(--c-background-2) !important;
   border: 1px solid var(--c-border-1) !important;
-  padding: 4px;
+  padding: var(--c-gap-1);
 }
 
 /* Selection toolbar floating menu */
@@ -4042,15 +3687,10 @@ button.calendar-task-row {
 .selection-toolbar .row-xs {
   display: inline-flex;
   height: 24px;
-  gap: 8px;
+  gap: var(--c-space-1);
 }
 
 .selection-toolbar .tbar-btn {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  padding: 0;
   box-sizing: border-box;
 }
 
@@ -4061,19 +3701,17 @@ button.calendar-task-row {
 .selection-toolbar-actions {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 4px;
+  gap: var(--c-gap-1);
   align-items: stretch;
-  margin-top: 4px;
-  padding: 6px 0 0;
+  margin-top: var(--c-gap-1);
+  padding: var(--c-space-0) 0 0;
   border-top: 1px solid var(--c-border-1);
 }
 
 .selection-toolbar-action-btn {
   width: 100%;
   min-width: 0;
-  height: 24px;
-  min-height: 0;
-  padding: 0 8px;
+  padding: 0 var(--c-space-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4103,9 +3741,6 @@ button.calendar-task-row {
   right: 0;
   bottom: 100%;
   margin-bottom: 5px;
-  width: 24px;
-  height: 24px;
-  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -4122,8 +3757,6 @@ button.calendar-task-row {
 }
 
 .selection-toolbar-close svg {
-  width: 14px;
-  height: 14px;
   display: block;
 }
 
@@ -4138,11 +3771,15 @@ button.calendar-task-row {
   min-width: 0;
   display: flex;
   align-items: center;
-  height: 32px;
-  gap: 4px;
-  border-radius: var(--radius-full);
+  height: var(--control-height-sm);
+  gap: var(--c-gap-1);
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
   font-size: var(--fs-sm);
+}
+
+.filetree-folder-control.has-folder {
+  border: var(--border-width) solid var(--c-border-1);
 }
 
 .filetree-folder-control.has-folder > .filetree-select-folder-label {
@@ -4150,23 +3787,19 @@ button.calendar-task-row {
 }
 
 .filetree-change-folder-btn {
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  margin: 0 0 0 4px;
-  padding: 0;
+  margin: 0 0 0 var(--c-gap-1);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
 }
 
 .filetree-change-folder-btn:focus-visible {
-  outline: 1px solid var(--c-accent-1);
+  outline: 1px solid var(--c-border-2);
   outline-offset: 1px;
 }
 
@@ -4179,17 +3812,18 @@ button.calendar-task-row {
   flex: 1;
   width: 100%;
   min-width: 0;
-  height: 32px;
+  min-height: 0;
+  height: var(--control-height-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: var(--c-space-0);
   margin: 0;
-  padding: 4px 12px;
-  border: none;
-  border-radius: var(--radius-full);
+  padding: var(--c-gap-1) var(--c-space-3);
+  border: var(--border-width) solid var(--c-border-1);
+  border-radius: var(--radius-sm);
   background: var(--c-background-3);
-  color: var(--c-text-1);
+  color: var(--c-text-3);
   font-family: var(--c-font-1) !important;
   font-size: var(--fs-sm);
   font-weight: 500;
@@ -4202,6 +3836,7 @@ button.calendar-task-row {
 
 .filetree-select-folder-btn:hover:not(:disabled) {
   background-color: var(--c-background-3);
+  color: var(--c-text-1);
 }
 
 .filetree-select-folder-btn:focus,
@@ -4218,7 +3853,7 @@ button.calendar-task-row {
 
 .filetree-select-folder-icon {
   flex-shrink: 0;
-  color: var(--c-text-2);
+  color: inherit;
 }
 
 .filetree-select-folder-label {
@@ -4227,6 +3862,16 @@ button.calendar-task-row {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.filetree-select-folder-btn > .filetree-select-folder-label {
+  flex: 0 1 auto;
+  color: var(--c-text-3);
+  font-weight: 100;
+}
+
+.filetree-select-folder-btn:hover:not(:disabled) > .filetree-select-folder-label {
+  color: var(--c-text-1);
 }
 
 /* File-tree search input (shell rules moved to src/styles/panels.css) */
@@ -4259,7 +3904,7 @@ button.calendar-task-row {
   grid-template-rows: 1fr;
   height: fit-content;
   width: 100%;
-  padding: 0 12px 6px 6px;
+  padding: 5px var(--c-space-3) 9px var(--c-space-0);
   border: none;
   border-top: none;
   border-image: none;
@@ -4278,7 +3923,7 @@ button.calendar-task-row {
 :root #task-comment-card .task-comment-bottom-col--left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   width: 100%;
   min-width: 0;
   padding-right: 0px;
@@ -4291,15 +3936,9 @@ button.calendar-task-row {
   padding-right: 0;
 }
 :root #task-comment-card .btn-send {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
   border-radius: var(--radius-full);
-  padding-left: 0;
-  padding-right: 0;
   background-color: var(--c-accent-2);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #task-comment-card .btn-send:not(:disabled):hover {
   background: var(--c-accent-1);
@@ -4325,7 +3964,6 @@ button.calendar-task-row {
 :root #btn-clear-chat {
   background: var(--c-background-1);
   border: none;
-  padding: var(--space-1) !important;
 }
 
 /* AI answer bubbles */
@@ -4352,9 +3990,9 @@ button.calendar-task-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-rows: 1fr;
-  min-height: 32px;
+  min-height: var(--control-height-sm);
   width: 100%;
-  padding: 0 12px 12px;
+  padding: 0 var(--c-space-3) var(--c-space-3);
   border: none;
   border-top: none;
   border-image: none;
@@ -4369,7 +4007,7 @@ button.calendar-task-row {
   align-items: center;
   height: fit-content;
   min-height: 0;
-  padding: 0 12px 6px 6px;
+  padding: 0 var(--c-space-3) var(--c-space-0) var(--c-space-0);
   gap: 0;
   overflow: visible;
   z-index: 2;
@@ -4380,21 +4018,21 @@ button.calendar-task-row {
   align-items: center;
   height: fit-content;
   min-width: 0;
-  padding: 0 6px 6px;
+  padding: 0 var(--c-space-0) var(--c-space-0);
 }
 :root #chat-input-card .chat-input-bottom-col--left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   width: 100%;
   min-width: 0;
   overflow: visible;
-  padding: 0 4px;
+  padding: 0 var(--c-gap-1);
   height: fit-content;
 }
 :root #chat-input-card .chat-input-bottom-col--tools {
   display: flex;
-  gap: 4px;
+  gap: var(--c-gap-1);
   padding: 0;
   min-width: 0;
   overflow: visible;
@@ -4410,14 +4048,7 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  gap: 0;
   box-sizing: border-box;
-  flex-shrink: 0;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -4429,19 +4060,16 @@ button.calendar-task-row {
   overflow: hidden;
 }
 :root #chat-input-card .chat-input-bottom-col--tools .chat-input-dropup-btn {
-  width: 32px;
-  height: 32px;
   border-radius: var(--radius-sm);
 }
 :root #chat-input-card .chat-input-bottom-col--tools .chat-input-dropup-btn:hover {
   background: transparent;
+  color: var(--c-text-1);
+}
+:root #chat-input-card .chat-input-bottom-col--tools .chat-input-dropup-btn:hover .chat-input-dropup-icon {
+  color: var(--c-text-1);
 }
 :root #chat-input-card .composer-tool-button {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
   box-sizing: border-box;
 }
 :root #chat-input-card .composer-tool-button:hover {
@@ -4449,8 +4077,6 @@ button.calendar-task-row {
 }
 :root #chat-input-card .chat-input-dropup-btn .chat-input-dropup-icon {
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
   color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-bottom-col--model {
@@ -4463,11 +4089,11 @@ button.calendar-task-row {
 :root #chat-input-card .chat-input-bottom-col--model .chat-input-dropup-btn {
   width: auto;
   max-width: 100%;
-  min-width: 32px;
-  height: 32px;
-  margin-right: 4px;
-  padding: 0 8px;
-  gap: 6px;
+  min-width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  margin-right: var(--c-gap-1);
+  padding: 0 var(--c-space-1);
+  gap: var(--c-space-0);
   justify-content: flex-start;
   flex-shrink: 1;
 }
@@ -4479,10 +4105,7 @@ button.calendar-task-row {
   z-index: 3;
 }
 :root #chat-input-card .chat-input-bottom-col--agent .chat-input-dropup-btn {
-  width: 32px;
-  height: 32px;
-  margin-right: 4px;
-  padding: 0;
+  margin-right: var(--c-gap-1);
 }
 :root #chat-input-card .chat-input-dropup-chevron {
   display: none;
@@ -4491,13 +4114,10 @@ button.calendar-task-row {
   display: block;
   flex: 1 1 auto;
 }
-:root .btn-send svg {
-  width: 14px;
-  height: 24px;
-}
+
 :root #chat-input-card .chat-input-dropup-btn .chat-input-dropup-chevron {
   flex-shrink: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn .chat-input-dropup-label {
   min-width: 0;
@@ -4509,29 +4129,29 @@ button.calendar-task-row {
 }
 :root #chat-input-card .chat-input-dropup-btn:hover {
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn:hover .chat-input-dropup-label {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn:hover .chat-input-dropup-chevron {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn:hover .chat-input-dropup-icon {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn[data-active='true'] {
   color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn[data-active='true']:hover .chat-input-dropup-label {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn[data-active='true']:hover .chat-input-dropup-chevron {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #chat-input-card .chat-input-dropup-btn:focus-visible {
   color: var(--c-accent-3);
-  outline: 1px solid var(--c-accent-3);
+  outline: 1px solid var(--c-border-2);
   outline-offset: 1px;
 }
 :root #chat-input-card .chat-input-dropup-btn:focus-visible .chat-input-dropup-label,
@@ -4540,12 +4160,7 @@ button.calendar-task-row {
   color: var(--c-accent-3);
 }
 @container (max-width: 280px) {
-  :root #chat-input-card .chat-input-bottom-col--tools .chat-input-dropup-btn,
-  :root #chat-input-card .chat-input-bottom-col--agent .chat-input-dropup-btn {
-    width: 32px;
-    height: 32px;
-    padding: 0;
-  }
+
 }
 :root #chat-input {
   border: none;
@@ -4570,13 +4185,13 @@ button.calendar-task-row {
   right: 0;
   width: 16px;
   height: 14px;
-  margin: 8px 16px;
+  margin: var(--c-space-1) 16px;
   cursor: ns-resize;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 5;
-  color: var(--c-text-2, #999);
+  color: var(--c-text-3, #999);
   touch-action: none;
   user-select: none;
 }
@@ -4584,11 +4199,12 @@ button.calendar-task-row {
   content: '';
   width: 8px;
   height: 2px;
-  border-top: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
+  border-top: 1px solid var(--c-border-2);
+  border-bottom: 1px solid var(--c-border-2);
   opacity: 0.6;
 }
 :root #chat-input-card .composer-resize-handle:hover::before {
+  color: var(--c-text-1);
   opacity: 1;
 }
 :root #chat-input-root,
@@ -4639,8 +4255,8 @@ button.calendar-task-row {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
+  gap: var(--c-space-0);
+  margin-bottom: var(--c-gap-1);
 }
 
 .auth-gate-logo {
@@ -4654,7 +4270,7 @@ button.calendar-task-row {
   color: #fff;
   font-size: var(--fs-sm);
   font-weight: 700;
-  margin-bottom: 4px;
+  margin-bottom: var(--c-gap-1);
 }
 
 .auth-gate-title {
@@ -4667,7 +4283,7 @@ button.calendar-task-row {
 
 .auth-gate-subtitle {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   margin: 0;
   text-align: center;
 }
@@ -4675,7 +4291,7 @@ button.calendar-task-row {
 .auth-gate-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--c-space-3);
 }
 
 .auth-gate-h2 {
@@ -4687,14 +4303,14 @@ button.calendar-task-row {
 
 .auth-gate-hint {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   line-height: 1.5;
   margin: 0;
 }
 
 .auth-gate-hint code {
   background: var(--c-background-3);
-  padding: 1px 6px;
+  padding: 1px var(--c-space-0);
   border-radius: var(--radius-sm);
   font-family: 'SF Mono', Menlo, Consolas, monospace;
   font-size: var(--fs-sm);
@@ -4708,43 +4324,43 @@ button.calendar-task-row {
   font-size: var(--fs-sm);
   color: var(--c-danger);
   margin: 0;
-  padding: 8px 6px;
+  padding: var(--c-space-1) var(--c-space-0);
   border-radius: var(--radius-sm);
   background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 0;
   line-height: 1.4;
 }
 
 .auth-gate-label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--c-gap-1);
 }
 
 .auth-gate-label > span {
   font-size: var(--fs-sm);
   font-weight: 500;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 .auth-gate-input {
   font-size: var(--fs-sm);
-  padding: 9px 6px;
+  padding: 9px var(--c-space-0);
   border-radius: var(--radius-sm);
 }
 
 .auth-gate-input:focus {
-  border-color: var(--c-accent-1);
+  border-color: var(--c-border-2);
   outline: none;
 }
 
 .auth-gate-submit {
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 6px 14px;
+  gap: var(--c-space-1);
+  padding: var(--c-space-0) 14px;
   font-size: var(--fs-sm);
   font-weight: 600;
   border-radius: var(--radius-full);
@@ -4774,23 +4390,23 @@ button.calendar-task-row {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 6px 0;
+  gap: var(--c-space-0);
+  padding: var(--c-space-0) 0;
   font-weight: 500;
   transition: color 0.15s;
 }
 
 .auth-gate-link:hover {
-  color: var(--c-accent-left-panel);
+  color: var(--c-accent-1);
 }
 
 .auth-gate-divider {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: var(--c-text-2);
+  gap: var(--c-space-1);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
-  margin: 4px 0;
+  margin: var(--c-gap-1) 0;
 }
 
 .auth-gate-divider::before,
@@ -4803,7 +4419,7 @@ button.calendar-task-row {
 
 .auth-gate-switcher {
   display: flex;
-  gap: 4px;
+  gap: var(--c-gap-1);
   background: var(--c-background-3);
   border-radius: var(--radius-sm);
   padding: 3px;
@@ -4817,8 +4433,8 @@ button.calendar-task-row {
   cursor: pointer;
   font-size: var(--fs-sm);
   font-weight: 600;
-  color: var(--c-text-2);
-  padding: 7px 6px;
+  color: var(--c-text-3);
+  padding: 7px var(--c-space-0);
   border-radius: var(--radius-sm);
   transition: background-color 0.15s, color 0.15s;
 }
@@ -4835,7 +4451,7 @@ button.calendar-task-row {
 .auth-gate-spinner {
   width: 28px;
   height: 28px;
-  border: 2px solid var(--c-accent-1);
+  border: 2px solid var(--c-border-2);
   border-top-color: transparent;
   border-radius: var(--radius-full);
   align-self: center;
@@ -4849,11 +4465,11 @@ button.calendar-task-row {
 .auth-gate-invite {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px 14px;
+  gap: var(--c-space-1);
+  padding: var(--c-space-3) 14px;
   border-radius: var(--radius-sm);
   background: var(--c-background-3);
-  border: 1px solid var(--c-accent-1);
+  border: 0;
 }
 
 .auth-gate-invite-head {
@@ -4869,7 +4485,7 @@ button.calendar-task-row {
   font-weight: 700;
   color: var(--c-accent-1);
   background: var(--c-background-1);
-  padding: 8px 6px;
+  padding: var(--c-space-1) var(--c-space-0);
   border-radius: var(--radius-sm);
   text-align: center;
   letter-spacing: 0.04em;
@@ -4880,8 +4496,8 @@ button.calendar-task-row {
   align-self: flex-start;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 6px;
+  gap: var(--c-space-0);
+  padding: var(--c-space-0) var(--c-space-0);
   font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--c-text-1);
@@ -4912,9 +4528,9 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  height: 32px;
-  padding: 0 8px;
-  border-bottom: 1px solid var(--layout-border);
+  height: var(--control-height-sm);
+  padding: 0 var(--c-space-1);
+  border-bottom: 1px solid var(--c-border-1);
   flex-shrink: 0;
 }
 
@@ -4925,7 +4541,7 @@ button.calendar-task-row {
 .ai-chat-top-bar-actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   position: relative;
 }
 
@@ -4933,12 +4549,10 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
@@ -4962,7 +4576,7 @@ button.calendar-task-row {
 .chat-history-dropdown {
   position: absolute;
   top: 100%;
-  margin-top: 4px;
+  margin-top: var(--c-gap-1);
   min-width: 200px;
   max-width: 280px;
   max-height: 300px;
@@ -4971,9 +4585,9 @@ button.calendar-task-row {
 }
 
 .chat-history-empty {
-  padding: 6px 8px 2px;
+  padding: var(--c-space-0) var(--c-space-1) var(--c-gap-0);
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   text-align: center;
 }
 
@@ -4981,12 +4595,12 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: var(--c-space-1);
   width: 100%;
   min-width: 0;
-  min-height: 32px;
-  height: 32px;
-  padding: 2px 8px;
+  min-height: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: var(--c-gap-0) var(--c-space-1);
   border: 0;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -5017,15 +4631,12 @@ button.calendar-task-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: var(--div-h-1);
-  height: var(--div-h-1);
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: pointer;
-  flex-shrink: 0;
-  margin-left: 8px;
+  margin-left: var(--c-space-1);
   transition: opacity 0.1s, background-color 0.1s;
 }
 
@@ -5047,21 +4658,21 @@ button.calendar-task-row {
   justify-content: center;
   margin-left: 0;
   margin-right: 0;
-  padding: 12px 18px;
+  padding: var(--c-space-3) 18px;
   text-align: center;
 }
 
 .chat-empty-state-icon {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   opacity: 0.5;
-  margin-bottom: 12px;
+  margin-bottom: var(--c-space-3);
 }
 
 .chat-empty-state-title {
   font-size: var(--fs-sm);
   font-weight: 500;
   color: var(--c-text-1);
-  margin: 0 0 4px 0;
+  margin: 0 0 var(--c-gap-1) 0;
 }
 
 .chat-empty-state-subtitle {
@@ -5077,18 +4688,19 @@ button.calendar-task-row {
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
   align-items: center;
   width: 100%;
-  height: fit-content;
+  height: var(--control-height-sm);
   flex-shrink: 0;
-  padding: 4px 6px;
+  padding: 0 var(--c-space-0);
   background-color: var(--c-background-3);
-  border-radius: var(--radius-full);
+  border: var(--border-width) solid var(--c-border-1);
+  border-radius: var(--radius-sm);
 }
 
 .right-panel-subheader-actions {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
 }
 
 .right-panel-agent-column {
@@ -5105,7 +4717,7 @@ button.calendar-task-row {
 .right-panel-subheader .tbar-btn.right-panel-agent-button {
   width: auto;
   max-width: 100%;
-  gap: 6px;
+  gap: var(--c-space-0);
   color: var(--c-text-3);
 }
 
@@ -5124,11 +4736,6 @@ button.calendar-task-row {
 }
 
 .right-panel-subheader .tbar-btn {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  padding: 5px;
   box-sizing: border-box;
   background: transparent;
   background-color: transparent;
@@ -5143,7 +4750,7 @@ button.calendar-task-row {
 .right-panel-subheader .tbar-btn.right-panel-agent-button:hover {
   background: transparent !important;
   background-color: transparent !important;
-  color: var(--c-accent-1);
+  color: var(--c-text-1);
 }
 
 .right-panel-subheader-actions .tbar-btn:focus,
@@ -5172,7 +4779,7 @@ button.calendar-task-row {
 
 .right-panel-subheader .editor-topbar-col.justify-start {
   justify-content: flex-start;
-  gap: 6px;
+  gap: var(--c-space-0);
 }
 
 .right-panel-subheader .editor-topbar-col.justify-end {

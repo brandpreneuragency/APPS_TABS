@@ -1,6 +1,6 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import './taskCalendarDatePicker.css';
 import { parseIsoDateToLocal, toLocalIsoDate } from './taskMetadataUtils';
@@ -91,7 +91,7 @@ export function TaskCalendarDatePicker({ value, label, onChange }: TaskCalendarD
     <button
       ref={trigger}
       type="button"
-      className="task-calendar-picker"
+      className="ui-button task-calendar-picker"
       aria-label={t('calendar.chooseDate')}
       aria-haspopup="dialog"
       aria-expanded={open}
@@ -102,9 +102,7 @@ export function TaskCalendarDatePicker({ value, label, onChange }: TaskCalendarD
         if (event.key === 'Escape' && open) { event.preventDefault(); close(); }
       }}
     >
-      <CalendarDays size={16} />
       <span aria-live="polite">{label}</span>
-      <ChevronDown size={12} />
     </button>
     {cursor && createPortal(
       <div
@@ -126,9 +124,9 @@ export function TaskCalendarDatePicker({ value, label, onChange }: TaskCalendarD
         }}
       >
         <div className="task-calendar-date-header">
-          <button type="button" title={t('calendar.previousMonth')} aria-label={t('calendar.previousMonth')} onClick={() => setCursor(shiftMonth(cursor, -1))}><ChevronLeft size={16} /></button>
+          <button className="ui-icon-button" type="button" title={t('calendar.previousMonth')} aria-label={t('calendar.previousMonth')} onClick={() => setCursor(shiftMonth(cursor, -1))}><ChevronLeft /></button>
           <strong aria-live="polite">{format(cursor, { month: 'long', year: 'numeric' })}</strong>
-          <button type="button" title={t('calendar.nextMonth')} aria-label={t('calendar.nextMonth')} onClick={() => setCursor(shiftMonth(cursor, 1))}><ChevronRight size={16} /></button>
+          <button className="ui-icon-button" type="button" title={t('calendar.nextMonth')} aria-label={t('calendar.nextMonth')} onClick={() => setCursor(shiftMonth(cursor, 1))}><ChevronRight /></button>
         </div>
         <div className="task-calendar-date-grid">
           {days.slice(0, 7).map((day) => <span className="task-calendar-date-weekday" key={day.getDay()} title={format(day, { weekday: 'long' })}>{format(day, { weekday: 'short' })}</span>)}
@@ -184,9 +182,9 @@ export function TaskDueDateCalendar({ value, onSelect, onClear, allowClear = tru
 
   return <>
     <div className="task-calendar-date-header">
-      <button type="button" title={t('calendar.previousMonth')} aria-label={t('calendar.previousMonth')} onClick={() => setCursor(shiftMonth(cursor, -1))}><ChevronLeft size={16} /></button>
+      <button className="ui-icon-button" type="button" title={t('calendar.previousMonth')} aria-label={t('calendar.previousMonth')} onClick={() => setCursor(shiftMonth(cursor, -1))}><ChevronLeft /></button>
       <strong aria-live="polite">{format(cursor, { month: 'long', year: 'numeric' })}</strong>
-      <button type="button" title={t('calendar.nextMonth')} aria-label={t('calendar.nextMonth')} onClick={() => setCursor(shiftMonth(cursor, 1))}><ChevronRight size={16} /></button>
+      <button className="ui-icon-button" type="button" title={t('calendar.nextMonth')} aria-label={t('calendar.nextMonth')} onClick={() => setCursor(shiftMonth(cursor, 1))}><ChevronRight /></button>
     </div>
     <div className="task-calendar-date-grid">
       {days.slice(0, 7).map((day) => <span className="task-calendar-date-weekday" key={day.getDay()} title={format(day, { weekday: 'long' })}>{format(day, { weekday: 'short' })}</span>)}
@@ -216,7 +214,7 @@ export function TaskDueDateCalendar({ value, onSelect, onClear, allowClear = tru
       <div className="task-calendar-date-footer">
         <button
           type="button"
-          className="task-calendar-date-clear"
+          className="ui-button task-calendar-date-clear"
           onClick={() => { if (onClear) onClear(); else onSelect(''); }}
           disabled={!value}
         >

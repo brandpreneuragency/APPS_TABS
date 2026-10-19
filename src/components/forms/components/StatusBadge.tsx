@@ -17,7 +17,7 @@ export function StatusBadge({ status = 'draft', variant = 'form' }: StatusBadgeP
   if (variant === 'template') {
     return (
       <span className="forms-status-badge forms-status-badge--template">
-        <LayoutPanelTop size={11} />
+        <LayoutPanelTop />
         Template
       </span>
     );
@@ -26,7 +26,7 @@ export function StatusBadge({ status = 'draft', variant = 'form' }: StatusBadgeP
   const Icon = status === 'published' ? CheckCircle2 : status === 'archived' ? Archive : FileEdit;
   return (
     <span className={`forms-status-badge forms-status-badge--${status}`}>
-      <Icon size={11} />
+      <Icon />
       {STATUS_LABEL[status]}
     </span>
   );

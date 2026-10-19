@@ -94,7 +94,7 @@ export default function CRMSettingsPage() {
 
   return (
     <div className="crm-page">
-      <div className="crm-page-header">
+      <div className="ui-card crm-page-header">
         <div className="crm-page-header-main">
           <div className="crm-page-header-title">CRM Settings</div>
           <div className="crm-page-header-meta">
@@ -109,17 +109,17 @@ export default function CRMSettingsPage() {
         onChange={(id) => setTab(id as SettingsSectionId)}
       />
 
-      <div className="crm-page-body">
+      <div className="ui-panel-body crm-page-body">
         {tab === 'leadFields' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Default lead statuses</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               These statuses drive the lead status dropdown and map 1:1 to pipeline stages. The list
               is read-only for now — full field customization is a placeholder for a future agent.
             </div>
             <div className="crm-settings-list">
               {DEFAULT_LEAD_STATUSES.map((status) => (
-                <div key={status} className="crm-settings-list-row">
+                <div key={status} className="ui-list-row crm-settings-list-row">
                   <span className="crm-settings-list-row-title">{status}</span>
                   <span className="crm-settings-list-row-sub">default</span>
                 </div>
@@ -129,15 +129,15 @@ export default function CRMSettingsPage() {
         )}
 
         {tab === 'stages' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Pipeline stages</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               The 7 default pipeline stages used by the Kanban board. Reordering, renaming, and
               add/remove are placeholders for now.
             </div>
             <div className="crm-settings-list">
               {pipelineStages.map((stage) => (
-                <div key={stage.id} className="crm-settings-list-row">
+                <div key={stage.id} className="ui-list-row crm-settings-list-row">
                   <span className="crm-settings-list-row-title">{stage.label}</span>
                   <span className="crm-settings-list-row-sub">
                     order {stage.order} · {stage.key}
@@ -149,16 +149,16 @@ export default function CRMSettingsPage() {
         )}
 
         {tab === 'tags' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Tags</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               Tags gathered from leads, contacts, and companies. Add/remove here is UI-only for
               tags added in this session (crmStore has no tag CRUD yet); a future agent can persist
               tag changes and strip tags from entities.
             </div>
             <div className="crm-list-search" style={{ marginBottom: 8 }}>
-              <Plus size={13} className="crm-list-search-icon" />
-              <input
+              <Plus className="crm-list-search-icon" />
+              <input className="ui-input"
                 type="text"
                 placeholder="Add a tag…"
                 value={tagInput}
@@ -172,7 +172,7 @@ export default function CRMSettingsPage() {
               />
               <button
                 type="button"
-                className="crm-btn crm-btn--sm"
+                className="ui-button crm-btn crm-btn--sm"
                 onClick={handleAddTag}
                 disabled={!tagInput.trim()}
               >
@@ -184,11 +184,11 @@ export default function CRMSettingsPage() {
               {allTags.map((tag) => {
                 const removable = extraTags.includes(tag);
                 return (
-                  <div key={tag} className="crm-settings-list-row">
+                  <div key={tag} className="ui-list-row crm-settings-list-row">
                     <span className="crm-settings-list-row-title">{tag}</span>
                     <button
                       type="button"
-                      className="crm-btn crm-btn--ghost crm-btn--sm"
+                      className="ui-button crm-btn crm-btn--ghost crm-btn--sm"
                       onClick={() => handleRemoveTag(tag)}
                       disabled={!removable}
                       title={
@@ -197,7 +197,7 @@ export default function CRMSettingsPage() {
                           : 'Only tags added in this session can be removed here'
                       }
                     >
-                      <Trash2 size={12} /> Remove
+                      <Trash2 /> Remove
                     </button>
                   </div>
                 );
@@ -207,22 +207,22 @@ export default function CRMSettingsPage() {
         )}
 
         {tab === 'notifications' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Notifications</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               Notification delivery is a future-backend feature. The toggles below are placeholders
               and do not send anything yet.
             </div>
             <div className="crm-settings-list">
-              <div className="crm-settings-list-row">
+              <div className="ui-list-row crm-settings-list-row">
                 <span className="crm-settings-list-row-title">Email on new lead</span>
                 <ToggleSwitch />
               </div>
-              <div className="crm-settings-list-row">
+              <div className="ui-list-row crm-settings-list-row">
                 <span className="crm-settings-list-row-title">Inline in-app notification on submission</span>
                 <ToggleSwitch />
               </div>
-              <div className="crm-settings-list-row">
+              <div className="ui-list-row crm-settings-list-row">
                 <span className="crm-settings-list-row-title">Daily digest of stale leads</span>
                 <ToggleSwitch />
               </div>
@@ -231,9 +231,9 @@ export default function CRMSettingsPage() {
         )}
 
         {tab === 'duplicate' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Duplicate handling</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               Submissions are matched to existing contacts and leads by email. When a match is
               found, the submission is attached as an activity and lastActivityAt is bumped — a
               duplicate contact is never created. When no match is found, a new Contact (+ Company
@@ -241,12 +241,12 @@ export default function CRMSettingsPage() {
               submissionService.resolveDuplicate.
             </div>
             <div className="crm-settings-list">
-              <div className="crm-settings-list-row">
+              <div className="ui-list-row crm-settings-list-row">
                 <span className="crm-settings-list-row-title">Match by email</span>
                 <ToggleSwitch on={matchByEmail} onClick={() => setMatchByEmail((v) => !v)} />
               </div>
             </div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               The future backend will perform server-side duplicate matching for public submissions
               (see the Future API tab).
             </div>
@@ -254,35 +254,35 @@ export default function CRMSettingsPage() {
         )}
 
         {tab === 'export' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Export</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               Export all leads (with contact + company fields) to a CSV file. Submission exports
               live in Forms Settings.
             </div>
             <div className="crm-dashboard-quick-actions">
               <button
                 type="button"
-                className="crm-btn crm-btn--sm crm-btn--primary"
+                className="ui-button crm-btn crm-btn--sm ui-button--primary crm-btn--primary"
                 onClick={() => void exportLeads()}
               >
-                <Download size={12} /> Export leads to CSV
+                <Download /> Export leads to CSV
               </button>
               <button
                 type="button"
-                className="crm-btn crm-btn--sm"
+                className="ui-button crm-btn crm-btn--sm"
                 onClick={() => { setActiveCRMPage('forms'); setActiveFormsPage('settings'); }}
               >
-                <FileInput size={12} /> Open Forms Settings
+                <FileInput /> Open Forms Settings
               </button>
             </div>
           </div>
         )}
 
         {tab === 'futureApi' && (
-          <div className="crm-card">
+          <div className="ui-card crm-card">
             <div className="crm-card-title">Future VPS / Public API</div>
-            <div className="crm-settings-note">
+            <div className="ui-card crm-settings-note">
               CRM and Forms are local-first today: data lives in IndexedDB via Dexie and is accessed
               only through crmService / formsService / submissionService / embedService. Those
               services are the swap point for a future VPS API. The future backend will provide:

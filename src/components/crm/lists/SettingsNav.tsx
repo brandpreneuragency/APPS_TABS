@@ -48,13 +48,13 @@ export function SettingsNav({ active, onChange }: SettingsNavProps) {
           const Icon = item.icon;
           const isActive = item.id === active;
           return (
-            <button
+            <button data-active={isActive}
               key={item.id}
               type="button"
-              className={`crm-saved-view-item${isActive ? ' crm-saved-view-item--active' : ''}`}
+              className={"ui-list-row " + (`crm-saved-view-item${isActive ? ' crm-saved-view-item--active' : ''}`)}
               onClick={() => onChange(item.id)}
             >
-              <Icon size={13} />
+              <Icon />
               <span>{item.label}</span>
             </button>
           );

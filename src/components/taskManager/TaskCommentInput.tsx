@@ -300,7 +300,7 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
         />
         {replyToComment && (
           <div style={{ marginBottom: 4, marginLeft: 0, marginRight: 0, marginTop: 4, display: 'flex', alignItems: 'center', gap: 6, borderRadius: 'var(--radius-sm)', padding: '4px 8px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
-            <Reply size={11} style={{ color: accentColor, flexShrink: 0 }} />
+            <Reply style={{ color: accentColor, flexShrink: 0 }} />
             <div style={{ display: 'flex', alignItems: 'stretch', gap: 4, flex: 1, overflow: 'hidden' }}>
               <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: accentColor, flexShrink: 0 }} />
               <div style={{ overflow: 'hidden', minWidth: 0 }}>
@@ -315,11 +315,10 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
             <button
               type="button"
               onClick={onClearReply}
-              className="btn-icon shrink-0"
+              className="ui-icon-button shrink-0"
               title="Cancel reply"
-              style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', paddingRight: '0px' }}
             >
-              <X size={9} />
+              <X />
             </button>
           </div>
         )}
@@ -375,7 +374,7 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
               title="Attach file"
               disabled={sending}
             >
-              <Plus size={14} />
+              <Plus />
             </ComposerIconButton>
             <input
               ref={fileInputRef}
@@ -390,12 +389,12 @@ export function TaskCommentInput({ replyToComment, onClearReply }: TaskCommentIn
             {sending ? (
               <button
                 type="button"
-                className="composer-send-btn"
+                className="ui-icon-button composer-send-btn"
                 title="Sending"
                 disabled
                 aria-label="Sending"
               >
-                <Loader2 size={14} className="spin" />
+                <Loader2 className="spin" />
               </button>
             ) : (
               <ComposerSendButton onClick={handleSend} disabled={sendDisabled} title="Send message" />

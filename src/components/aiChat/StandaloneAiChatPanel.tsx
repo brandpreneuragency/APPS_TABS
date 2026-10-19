@@ -25,13 +25,13 @@ const mdStyles = {
   h1: { fontSize: 26, fontWeight: 700, marginBottom: 14, color: 'var(--c-text-1)', lineHeight: 1.2 },
   h2: { fontSize: 22, fontWeight: 700, marginBottom: 13, color: 'var(--c-text-1)', lineHeight: 1.3 },
   h3: { fontSize: 18, fontWeight: 600, marginBottom: 12, color: 'var(--c-text-1)', lineHeight: 1.35 },
-  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-2)' },
+  h4: { fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 12, color: 'var(--c-text-3)' },
   ul: { listStyle: 'disc', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   ol: { listStyle: 'decimal', paddingLeft: 16, marginBottom: 8, fontSize: 'var(--fs-sm)', color: 'var(--c-text-1)' },
   li: { lineHeight: 1.625 },
   strong: { fontWeight: 600, color: 'var(--c-text-1)' },
   em: { fontStyle: 'italic' },
-  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-2)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
+  blockquote: { borderLeft: '2px solid var(--c-border-1)', paddingLeft: 12, fontStyle: 'italic', color: 'var(--c-text-3)', marginBottom: 8, fontSize: 'var(--fs-sm)' },
   pre: { background: '#111827', color: '#f3f4f6', borderRadius: 'var(--radius-sm)', padding: 12, overflowX: 'auto', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', marginBottom: 8, lineHeight: 1.625, whiteSpace: 'pre' as const },
   inlineCode: { background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '1px 4px', fontSize: 'var(--fs-sm)', fontFamily: 'var(--c-font-1)', color: '#e11d48' },
   codeBlock: { fontFamily: 'var(--c-font-1)', fontSize: 'var(--fs-sm)' },
@@ -39,7 +39,7 @@ const mdStyles = {
   thead: { background: 'var(--c-background-4)' },
   th: { border: '1px solid var(--c-border-1)', padding: '6px 12px', textAlign: 'left' as const, fontWeight: 600, color: 'var(--c-text-1)' },
   td: { border: '1px solid var(--c-border-1)', padding: '6px 12px', color: 'var(--c-text-1)' },
-  a: { color: 'var(--c-accent-center-panel)', textDecoration: 'underline' },
+  a: { color: 'var(--c-accent-1)', textDecoration: 'underline' },
   hr: { borderColor: 'var(--c-border-1)', margin: '12px 0' },
 } as const;
 
@@ -110,7 +110,7 @@ function PanelEmptyState() {
   return (
     <div className="chat-empty-state">
       <div className="chat-empty-state-icon">
-        <Clock size={32} />
+        <Clock className="ui-icon"  />
       </div>
       <p className="chat-empty-state-title">Start a conversation</p>
       <p className="chat-empty-state-subtitle subtle">
@@ -130,8 +130,8 @@ function StandaloneUserMessage({ message }: { message: AiChatPanelMessage }) {
       <div
         className="user-message-bubble"
         style={{
-          border: '1px solid var(--layout-border)',
-          background: 'var(--right-bg)',
+          border: '1px solid var(--c-border-1)',
+          background: 'var(--c-background-3)',
           borderRadius: 'var(--radius-sm)',
           padding: '12px 16px',
           fontSize: 'var(--fs-sm)',
@@ -178,7 +178,7 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
 
       <div style={{ padding: '4px 0', wordBreak: 'break-word', overflow: 'hidden' }}>
         {isStreaming && !message.content && (
-          <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)' }}>
+          <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-3)' }}>
             {'\u200B'}
           </p>
         )}
@@ -195,9 +195,9 @@ function StandaloneAssistantMessage({ message, isStreaming }: { message: AiChatP
             type="button"
             onClick={handleCopy}
             title={copied ? 'Copied!' : 'Copy'}
-            className="btn-icon"
+            className="ui-icon-button btn-icon"
           >
-            {copied ? <Check size={13} /> : <Copy size={13} />}
+            {copied ? <Check className="ui-icon"  /> : <Copy className="ui-icon"  />}
           </button>
         </div>
       )}
@@ -218,7 +218,7 @@ function StandaloneSystemMessage({ message }: { message: AiChatPanelMessage }) {
       borderRadius: 'var(--radius-sm)',
       background: 'var(--c-background-4)',
       fontSize: 'var(--fs-sm)',
-      color: 'var(--c-text-2)',
+      color: 'var(--c-text-3)',
       textAlign: 'center',
       maxWidth: '80%',
       alignSelf: 'center',
@@ -231,7 +231,7 @@ function StandaloneSystemMessage({ message }: { message: AiChatPanelMessage }) {
 function PendingMessage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)' }}>
+      <p className="streaming-cursor" style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-3)' }}>
         {'\u200B'}
       </p>
     </div>
@@ -271,8 +271,9 @@ export function StandaloneAiChatPanel({
 
     const ta = textareaRef.current;
     if (ta) {
-      ta.style.height = '32px';
-      ta.style.height = `${Math.min(Math.max(ta.scrollHeight, 32), MAX_HEIGHT)}px`;
+      ta.style.height = 'var(--control-height-sm)';
+      const minHeight = Number.parseFloat(getComputedStyle(ta).height);
+      ta.style.height = `${Math.min(Math.max(ta.scrollHeight, minHeight), MAX_HEIGHT)}px`;
     }
   }, [onInputChange]);
 
@@ -415,7 +416,7 @@ export function StandaloneAiChatPanel({
                   className="shrink-0"
                   title="Stop"
                 >
-                  <Square size={12} fill="currentColor" style={{ color: 'var(--c-text-2)' }} />
+                  <Square className="ui-icon"  fill="currentColor" style={{ color: 'var(--c-text-3)' }} />
                 </ComposerIconButton>
               ) : (
                 <ComposerSendButton onClick={handleSend} disabled={!canSend} title="Send" />

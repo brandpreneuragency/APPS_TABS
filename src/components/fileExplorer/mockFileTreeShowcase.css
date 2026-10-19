@@ -1,0 +1,6 @@
+.tree-node > .row-xs:hover .ui-icon,
+.tree-node > .row-xs:hover .trunc,
+#mock-filetree-showcase .row-xs:hover .ui-icon,
+#mock-filetree-showcase .row-xs:hover .trunc {
+  color: var(--c-text-1) !important;
+}

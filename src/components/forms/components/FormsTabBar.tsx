@@ -25,11 +25,12 @@ export function FormsTabBar({ tabs, active, onChange }: FormsTabBarProps) {
             type="button"
             role="tab"
             aria-selected={isActive}
+            data-active={isActive}
             title={tab.label}
             onClick={() => onChange(tab.key)}
-            className={`forms-tab${isActive ? ' forms-tab--active' : ''}`}
+            className={"ui-button " + (`forms-tab${isActive ? ' forms-tab--active' : ''}`)}
           >
-            {Icon ? <Icon size={14} /> : null}
+            {Icon ? <Icon /> : null}
             <span>{tab.label}</span>
           </button>
         );

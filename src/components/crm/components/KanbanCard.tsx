@@ -26,7 +26,7 @@ function formatDate(iso?: string): string {
   if (!iso) return '—';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
 }
 
 export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }: KanbanCardProps) {
@@ -46,8 +46,9 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
   };
 
   return (
-    <div
-      className={`crm-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`}
+    <div data-active={isActive}
+      className={"ui-card " + (`crm-kanban-card${isActive ? ' crm-kanban-card--active' : ''}${isDragging ? ' crm-kanban-card--dragging' : ''}`)}
+      data-kanban-card-id={deal.id}
       onClick={() => onClick?.(deal.id)}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
@@ -60,7 +61,7 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
         {onEdit && (
           <button
             type="button"
-            className="crm-kanban-card-edit"
+            className="ui-icon-button crm-kanban-card-edit"
             title="Edit lead"
             aria-label="Edit lead"
             onMouseDown={(e) => e.stopPropagation()}
@@ -69,11 +70,11 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
               onEdit(deal.id);
             }}
           >
-            <Pencil size={12} />
+            <Pencil />
           </button>
         )}
         <div className="crm-kanban-card-drag" title="Drag to move">
-          <GripVertical size={12} />
+          <GripVertical />
         </div>
       </div>
       <div className="crm-kanban-card-primary">
@@ -81,15 +82,15 @@ export function KanbanCard({ deal, contact, company, onClick, onEdit, isActive }
       </div>
       <div className="crm-kanban-card-footer">
         <span className="crm-kanban-card-meta-item">
-          <Building2 size={11} />
+          <Building2 />
           <span className="trunc">{companyLabel}</span>
         </span>
         <span className="crm-kanban-card-meta-item">
-          <User size={11} />
+          <User />
           <span className="trunc">{contactLabel}</span>
         </span>
         <span className="crm-kanban-card-meta-item">
-          <CalendarDays size={11} />
+          <CalendarDays />
           <span>{formatDate(deal.expectedCloseDate)}</span>
         </span>
         {deal.tags.length > 0 && (

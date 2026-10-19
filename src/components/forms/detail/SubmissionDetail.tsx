@@ -50,7 +50,7 @@ function asDisplay(value: unknown): string {
 
 function timeLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleString(undefined, {
+    return new Date(iso).toLocaleString('tr-TR', {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
@@ -157,7 +157,7 @@ export function SubmissionDetail({ submission, form }: SubmissionDetailProps) {
   const formName = form?.name ?? submission.formId;
 
   return (
-    <div className="forms-page forms-page--scroll" style={{ gap: 14, padding: '18px 22px' }}>
+    <div className="ui-panel-body forms-page forms-page--scroll" >
       <div className="forms-spread">
         <div className="forms-stack" style={{ gap: 2 }}>
           <span className="forms-page-title">{formName}</span>
@@ -171,69 +171,69 @@ export function SubmissionDetail({ submission, form }: SubmissionDetailProps) {
       <div className="forms-actions">
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--primary"
+          className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary"
           onClick={handleConvert}
           disabled={submission.status === 'converted'}
         >
-          <CheckCircle2 size={14} />
+          <CheckCircle2 />
           Convert / merge
         </button>
         <button
           type="button"
-          className="forms-action-btn forms-action-btn--danger"
+          className="ui-button forms-action-btn ui-button--danger forms-action-btn--danger"
           onClick={handleMarkSpam}
           disabled={submission.status === 'spam'}
         >
-          <ShieldOff size={14} />
+          <ShieldOff />
           Mark spam
         </button>
-        <button type="button" className="forms-action-btn" onClick={handleFollowUpTask}>
-          <ClipboardList size={14} />
+        <button type="button" className="ui-button forms-action-btn" onClick={handleFollowUpTask}>
+          <ClipboardList />
           Create follow-up task
         </button>
       </div>
 
       {/* Linked CRM records */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <User size={14} /> Linked CRM records
+          <User /> Linked CRM records
         </p>
         <div className="forms-link-chips">
           {lead ? (
-            <button type="button" className="forms-link-chip" onClick={openLead} title="Open lead in CRM">
-              <Target size={12} /> Lead: {lead.title}
-              <ExternalLink size={11} />
+            <button type="button" className="ui-button forms-link-chip" onClick={openLead} title="Open lead in CRM">
+              <Target /> Lead: {lead.title}
+              <ExternalLink />
             </button>
           ) : (
-            <span className="forms-link-chip forms-link-chip--muted">No linked lead</span>
+            <span className="ui-button forms-link-chip forms-link-chip--muted">No linked lead</span>
           )}
           {contact ? (
-            <button type="button" className="forms-link-chip" onClick={openContact} title="Open contact in CRM">
-              <User size={12} /> {contact.firstName} {contact.lastName}
-              <ExternalLink size={11} />
+            <button type="button" className="ui-button forms-link-chip" onClick={openContact} title="Open contact in CRM">
+              <User /> {contact.firstName} {contact.lastName}
+              <ExternalLink />
             </button>
           ) : (
-            <span className="forms-link-chip forms-link-chip--muted">No linked contact</span>
+            <span className="ui-button forms-link-chip forms-link-chip--muted">No linked contact</span>
           )}
           {company ? (
-            <button type="button" className="forms-link-chip" onClick={openCompany} title="Open company in CRM">
-              <Building2 size={12} /> {company.name}
-              <ExternalLink size={11} />
+            <button type="button" className="ui-button forms-link-chip" onClick={openCompany} title="Open company in CRM">
+              <Building2 /> {company.name}
+              <ExternalLink />
             </button>
           ) : (
-            <span className="forms-link-chip forms-link-chip--muted">No linked company</span>
+            <span className="ui-button forms-link-chip forms-link-chip--muted">No linked company</span>
           )}
         </div>
         {contact ? (
           <div className="forms-row forms-row--wrap" style={{ gap: 12, marginTop: 2 }}>
             {contact.email ? (
               <span className="forms-list-item-meta">
-                <Mail size={12} /> {contact.email}
+                <Mail /> {contact.email}
               </span>
             ) : null}
             {contact.phone ? (
               <span className="forms-list-item-meta">
-                <Phone size={12} /> {contact.phone}
+                <Phone /> {contact.phone}
               </span>
             ) : null}
             {contact.jobTitle ? <span className="forms-list-item-meta">{contact.jobTitle}</span> : null}
@@ -242,9 +242,9 @@ export function SubmissionDetail({ submission, form }: SubmissionDetailProps) {
       </div>
 
       {/* Spam + domain result */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Globe size={14} /> Source & spam
+          <Globe /> Source & spam
         </p>
         <div className="forms-field-row">
           <span className="forms-field-label">Source domain</span>
@@ -285,9 +285,9 @@ export function SubmissionDetail({ submission, form }: SubmissionDetailProps) {
       </div>
 
       {/* Submitted fields */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Mail size={14} /> Submitted fields
+          <Mail /> Submitted fields
         </p>
         {submittedEntries.length === 0 ? (
           <p className="forms-section-hint">No visible field values.</p>
@@ -308,9 +308,9 @@ export function SubmissionDetail({ submission, form }: SubmissionDetailProps) {
       </div>
 
       {/* UTM / source attribution */}
-      <div className="forms-section">
+      <div className="ui-card forms-section">
         <p className="forms-section-title">
-          <Calendar size={14} /> UTM & source attribution
+          <Calendar /> UTM & source attribution
         </p>
         {utmEntries.length === 0 ? (
           <p className="forms-section-hint">No UTM or source data captured.</p>

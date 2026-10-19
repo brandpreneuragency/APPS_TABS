@@ -69,7 +69,7 @@ function FileViewerOther({ file }: { file: FileViewerItem }) {
   return (
     <div className="file-viewer-content-inner file-viewer-content-other">
       <div className="file-viewer-other-card">
-        <FileType size={48} strokeWidth={1.5} />
+        <FileType className="ui-icon" strokeWidth={1.5} />
         <span className="file-viewer-other-name">{file.name}</span>
         {file.size && <span className="file-viewer-other-size">{file.size}</span>}
         <a
@@ -79,7 +79,7 @@ function FileViewerOther({ file }: { file: FileViewerItem }) {
           className="file-viewer-download-btn"
           download={file.name}
         >
-          <Download size={14} />
+          <Download className="ui-icon" />
           Download file
         </a>
       </div>
@@ -100,7 +100,7 @@ function FileViewerDownloadAction({ file }: { file: FileViewerItem }) {
         className="file-viewer-download-btn"
         download={file.name}
       >
-        <Download size={14} />
+        <Download className="ui-icon" />
         Download file
       </a>
     </div>

@@ -91,7 +91,7 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
   };
 
   return (
-    <div className="forms-builder-logic-rule-wrap">
+    <div className="ui-card forms-builder-logic-rule-wrap">
       <div className="forms-builder-logic-rule-top">
         <span className="forms-builder-logic-rule-label">If</span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -106,21 +106,21 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
           </label>
           <button
             type="button"
-            className="forms-builder-logic-step-btn forms-builder-logic-step-btn--danger"
+            className="ui-icon-button forms-builder-logic-step-btn ui-button--danger forms-builder-logic-step-btn--danger"
             onClick={onDelete}
             aria-label="Delete rule"
             title="Delete rule"
           >
-            <Trash2 size={15} />
+            <Trash2 />
           </button>
         </div>
       </div>
 
       <div className="forms-builder-logic-rule-grid">
-        <div className="forms-builder-logic-rule-field">
+        <div className="ui-field forms-builder-logic-rule-field">
           <span className="forms-builder-logic-rule-field-label">Source field</span>
           <select
-            className="forms-builder-logic-select"
+            className="ui-input forms-builder-logic-select"
             value={rule.triggerFieldId}
             onChange={(e) => patch({ triggerFieldId: e.target.value })}
           >
@@ -136,10 +136,10 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
           </select>
         </div>
 
-        <div className="forms-builder-logic-rule-field">
+        <div className="ui-field forms-builder-logic-rule-field">
           <span className="forms-builder-logic-rule-field-label">Operator</span>
           <select
-            className="forms-builder-logic-select"
+            className="ui-input forms-builder-logic-select"
             value={rule.operator}
             onChange={(e) => {
               const op = e.target.value as LogicRuleOperator;
@@ -155,11 +155,11 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
         </div>
 
         {!valueHidden && (
-          <div className="forms-builder-logic-rule-field">
+          <div className="ui-field forms-builder-logic-rule-field">
             <span className="forms-builder-logic-rule-field-label">Value</span>
             <input
               type="text"
-              className="forms-builder-logic-input"
+              className="ui-input forms-builder-logic-input"
               value={rule.value === undefined ? '' : String(rule.value)}
               placeholder="Compare value"
               onChange={(e) => patch({ value: e.target.value })}
@@ -167,10 +167,10 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
           </div>
         )}
 
-        <div className="forms-builder-logic-rule-field">
+        <div className="ui-field forms-builder-logic-rule-field">
           <span className="forms-builder-logic-rule-field-label">Action</span>
           <select
-            className="forms-builder-logic-select"
+            className="ui-input forms-builder-logic-select"
             value={action}
             onChange={(e) => handleActionChange(e.target.value as SimplifiedAction)}
           >
@@ -183,10 +183,10 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
         </div>
 
         {!isBlock && (
-          <div className="forms-builder-logic-rule-field">
+          <div className="ui-field forms-builder-logic-rule-field">
             <span className="forms-builder-logic-rule-field-label">Target field</span>
             <select
-              className="forms-builder-logic-select"
+              className="ui-input forms-builder-logic-select"
               value={rule.targetFieldIds?.[0] ?? ''}
               onChange={(e) => handleTargetChange(e.target.value)}
             >
@@ -201,11 +201,11 @@ export function LogicRuleEditor({ form, rule, onChange, onDelete }: LogicRuleEdi
         )}
 
         {isBlock && (
-          <div className="forms-builder-logic-rule-field forms-builder-logic-rule-message">
+          <div className="ui-field forms-builder-logic-rule-field forms-builder-logic-rule-message">
             <span className="forms-builder-logic-rule-field-label">Block message</span>
             <input
               type="text"
-              className="forms-builder-logic-input"
+              className="ui-input forms-builder-logic-input"
               value={rule.message ?? ''}
               placeholder="Shown when submit is blocked"
               onChange={(e) => patch({ message: e.target.value })}

@@ -57,8 +57,10 @@ export function ActionsSection() {
   const renderActionRow = (a: QuickPrompt, groupId: string | null, index: number) => {
     const isDropBefore = dropTarget && dropTarget.groupId === groupId && dropTarget.index === index;
     return (
-      <div
+      <button
         key={a.id}
+        type="button"
+        aria-pressed={selectedId === a.id}
         data-action-row={a.id}
         draggable
         onDragStart={() => setDrag({ actionId: a.id })}
@@ -67,17 +69,17 @@ export function ActionsSection() {
         onDrop={(e) => { e.preventDefault(); e.stopPropagation(); commitDrop(groupId, index); }}
         onContextMenu={(e) => { e.preventDefault(); setMenu({ x: e.clientX, y: e.clientY, actionId: a.id }); }}
         onClick={() => setSelectedId(a.id)}
-        className={`settings-action-row${selectedId === a.id ? ' settings-list-item--active' : ''}${drag?.actionId === a.id ? ' is-dragging' : ''}${isDropBefore ? ' is-drop-target' : ''}`}
+        className={`ui-list-row settings-action-row${selectedId === a.id ? ' settings-list-item--active' : ''}${drag?.actionId === a.id ? ' is-dragging' : ''}${isDropBefore ? ' is-drop-target' : ''}`}
       >
-        <GripVertical size={12} className="settings-drag-handle" />
+        <GripVertical size="var(--c-icon-1)" className="settings-drag-handle" />
         <span className="settings-list-item-title">{a.title}</span>
-      </div>
+      </button>
     );
   };
 
   const leftMain = (
-    <div className="settings-list-body">
-      <button className="settings-add-btn" onClick={handleNewAction}><Plus size={14} /> New action</button>
+    <div className="settings-list-body ui-panel-body">
+      <button className="settings-add-btn ui-button" onClick={handleNewAction}><Plus size="var(--c-icon-1)" /> New action</button>
 
       {groups.map((g) => {
         const items = actionsInGroup(g.id);
@@ -90,7 +92,7 @@ export function ActionsSection() {
             onDrop={(e) => { if (drag) { e.preventDefault(); commitDrop(g.id, items.length); } }}
           >
             <div className="settings-action-group-head" onClick={() => toggleGroup(g.id)}>
-              {isCollapsed ? <Folder size={14} /> : <FolderOpen size={14} />}
+              {isCollapsed ? <Folder size="var(--c-icon-1)" /> : <FolderOpen size="var(--c-icon-1)" />}
               {renamingGroupId === g.id ? (
                 <input
                   autoFocus
@@ -99,8 +101,8 @@ export function ActionsSection() {
                   onClick={(e) => e.stopPropagation()}
                   onBlur={() => { void renameGroup(g.id, renameValue); setRenamingGroupId(null); }}
                   onKeyDown={(e) => { if (e.key === 'Enter') { void renameGroup(g.id, renameValue); setRenamingGroupId(null); } }}
-                  className="ctrl"
-                  style={{ fontSize: 'var(--fs-sm)', padding: '2px 6px', flex: 1 }}
+                  className="ui-input"
+                  style={{ flex: 1 }}
                 />
               ) : (
                 <span
@@ -111,18 +113,18 @@ export function ActionsSection() {
                 </span>
               )}
               <button
-                className="btn-icon"
+                className="ui-icon-button"
                 title="Delete group (actions move to root)"
                 onClick={(e) => { e.stopPropagation(); void deleteGroup(g.id, false); }}
               >
-                <Trash2 size={13} />
+                <Trash2 size="var(--c-icon-1)" />
               </button>
             </div>
             {!isCollapsed && (
               <div className="settings-action-group-body">
                 {items.map((a, i) => renderActionRow(a, g.id, i))}
                 {items.length === 0 && (
-                  <div className="subtle" style={{ fontSize: 'var(--fs-sm)', padding: '6px 10px' }}>Drag actions here</div>
+                  <div className="subtle" style={{ fontSize: 'var(--fs-sm)', padding: 'var(--c-space-1)' }}>Drag actions here</div>
                 )}
               </div>
             )}
@@ -131,7 +133,7 @@ export function ActionsSection() {
       })}
 
       <div
-        style={{ marginTop: 6 }}
+        style={{ marginTop: 'var(--c-space-0)' }}
         onDragOver={(e) => { if (drag) e.preventDefault(); }}
         onDrop={(e) => { if (drag) { e.preventDefault(); commitDrop(null, null); } }}
       >
@@ -164,21 +166,21 @@ export function ActionsSection() {
           style={{ left: menu.x, top: menu.y }}
           onMouseDown={(e) => e.stopPropagation()}
         >
-          <button onClick={() => { void createGroup('New group'); setMenu(null); }}><FolderPlus size={14} /> New group</button>
+          <button className="ui-button" onClick={() => { void createGroup('New group'); setMenu(null); }}><FolderPlus size="var(--c-icon-1)" /> New group</button>
           {groups.length > 0 && <div style={{ height: 1, background: 'var(--c-border-1)', margin: '4px 0' }} />}
           {groups.map((g) => (
-            <button key={g.id} onClick={() => { void moveAction(menu.actionId, g.id, actionsInGroup(g.id).length); setMenu(null); }}>
-              <Folder size={14} /> → {g.name}
+            <button className="ui-button" key={g.id} onClick={() => { void moveAction(menu.actionId, g.id, actionsInGroup(g.id).length); setMenu(null); }}>
+              <Folder size="var(--c-icon-1)" /> → {g.name}
             </button>
           ))}
           {actions.find((a) => a.id === menu.actionId)?.groupId && (
-            <button onClick={() => { void moveAction(menu.actionId, null, rootActions.length); setMenu(null); }}>
-              <FolderOpen size={14} /> Remove from group
+            <button className="ui-button" onClick={() => { void moveAction(menu.actionId, null, rootActions.length); setMenu(null); }}>
+              <FolderOpen size="var(--c-icon-1)" /> Remove from group
             </button>
           )}
           <div style={{ height: 1, background: 'var(--c-border-1)', margin: '4px 0' }} />
-          <button onClick={() => { void deleteAction(menu.actionId); setMenu(null); }} style={{ color: 'var(--c-danger)' }}>
-            <Trash2 size={14} /> Delete
+          <button className="ui-button" onClick={() => { void deleteAction(menu.actionId); setMenu(null); }} style={{ color: 'var(--c-danger)' }}>
+            <Trash2 size="var(--c-icon-1)" /> Delete
           </button>
         </div>
       )}
@@ -213,34 +215,34 @@ function ActionDetail({ action, groups, onSave, onDelete }: ActionDetailProps) {
   }
 
   return (
-    <div className="settings-detail-body">
-      <div>
-        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Title</label>
-        <input className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={title} onChange={(e) => setTitle(e.target.value)} />
+    <div className="settings-detail-body ui-page-body">
+      <div className="settings-field ui-field">
+        <label htmlFor="settings-action-title">Title</label>
+        <input id="settings-action-title" className="ui-input w-full" value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
-      <div>
-        <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Prompt</label>
-        <textarea className="ctrl w-full" rows={8} style={{ fontSize: 'var(--fs-sm)', resize: 'vertical', lineHeight: 1.625 }} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+      <div className="settings-field ui-field">
+        <label htmlFor="settings-action-prompt">Prompt</label>
+        <textarea id="settings-action-prompt" className="ui-input w-full" rows={8} value={prompt} onChange={(e) => setPrompt(e.target.value)} />
       </div>
-      <div className="row gap-3" style={{ gap: 12 }}>
-        <div style={{ flex: 1 }}>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Icon (lucide name)</label>
-          <input className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="e.g. Zap" />
+      <div className="settings-form-grid">
+        <div className="settings-field ui-field">
+          <label htmlFor="settings-action-icon">Icon (lucide name)</label>
+          <input id="settings-action-icon" className="ui-input w-full" value={icon} onChange={(e) => setIcon(e.target.value)} placeholder="e.g. Zap" />
         </div>
-        <div style={{ flex: 1 }}>
-          <label className="semibold" style={{ display: 'block', fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', marginBottom: 6 }}>Group</label>
-          <select className="ctrl w-full" style={{ fontSize: 'var(--fs-sm)' }} value={groupId ?? ''} onChange={(e) => setGroupId(e.target.value || undefined)}>
+        <div className="settings-field ui-field">
+          <label htmlFor="settings-action-group">Group</label>
+          <select id="settings-action-group" className="ui-input w-full" value={groupId ?? ''} onChange={(e) => setGroupId(e.target.value || undefined)}>
             <option value="">— None —</option>
             {groups.map((g) => <option key={g.id} value={g.id}>{g.name}</option>)}
           </select>
         </div>
       </div>
-      <div className="row gap-2">
-        <button className="btn-brand flex-1" style={{ fontSize: 'var(--fs-sm)', padding: '8px 12px' }} onClick={() => void onSave({ title, prompt, icon, groupId })}>
+      <div className="settings-form-actions">
+        <button className="ui-button ui-button--primary" onClick={() => void onSave({ title, prompt, icon, groupId })}>
           Save Changes
         </button>
-        <button className="btn-icon" style={{ width: 40, border: '1px solid rgba(239,68,68,0.3)', borderRadius: 'var(--radius-sm)', color: 'var(--c-danger)' }} onClick={() => void onDelete()}>
-          <Trash2 size={15} />
+        <button className="ui-icon-button settings-delete-btn" title="Delete" onClick={() => void onDelete()}>
+          <Trash2 size="var(--c-icon-1)" />
         </button>
       </div>
     </div>

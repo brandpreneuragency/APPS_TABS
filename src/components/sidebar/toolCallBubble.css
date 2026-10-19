@@ -15,7 +15,7 @@
 }
 
 .tool-call-bubble__icon {
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
   display: inline-flex;
 }
 
@@ -31,7 +31,7 @@
 .tool-call-bubble__status {
   margin-left: auto;
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -58,7 +58,7 @@
 .tool-call-bubble__toggle {
   background: none;
   border: none;
-  color: var(--c-accent-center-panel);
+  color: var(--c-accent-1);
   cursor: pointer;
   font-size: var(--fs-sm);
   padding: 4px 0 0;
@@ -67,7 +67,7 @@
 .tool-call-bubble__summary {
   margin-top: 6px;
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   white-space: pre-wrap;
 }
 
@@ -89,7 +89,7 @@
 }
 
 .tool-call-bubble__btn--approve {
-  background: var(--c-accent-center-panel);
+  background: var(--c-accent-1);
   color: #fff;
   border: none;
 }

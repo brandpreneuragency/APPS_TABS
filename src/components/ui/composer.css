@@ -7,6 +7,11 @@
   color: var(--c-text-1);
 }
 
+:root textarea.composer-input,
+:root textarea.composer-input:is(:hover, :focus, :focus-visible) {
+  background: transparent;
+}
+
 /* ── Attachment list (composer + message threads) ── */
 .composer-attachments {
   display: flex;
@@ -65,31 +70,18 @@
 }
 .composer-chip-size {
   flex-shrink: 0;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   font-size: var(--fs-sm);
 }
 .composer-chip-remove {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-full);
-  background: transparent;
-  color: var(--c-text-2);
-  flex-shrink: 0;
-  margin-left: 2px;
-  padding: 0;
-  border: none;
-  cursor: pointer;
-}
-.composer-chip-remove:hover {
-  opacity: 0.85;
+  margin-left: var(--c-gap-0);
 }
 
 /* Compact image / video thumbnails (AI sidebar composer style) */
 .composer-attachment-thumb {
   position: relative;
+  margin-top: var(--c-space-0);
+  margin-right: var(--c-space-0);
   display: inline-block;
   width: 32px;
   height: 34px;
@@ -145,21 +137,8 @@
 }
 .composer-attachment-thumb-remove {
   position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 16px;
-  height: 16px;
-  min-width: 16px;
-  min-height: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-full);
-  background: var(--c-background-4);
-  border: 1px solid var(--c-border-1);
-  color: var(--c-text-1);
-  padding: 0;
-  cursor: pointer;
+  top: calc(-1 * var(--c-space-0));
+  right: calc(-1 * var(--c-space-0));
   opacity: 0;
   transition: opacity 0.12s ease;
   z-index: 1;
@@ -172,5 +151,5 @@
 .composer-attachment-progress {
   align-self: center;
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }

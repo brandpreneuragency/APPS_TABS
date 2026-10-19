@@ -221,7 +221,7 @@
 .cq-wrap {
   min-width: 0;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--c-space-1);
 }
 
 /* Optional-label / secondary-meta helpers — opt-in.

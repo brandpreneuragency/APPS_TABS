@@ -30,11 +30,11 @@ export function DashboardSavedViews() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <div className="crm-list-section-label">Quick filters</div>
       <div className="crm-quick-filters">
-        <button type="button" className="crm-quick-filter" onClick={() => setActiveCRMPage('leads')}>
-          <UserPlus size={11} /> Leads · {leads.length}
+        <button type="button" className="ui-button crm-quick-filter" onClick={() => setActiveCRMPage('leads')}>
+          <UserPlus /> Leads · {leads.length}
         </button>
-        <button type="button" className="crm-quick-filter" onClick={() => setActiveCRMPage('pipeline')}>
-          <KanbanSquare size={11} /> Deals · {deals.length}
+        <button type="button" className="ui-button crm-quick-filter" onClick={() => setActiveCRMPage('pipeline')}>
+          <KanbanSquare /> Deals · {deals.length}
         </button>
       </div>
 
@@ -43,7 +43,7 @@ export function DashboardSavedViews() {
         <button
           key={lead.id}
           type="button"
-          className="crm-list-item"
+          className="ui-list-row crm-list-item"
           onClick={() => {
             setActiveLeadId(lead.id);
             setActiveCRMPage('leads');
@@ -64,7 +64,7 @@ export function DashboardSavedViews() {
         <button
           key={deal.id}
           type="button"
-          className="crm-list-item"
+          className="ui-list-row crm-list-item"
           onClick={() => {
             setActiveDealId(deal.id);
             setActiveCRMPage('pipeline');
@@ -82,7 +82,7 @@ export function DashboardSavedViews() {
         <button
           key={company.id}
           type="button"
-          className="crm-list-item"
+          className="ui-list-row crm-list-item"
           onClick={() => {
             setActiveCompanyId(company.id);
             setActiveCRMPage('leads');
@@ -90,7 +90,7 @@ export function DashboardSavedViews() {
         >
           <div className="crm-list-item-row">
             <span className="crm-list-item-title" style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-              <Building2 size={12} className="subtle" />
+              <Building2 className="subtle" />
               {company.name}
             </span>
           </div>

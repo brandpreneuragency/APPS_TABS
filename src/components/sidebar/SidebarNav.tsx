@@ -23,7 +23,7 @@ export function SidebarNav() {
               onClick={() => setSidebarTab(id)}
               className={isActive ? 'side-nav-tab side-nav-tab--on' : 'side-nav-tab'}
             >
-              <Icon size={16} />
+              <Icon className="ui-icon"  />
               {label}
             </button>
           );

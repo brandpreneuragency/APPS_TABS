@@ -16,11 +16,11 @@ export function FormSummary({ form, kpis }: FormSummaryProps) {
   const allowedDomains = form.embed.allowedDomains ?? [];
 
   return (
-    <div className="forms-section">
+    <div className="ui-card forms-section">
       <div className="forms-spread">
         <div className="forms-row">
           <span className="forms-kpi-card-icon" style={{ width: 28, height: 28 }}>
-            <FileText size={15} />
+            <FileText />
           </span>
           <div className="forms-stack" style={{ gap: 2 }}>
             <span className="forms-page-title">{form.name}</span>
@@ -33,39 +33,39 @@ export function FormSummary({ form, kpis }: FormSummaryProps) {
       </div>
 
       <div className="forms-kpi-grid" style={{ marginTop: 4 }}>
-        <div className="forms-kpi-card">
+        <div className="ui-card forms-kpi-card">
           <div className="forms-kpi-card-row">
             <span className="forms-kpi-card-label">Submissions</span>
             <span className="forms-kpi-card-icon">
-              <Inbox size={15} />
+              <Inbox />
             </span>
           </div>
           <span className="forms-kpi-card-value">{kpis.total}</span>
         </div>
-        <div className="forms-kpi-card">
+        <div className="ui-card forms-kpi-card">
           <div className="forms-kpi-card-row">
             <span className="forms-kpi-card-label">Conversion</span>
             <span className="forms-kpi-card-icon">
-              <Target size={15} />
+              <Target />
             </span>
           </div>
           <span className="forms-kpi-card-value">{pct(kpis.conversionRate)}</span>
           <span className="forms-kpi-card-delta">{kpis.converted} converted</span>
         </div>
-        <div className="forms-kpi-card">
+        <div className="ui-card forms-kpi-card">
           <div className="forms-kpi-card-row">
             <span className="forms-kpi-card-label">Spam</span>
             <span className="forms-kpi-card-icon">
-              <ShieldOff size={15} />
+              <ShieldOff />
             </span>
           </div>
           <span className="forms-kpi-card-value">{kpis.spam}</span>
         </div>
-        <div className="forms-kpi-card">
+        <div className="ui-card forms-kpi-card">
           <div className="forms-kpi-card-row">
             <span className="forms-kpi-card-label">Fields</span>
             <span className="forms-kpi-card-icon">
-              <FileText size={15} />
+              <FileText />
             </span>
           </div>
           <span className="forms-kpi-card-value">{form.fields.length}</span>
@@ -79,7 +79,7 @@ export function FormSummary({ form, kpis }: FormSummaryProps) {
             <span className="forms-field-value--muted">Unrestricted (any domain)</span>
           ) : (
             <span className="forms-row forms-row--wrap" style={{ gap: 6 }}>
-              <Globe size={12} className="forms-muted" />
+              <Globe className="forms-muted" />
               {allowedDomains.map((d) => (
                 <span key={d} className="forms-domain-chip">
                   {d}

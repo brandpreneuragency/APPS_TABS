@@ -15,13 +15,13 @@ const TURKISH_MONTHS = [
 
 // getDay(): 0 = Pazar ... 1 = Pazartesi
 const TURKISH_WEEKDAYS = [
-  'PAZAR',
-  'PTESİ',
-  'SALI',
-  'ÇŞMBA',
-  'PERŞ',
-  'CUMA',
-  'CTESİ',
+  'PAZ',
+  'PZT',
+  'SAL',
+  'ÇAR',
+  'PER',
+  'CUM',
+  'CMT',
 ] as const;
 
 export function formatTurkishClock(date: Date): string {

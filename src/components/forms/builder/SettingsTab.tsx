@@ -71,7 +71,7 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
   // before enabling production file uploads.
   const fileUploadsPanel = (
     <div className="forms-builder-disabled-panel">
-      <AlertTriangle size={16} />
+      <AlertTriangle />
       <div>
         <p className="forms-empty-state-title" style={{ fontSize: 'var(--fs-sm)' }}>
           File uploads not enabled
@@ -86,24 +86,24 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
 
   return (
     <div className="forms-builder-settings">
-      <div className="forms-builder-settings-scroll">
+      <div className="ui-panel-body forms-builder-settings-scroll">
         {/* Success message */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">Success message</h3>
           <p className="forms-section-hint">Shown to respondents after they submit.</p>
           <textarea
-            className="forms-textarea"
+            className="ui-input forms-textarea"
             value={form.successMessage}
             onChange={(e) => void updateForm(form.id, { successMessage: e.target.value })}
           />
         </div>
 
         {/* Notification email */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">Notification email</h3>
           <p className="forms-section-hint">New submissions are forwarded to this address.</p>
           <input
-            className="forms-input"
+            className="ui-input forms-input"
             type="email"
             placeholder="you@example.com"
             value={form.notificationEmail ?? ''}
@@ -114,7 +114,7 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
         </div>
 
         {/* Allowed embed domains */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">Allowed embed domains</h3>
           <p className="forms-section-hint">
             Restrict where this form can be embedded. Empty = unrestricted (not recommended).
@@ -123,13 +123,13 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
             {allowedDomains.map((d) => (
               <span key={d} className="forms-domain-chip">
                 {d}
-                <button type="button" title="Remove" onClick={() => removeDomain(d)}>
-                  <X size={11} />
+                <button className="ui-icon-button" type="button" title="Remove" onClick={() => removeDomain(d)}>
+                  <X />
                 </button>
               </span>
             ))}
             <div className="forms-domains-add">
-              <input
+              <input className="ui-input"
                 value={domainInput}
                 placeholder="example.com"
                 onChange={(e) => setDomainInput(e.target.value)}
@@ -142,36 +142,36 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
               />
               <button
                 type="button"
-                className="forms-action-btn forms-action-btn--ghost"
+                className="ui-button forms-action-btn forms-action-btn--ghost"
                 onClick={addDomain}
               >
-                <Plus size={14} /> Add
+                <Plus /> Add
               </button>
             </div>
           </div>
         </div>
 
         {/* File uploads */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">File uploads</h3>
           {fileUploadsPanel}
         </div>
 
         {/* Webhooks */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">Webhooks</h3>
           <p className="forms-section-hint">Webhook delivery config lives in Forms Settings.</p>
           <button
             type="button"
-            className="forms-action-btn forms-action-btn--ghost"
+            className="ui-button forms-action-btn forms-action-btn--ghost"
             onClick={() => setActiveFormsPage('settings')}
           >
-            <ExternalLink size={14} /> Open Forms Settings
+            <ExternalLink /> Open Forms Settings
           </button>
         </div>
 
         {/* Status control */}
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <h3 className="forms-section-title">Status</h3>
           <p className="forms-section-hint">
             Publish to make the form embeddable. Archive to retire it.
@@ -184,10 +184,10 @@ export default function SettingsTab({ form }: { form: LeadForm }) {
                 <button
                   key={opt.value}
                   type="button"
-                  className={`forms-action-btn${isActive ? ' forms-action-btn--primary' : ''}`}
+                  className={"ui-button " + (`forms-action-btn${isActive ? ' ui-button--primary forms-action-btn--primary' : ''}`)}
                   onClick={() => setStatus(opt.value)}
                 >
-                  <Icon size={14} /> {opt.label}
+                  <Icon /> {opt.label}
                 </button>
               );
             })}

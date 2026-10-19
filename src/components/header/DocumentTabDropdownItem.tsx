@@ -133,20 +133,20 @@ export function DocumentTabDropdownItem({
         <button
           type="button"
           title={t('tabs.renameTab')}
-          className="tabs-dropdown-close"
+          className="ui-icon-button tabs-dropdown-close"
           onClick={(e) => {
             e.stopPropagation();
             setEditValue(doc.title);
             setIsEditing(true);
           }}
         >
-          <Pencil size={12} />
+          <Pencil className="ui-icon"  />
         </button>
 
         <button
           type="button"
           title={t('tabs.closeTab')}
-          className="tabs-dropdown-close"
+          className="ui-icon-button tabs-dropdown-close"
           onClick={(e) => {
             e.stopPropagation();
             if (hasEdits) {
@@ -156,7 +156,7 @@ export function DocumentTabDropdownItem({
             }
           }}
         >
-          <X size={12} />
+          <X className="ui-icon"  />
         </button>
       </div>
 

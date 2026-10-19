@@ -73,11 +73,11 @@ export interface Attachment {
   displayPath?: string;
 }
 
-/** Providers that can own a new local CLI chat thread. Mock ids run locally without Tauri for UI testing. */
-export type ChatProviderId = 'codex' | 'grok' | 'commandCode' | 'openCode' | 'mockEcho' | 'mockTools';
+/** Providers that can own a new local chat thread. */
+export type ChatProviderId = 'codex' | 'grok' | 'commandCode' | 'openCode';
 
 /** A transcript never changes provider after its first message. */
-export type ChatThreadOrigin = 'legacy_api' | ChatProviderId;
+export type ChatThreadOrigin = 'legacy_api' | ChatProviderId | 'mockEcho' | 'mockTools';
 
 export interface ChatThreadMeta {
   id: string;

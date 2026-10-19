@@ -8,7 +8,7 @@ const STATUS_ICONS: Record<TaskStatus, typeof Circle> = {
 };
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
-  pending: 'var(--c-text-2)',
+  pending: 'var(--c-text-3)',
   in_progress: 'var(--c-info)',
   completed: 'var(--c-success)',
 };
@@ -34,18 +34,18 @@ export function TaskTabDropdownItem({
       onClick={onSelect}
       className={`tabs-dropdown-item${isActive ? ' tabs-dropdown-item--active' : ''}`}
     >
-      <StatusIcon size={12} style={{ color: STATUS_COLORS[task.status] }} />
+      <StatusIcon className="ui-icon" style={{ color: STATUS_COLORS[task.status] }} />
       <span className="trunc med">{task.title}</span>
 
       <button
         type="button"
-        className="tabs-dropdown-close"
+        className="ui-icon-button tabs-dropdown-close"
         onClick={(e) => {
           e.stopPropagation();
           onClose();
         }}
       >
-        <X size={12} />
+        <X className="ui-icon"  />
       </button>
     </div>
   );

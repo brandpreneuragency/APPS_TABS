@@ -60,11 +60,11 @@ export function ToolsSection() {
   const providerList = (
     <nav className="codex-provider-nav" aria-label={t('codex.providers')}>
       <div className="codex-provider-nav__heading">{t('codex.providers')}</div>
-      <div className="settings-list-body">
+      <div className="settings-list-body ui-panel-body">
         <button type="button" aria-current={provider === 'codex' ? 'page' : undefined}
-          className={`settings-list-item codex-provider-nav__item${provider === 'codex' ? ' settings-list-item--active' : ''}`}
+          className={`ui-list-row settings-list-item codex-provider-nav__item${provider === 'codex' ? ' settings-list-item--active' : ''}`}
           onClick={() => setProvider('codex')}>
-          <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size={16} /></span>
+          <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size="var(--c-icon-1)" /></span>
           <span className="codex-provider-nav__text">
             <span className="codex-provider-nav__name">Codex</span>
             <span className="codex-provider-nav__meta">{connection ? t('codex.signedIn') : t('codex.disconnected')}</span>
@@ -75,9 +75,9 @@ export function ToolsSection() {
           const state = probeState[providerId];
           const status = cliProviderStatus(state);
           return <button key={providerId} type="button" aria-current={provider === providerId ? 'page' : undefined}
-            className={`settings-list-item codex-provider-nav__item${provider === providerId ? ' settings-list-item--active' : ''}`}
+            className={`ui-list-row settings-list-item codex-provider-nav__item${provider === providerId ? ' settings-list-item--active' : ''}`}
             onClick={() => setProvider(providerId)}>
-            <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size={16} /></span>
+            <span className="codex-provider-nav__icon" aria-hidden="true"><TerminalSquare size="var(--c-icon-1)" /></span>
             <span className="codex-provider-nav__text">
               <span className="codex-provider-nav__name">{cliProviders[providerId].name}</span>
               <span className="codex-provider-nav__meta">

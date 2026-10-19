@@ -12,8 +12,6 @@ import { useUIStore } from '../../stores/uiStore';
 import { useActionsStore } from '../../stores/actionsStore';
 import { useChatStore } from '../../stores/chatStore';
 import { useAIStore } from '../../stores/aiStore';
-import { isMockProviderId } from '../../services/providers/mockProviders';
-import { useMockProviderService } from '../../services/providers/useMockProviderService';
 import { useStreamingChat } from '../../hooks/useStreamingChat';
 import type { GithubAiMessageContext } from '../../hooks/useStreamingChat';
 import { useGithubStore } from '../../stores/githubStore';
@@ -63,8 +61,7 @@ const IMAGE_MIME_TYPES = new Set([
 ]);
 
 function isChatProviderId(value: unknown): value is ChatProviderId {
-  return value === 'codex' || value === 'grok' || value === 'commandCode' || value === 'openCode'
-    || value === 'mockEcho' || value === 'mockTools';
+  return value === 'codex' || value === 'grok' || value === 'commandCode' || value === 'openCode';
 }
 
 /** Convert raw bytes to a base64 string (chunked to avoid call-stack limits). */
@@ -216,7 +213,6 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
   const desktop = isTauriRuntime();
   const codex = useCodexService();
   const cliRun = useCliProviderService();
-  const mockRun = useMockProviderService();
   const threads = useChatStore((state) => state.threads);
   const currentChatContext = useChatStore((state) => state.currentContext);
   const newChat = useChatStore((state) => state.newChat);
@@ -226,15 +222,12 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     && !currentChatContext.taskId && !currentChatContext.settingsTab);
   const [preferredProvider, setPreferredProvider] = useState<ChatProviderId>('codex');
   const threadOrigin = activeThread?.origin;
-  const providerLocked = threadOrigin === 'legacy_api';
+  const providerLocked = threadOrigin === 'legacy_api' || threadOrigin === 'mockEcho' || threadOrigin === 'mockTools';
   const selectedProvider = isChatProviderId(threadOrigin) ? threadOrigin : preferredProvider;
-  const mockSelected = isMockProviderId(selectedProvider) && !providerLocked;
-  const cliSelected = selectedProvider !== 'codex' && !mockSelected && !providerLocked;
-  const ownRun = (desktop || mockSelected) && (selectedProvider === 'codex'
+  const cliSelected = selectedProvider !== 'codex' && !providerLocked;
+  const ownRun = desktop && (selectedProvider === 'codex'
     ? Boolean(codex.activeRunId && codex.activeAppThreadId === (useChatStore.getState().activeThreadId ?? threadId))
-    : mockSelected
-      ? Boolean(mockRun && mockRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId))
-      : Boolean(cliRun && cliRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)));
+    : Boolean(cliRun && cliRun.appThreadId === (useChatStore.getState().activeThreadId ?? threadId)));
   const getActiveAgent = useAIStore((state) => state.getActiveAgent);
   const { openSettings } = useUIStore();
   const { sendMessage, stopStreaming } = useStreamingChat(threadId, mode, workspaceId ?? undefined, taskId ?? undefined, settingsTab ?? undefined, editor);
@@ -308,8 +301,8 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
 
   const handleSend = useCallback(async () => {
     const trimmed = inputValue.trim();
-    if ((!trimmed && attachments.length === 0) || (!desktop && !mockSelected) || sendLockRef.current) return;
-    if (githubMode && (!githubPreparation || githubPreparation.blocked || !githubPreparation.packet || mockSelected)) return;
+    if (providerLocked || (!trimmed && attachments.length === 0) || !desktop || sendLockRef.current) return;
+    if (githubMode && (!githubPreparation || githubPreparation.blocked || !githubPreparation.packet)) return;
     sendLockRef.current = true;
     setSendError('');
     const toSend = githubMode ? [] : attachments.slice();
@@ -356,7 +349,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     } finally {
       sendLockRef.current = false;
     }
-  }, [inputValue, attachments, desktop, mockSelected, sendMessage, selectedText, replyToMessage, onClearReply, t, githubMode, githubPreparation, setInputValue]);
+  }, [inputValue, attachments, desktop, providerLocked, sendMessage, selectedText, replyToMessage, onClearReply, t, githubMode, githubPreparation, setInputValue]);
 
   const handleKeyDown = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (mentionOpen) {
@@ -676,8 +669,8 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
     };
   }, [mentionOpen, activeFolderId, indexedFolderId, rootNode, ensureSubtreeLoaded, activeWorkspaceId]);
 
-  const canSend = (desktop || mockSelected) && !ownRun && (inputValue.trim().length > 0 || attachments.length > 0)
-    && (!githubMode || (githubContextReady && !!githubPreparation && !githubPreparation.blocked && !!githubPreparation.packet && !mockSelected));
+  const canSend = desktop && !providerLocked && !ownRun && (inputValue.trim().length > 0 || attachments.length > 0)
+    && (!githubMode || (githubContextReady && !!githubPreparation && !githubPreparation.blocked && !!githubPreparation.packet));
   const promptOptions: PromptOption[] = mode === 'task' ? [...TASK_BUILT_INS, ...quickPrompts] : quickPrompts;
 
   return (
@@ -692,19 +685,19 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
           <button
             type="button"
             onClick={() => setSelectedText(null)}
-            className="btn-icon shrink-0"
+            className="ui-icon-button btn-icon shrink-0"
             title={t('chat.clearContext')}
             aria-label={t('chat.clearContext')}
-            style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)', color: 'var(--c-red, #df1c1c)', flexShrink: 0 }}
+            style={{ color: 'var(--c-red, #df1c1c)' }}
           >
-            <X size={12} />
+            <X className="ui-icon"  />
           </button>
         </div>
       )}
 
       {!githubMode && replyToMessage && (
         <div style={{ marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8, background: 'var(--c-background-4)', borderRadius: 'var(--radius-sm)', padding: '6px 10px', fontSize: 'var(--fs-sm)', border: '1px solid var(--c-border-1)' }}>
-          <Reply size={12} style={{ color: accentColor, flexShrink: 0 }} />
+          <Reply className="ui-icon"  style={{ color: accentColor, flexShrink: 0 }} />
           <div style={{ display: 'flex', alignItems: 'stretch', gap: 6, flex: 1, overflow: 'hidden' }}>
             <div style={{ width: 2, borderRadius: 'var(--radius-sm)', background: accentColor, flexShrink: 0 }} />
             <div style={{ overflow: 'hidden', minWidth: 0 }}>
@@ -719,11 +712,10 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
           <button
             type="button"
             onClick={onClearReply}
-            className="btn-icon shrink-0"
+            className="ui-icon-button btn-icon shrink-0"
             title="Cancel reply"
-            style={{ width: 'var(--control-height-sm)', height: 'var(--control-height-sm)' }}
           >
-            <X size={10} />
+            <X className="ui-icon"  />
           </button>
         </div>
       )}
@@ -793,9 +785,9 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                   onMouseEnter={() => setMentionIndex(idx)}
                 >
                   {node.kind === 'directory' ? (
-                    <Folder size={13} className="composer-chip-icon" />
+                    <Folder  className="ui-icon composer-chip-icon" />
                   ) : (
-                    <File size={13} className="composer-chip-icon" />
+                    <File  className="ui-icon composer-chip-icon" />
                   )}
                   <span className="trunc med">{node.path}</span>
                 </button>
@@ -829,7 +821,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                 aria-disabled={cliSelected}
                 style={cliSelected ? { opacity: 0.4 } : undefined}
               >
-                <Plus size={14} />
+                <Plus className="ui-icon"  />
               </ComposerIconButton>
 
               <div ref={actionsRef} className="relative">
@@ -841,7 +833,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                   aria-haspopup="menu"
                   aria-expanded={actionsDropdownOpen}
                 >
-                  <Zap size={14} className="chat-input-dropup-icon" />
+                  <Zap  className="ui-icon chat-input-dropup-icon" />
                 </ComposerIconButton>
                 {actionsDropdownOpen && (
                   <div className="drop" style={{ left: 0, bottom: '100%', marginBottom: 0, minWidth: 192 }}>
@@ -858,7 +850,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                           }}
                           className="drop-item"
                         >
-                          <Zap size={11} style={{ color: accentColor, flexShrink: 0 }} />
+                          <Zap className="ui-icon"  style={{ color: accentColor, flexShrink: 0 }} />
                           <span className="trunc med">{qp.title}</span>
                         </button>
                       ))
@@ -894,7 +886,7 @@ export function ChatInput({ mode, threadId, workspaceId, taskId, settingsTab, re
                 className="shrink-0"
                 title={t('chat.stop')}
               >
-                <Square size={12} fill="currentColor" style={{ color: 'var(--c-text-2)' }} />
+                <Square className="ui-icon"  fill="currentColor" style={{ color: 'var(--c-text-3)' }} />
               </ComposerIconButton>
             )}
             <ComposerSendButton onClick={handleSend} disabled={!canSend} title={t('chat.send')} />

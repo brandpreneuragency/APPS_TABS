@@ -54,14 +54,7 @@ export function CRMListPanel() {
       style={{ marginLeft: '0px', marginRight: '0px' }}
     >
       <div
-        className="crm-list-content ai-scroll flex-1 overflow-y-a h-full"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          paddingLeft: '18px',
-          paddingRight: '12px',
-          paddingTop: '12px',
-        }}
+        className="ui-panel-body crm-list-content ai-scroll flex-col flex-1 overflow-y-a"
       >
         {activeCRMPage === 'dashboard' && <DashboardSavedViews />}
         {activeCRMPage === 'leads' && <LeadList />}
@@ -74,11 +67,11 @@ export function CRMListPanel() {
         {addLabel ? (
           <button
             type="button"
-            className="crm-list-add-btn"
+            className="ui-button crm-list-add-btn"
             title={addLabel}
             onClick={() => void handleAdd()}
           >
-            <Plus size={14} />
+            <Plus />
             <span>{addLabel}</span>
           </button>
         ) : (

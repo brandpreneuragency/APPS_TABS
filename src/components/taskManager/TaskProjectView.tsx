@@ -69,7 +69,7 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
   };
 
   return (
@@ -83,7 +83,7 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
           title={maxDate ? `Due before ${maxDate}` : 'Due before'}
         >
           <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flex: 1 }}>
-            <Calendar size={12} />
+            <Calendar />
             <span>{maxDate || 'Due before'}</span>
           </span>
         </TaskDueDatePicker>
@@ -95,25 +95,25 @@ export function TaskProjectView({ tasks, onSetProject }: TaskProjectViewProps) {
           <div key={project?.id ?? '__none__'} className="project-group-card">
             <div className="project-group-header">
               <div className="project-group-title">
-                <Folder size={12} className="subtle" />
+                <Folder className="subtle" />
                 <span>{projectName}</span>
               </div>
               <div className="project-group-actions">
-                <button type="button" className="project-group-btn" title="Edit project">
-                  <Pencil size={11} />
+                <button type="button" className="ui-icon-button project-group-btn" title="Edit project">
+                  <Pencil />
                 </button>
                 <button
                   type="button"
-                  className="project-group-btn"
+                  className="ui-icon-button project-group-btn"
                   title="Add task"
                   onClick={() => onSetProject?.(projectName === 'Uncategorized' ? null : projectName)}
                 >
-                  <Plus size={12} />
+                  <Plus />
                 </button>
               </div>
             </div>
             {groupTasks.length === 0 && (
-              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-2)', fontStyle: 'italic', padding: '4px 0' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--c-text-3)', fontStyle: 'italic', padding: '4px 0' }}>
                 No tasks
               </div>
             )}

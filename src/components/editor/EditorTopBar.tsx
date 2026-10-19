@@ -218,7 +218,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
         <button
           id="editor-topbar-save"
           type="button"
-          className="tbar-btn"
+         className="ui-icon-button tbar-btn"
           onClick={() => {
             void onSave(editor);
           }}
@@ -226,13 +226,13 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
           title="Save"
           aria-label="Save"
         >
-          <Save size={14} />
+          <Save className="ui-icon" />
         </button>
         <div className="editor-topbar-title-wrapper" style={{ flex: 1, minWidth: 0 }}>
           {isEditingTitle ? (
             <input
               ref={titleInputRef}
-              className="ctrl-xs editor-topbar-title-input"
+              className="ui-input ctrl-xs editor-topbar-title-input"
               value={titleDraft}
               title="File name"
               placeholder="File name"
@@ -253,7 +253,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
           ) : (
             <button
               type="button"
-              className="ctrl-xs editor-topbar-title"
+              className="ui-button ui-button--ghost ctrl-xs editor-topbar-title"
               onClick={startEditingTitle}
               title={fileName || 'Untitled'}
             >
@@ -270,14 +270,14 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
           id="editor-topbar-more"
           ref={menuButtonRef}
           type="button"
-          className="tbar-btn"
+         className="ui-icon-button tbar-btn"
           title={t('navigation.more')}
           aria-label={t('navigation.more')}
           aria-haspopup="menu"
           aria-expanded={menuOpen}
           aria-controls="editor-topbar-menu"
           onClick={() => { setSearchOpen(false); setMenuOpen((open) => !open); }}
-        ><Ellipsis size={14} /></button>
+        ><Ellipsis className="ui-icon" /></button>
         {menuOpen && <div id="editor-topbar-menu" role="menu" aria-label={t('navigation.more')}
           className="drop header-dropdown-menu header-dropdown-menu--right"
           onKeyDown={(event) => {
@@ -303,7 +303,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
           onClick={() => { toggleRainbowMode(); setMenuOpen(false); menuButtonRef.current?.focus(); }}
           title={t('editorMenu.rainbow')}
         >
-          <Rainbow size={14} /> {t('editorMenu.rainbow')}
+          <Rainbow className="ui-icon" /> {t('editorMenu.rainbow')}
         </button>
           <button
             id="editor-topbar-find"
@@ -313,14 +313,14 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
             onClick={() => { setMenuOpen(false); setSearchOpen(true); }}
             title={t('editorMenu.find')}
           >
-            <Search size={14} /> {t('editorMenu.find')}
+            <Search className="ui-icon" /> {t('editorMenu.find')}
           </button>
           <button id="editor-topbar-undo" type="button" className="drop-item" role="menuitem"
             onClick={() => { setMenuOpen(false); handleUndo(); }} disabled={!editor || !editor.can().undo()}
-            title={`${t('editorMenu.undo')} (Ctrl+Z)`}><Undo2 size={13} /> {t('editorMenu.undo')}</button>
+            title={`${t('editorMenu.undo')} (Ctrl+Z)`}><Undo2 className="ui-icon" /> {t('editorMenu.undo')}</button>
           <button id="editor-topbar-redo" type="button" className="drop-item" role="menuitem"
             onClick={() => { setMenuOpen(false); handleRedo(); }} disabled={!editor || !editor.can().redo()}
-            title={`${t('editorMenu.redo')} (Ctrl+Y)`}><Redo2 size={13} /> {t('editorMenu.redo')}</button>
+            title={`${t('editorMenu.redo')} (Ctrl+Y)`}><Redo2 className="ui-icon" /> {t('editorMenu.redo')}</button>
         </div>}
         </div>
         <div className="relative" ref={searchRef}>
@@ -328,7 +328,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
             <div className="editor-topbar-search">
               <input
                 ref={findInputRef}
-                className="ctrl-xs editor-topbar-search-input"
+                className="ui-input ctrl-xs editor-topbar-search-input"
                 placeholder="Find"
                 value={query}
                 onChange={(e) => updateQuery(e.target.value)}
@@ -342,7 +342,7 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
                 }}
               />
               <input
-                className="ctrl-xs editor-topbar-search-input"
+                className="ui-input ctrl-xs editor-topbar-search-input"
                 placeholder="Replace"
                 value={replaceText}
                 onChange={(e) => setReplaceText(e.target.value)}
@@ -366,46 +366,46 @@ export function EditorTopBar({ editor, onSave, fileName, onTitleCommit }: Editor
                 <div className="editor-topbar-search-actions">
                   <button
                     type="button"
-                    className="tbar-btn"
+                   className="ui-icon-button tbar-btn"
                     onClick={goPrev}
                     disabled={findState.matches.length === 0}
                     title="Previous match"
                   >
-                    <ChevronUp size={13} />
+                    <ChevronUp className="ui-icon" />
                   </button>
                   <button
                     type="button"
-                    className="tbar-btn"
+                   className="ui-icon-button tbar-btn"
                     onClick={goNext}
                     disabled={findState.matches.length === 0}
                     title="Next match"
                   >
-                    <ChevronDown size={13} />
+                    <ChevronDown className="ui-icon" />
                   </button>
                   <button
                     type="button"
-                    className="tbar-btn"
+                   className="ui-icon-button tbar-btn"
                     onClick={replaceOne}
                     disabled={findState.matches.length === 0}
                     title="Replace current"
                   >
-                    <Replace size={13} />
+                    <Replace className="ui-icon" />
                   </button>
                   <button
                     type="button"
-                    className="tbar-btn"
+                   className="ui-icon-button tbar-btn"
                     onClick={replaceAll}
                     disabled={findState.matches.length === 0}
                     title="Replace all"
                   >
-                    <ReplaceAll size={13} />
+                    <ReplaceAll className="ui-icon" />
                   </button>
                 </div>
               </div>
             </div>
           )}
         </div>
-        <AssistantToggle id="editor-topbar-assistant" iconSize={14} />
+        <AssistantToggle id="editor-topbar-assistant" />
       </div>
     </div>
   );

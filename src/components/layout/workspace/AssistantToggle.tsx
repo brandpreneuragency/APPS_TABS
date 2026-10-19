@@ -2,8 +2,7 @@ import { PanelRight } from 'lucide-react';
 import { useUIStore } from '../../../stores/uiStore';
 
 interface AssistantToggleProps {
-  /** Icon size in px. Defaults to 12 for toolbars, 16 for the header. */
-  iconSize?: number;
+
   variant?: 'toolbar' | 'header';
   /** Override the default header id when the control is duplicated. */
   id?: string;
@@ -13,7 +12,7 @@ interface AssistantToggleProps {
  * Shows or hides the assistant wrapper.
  */
 export function AssistantToggle({
-  iconSize,
+
   variant = 'toolbar',
   id = 'header-btn-assistant',
 }: AssistantToggleProps) {
@@ -21,7 +20,7 @@ export function AssistantToggle({
   const toggleAssistantWrapper = useUIStore((s) => s.toggleAssistantWrapper);
 
   const label = assistantOpen ? 'Hide assistant' : 'Show assistant';
-  const resolvedIconSize = iconSize ?? (variant === 'header' ? 16 : 12);
+
   const className =
     variant === 'header'
       ? `ai-toggle-btn${assistantOpen ? ' ai-toggle-btn--on' : ''}`
@@ -49,9 +48,9 @@ export function AssistantToggle({
       onMouseDown={variant === 'header' ? (event) => event.stopPropagation() : undefined}
       onClick={handleToggle}
       aria-pressed={assistantOpen}
-      className={className}
+      className={`ui-icon-button ${className}`}
     >
-      <PanelRight size={resolvedIconSize} />
+      <PanelRight />
     </button>
   );
 }

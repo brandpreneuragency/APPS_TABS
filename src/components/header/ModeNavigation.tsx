@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, Folder, GitBranch, List, PanelLeftClose, PanelLeftOpen, Settings, TerminalSquare, Users } from 'lucide-react';
+import { CalendarDays, FileText, Folder, GitBranch, List, PanelLeftClose, PanelLeftOpen, Settings, StickyNote, TerminalSquare, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { enterClients } from '../../services/clients/navigation';
 import { useUIStore } from '../../stores/uiStore';
@@ -15,18 +15,19 @@ export function ModeNavigation() {
   const navigationCollapsed = useUIStore((state) => state.navigationCollapsed);
   const setNavigationCollapsed = useUIStore((state) => state.setNavigationCollapsed);
   const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
-  const docsActive = !githubMode && !taskMode && !crmMode && !settingsActive;
+  const docsActive = !githubMode && !taskMode && !crmMode && activeView === 'document';
+  const notesActive = !githubMode && !taskMode && !crmMode && activeView === 'notes';
 
   return (
     <nav className="mode-navigation" aria-label={t('navigation.modes')}>
-      <button id="nav-btn-left-navbar" type="button"
+      <button className="ui-icon-button" id="nav-btn-left-navbar" type="button"
         title={navigationCollapsed ? t('navigation.openNavbar') : t('navigation.collapseNavbar')}
         aria-label={navigationCollapsed ? t('navigation.openNavbar') : t('navigation.collapseNavbar')}
         aria-pressed={!navigationCollapsed} onClick={() => setNavigationCollapsed(!navigationCollapsed)}>
-        {navigationCollapsed ? <PanelLeftOpen size={15} /> : <PanelLeftClose size={15} />}
+        {navigationCollapsed ? <PanelLeftOpen className="ui-icon"  /> : <PanelLeftClose className="ui-icon"  />}
       </button>
       <div className="header-utilities">
-        <button id="nav-btn-settings" type="button" title={t('menu.settings')} aria-label={t('menu.settings')}
+        <button className="ui-icon-button" id="nav-btn-settings" type="button" title={t('menu.settings')} aria-label={t('menu.settings')}
           aria-pressed={settingsActive} onClick={() => {
             const ui = useUIStore.getState();
             if (settingsActive) {
@@ -37,9 +38,9 @@ export function ModeNavigation() {
             } else {
               ui.openSettings();
             }
-          }}><Settings size={15} /></button>
-        <button id="nav-btn-terminal" type="button" title={t('navigation.terminal')} aria-label={t('navigation.terminal')}
-          aria-pressed={terminalOpen} onClick={() => useUIStore.getState().setTerminalPanelOpen(!terminalOpen)}><TerminalSquare size={15} /></button>
+          }}><Settings className="ui-icon"  /></button>
+        <button className="ui-icon-button" id="nav-btn-terminal" type="button" title={t('navigation.terminal')} aria-label={t('navigation.terminal')}
+          aria-pressed={terminalOpen} onClick={() => useUIStore.getState().setTerminalPanelOpen(!terminalOpen)}><TerminalSquare className="ui-icon"  /></button>
       </div>
       <span className="mode-navigation-separator" aria-hidden="true">|</span>
       <button id="nav-btn-documents" type="button" className="header-mode" aria-pressed={docsActive}
@@ -48,12 +49,12 @@ export function ModeNavigation() {
           ui.setTaskMode(false);
           ui.setContextPanelOpen('documents', true);
         }}>
-        <FileText size={15} /><span>{t('navigation.docs')}</span>
+        <FileText className="ui-icon"  /><span>{t('navigation.docs')}</span>
       </button>
       <span className="mode-navigation-separator" aria-hidden="true">|</span>
       <button id="nav-btn-github" type="button" className="header-mode" aria-pressed={githubMode}
         onClick={() => useUIStore.getState().setGithubMode(!githubMode)}>
-        <GitBranch size={15} /><span>{t('navigation.github')}</span>
+        <GitBranch className="ui-icon"  /><span>{t('navigation.github')}</span>
       </button>
       <span className="mode-navigation-separator" aria-hidden="true">|</span>
         <button id="nav-btn-tasks" type="button" className="header-mode" aria-pressed={taskMode && taskPage === 'list'}
@@ -63,7 +64,7 @@ export function ModeNavigation() {
             ui.setTaskMode(true);
             ui.setContextPanelOpen('tasks', true);
           }}>
-          <List size={15} /><span>{t('navigation.taskList')}</span>
+          <List className="ui-icon"  /><span>{t('navigation.taskList')}</span>
         </button>
         <button id="nav-btn-calendar" type="button" className="header-mode" aria-pressed={taskMode && taskPage === 'calendar'}
           onClick={() => {
@@ -72,9 +73,8 @@ export function ModeNavigation() {
             ui.setTaskMode(true);
             ui.setContextPanelOpen('tasks', true);
           }}>
-          <CalendarDays size={15} /><span>{t('navigation.calendar')}</span>
+          <CalendarDays className="ui-icon"  /><span>{t('navigation.calendar')}</span>
         </button>
-        <span className="mode-navigation-separator" aria-hidden="true">|</span>
         <button id="nav-btn-projects" type="button" className="header-mode" aria-pressed={crmMode && clientPage === 'projects'}
           onClick={() => {
             const ui = useUIStore.getState();
@@ -82,11 +82,16 @@ export function ModeNavigation() {
             ui.setCrmMode(true);
             ui.setContextPanelOpen('crm', true);
           }}>
-          <Folder size={15} /><span>{t('navigation.projects')}</span>
+          <Folder className="ui-icon"  /><span>{t('navigation.projects')}</span>
+        </button>
+        <span className="mode-navigation-separator" aria-hidden="true">|</span>
+        <button id="nav-btn-notes" type="button" className="header-mode" aria-pressed={notesActive}
+          onClick={() => useUIStore.getState().setActiveView('notes')}>
+          <StickyNote className="ui-icon"  /><span>{t('navigation.notes')}</span>
         </button>
         <button id="nav-btn-clients" type="button" className="header-mode" aria-pressed={crmMode && clientPage === 'clients'}
           onClick={enterClients}>
-          <Users size={15} /><span>{t('navigation.clients')}</span>
+          <Users className="ui-icon"  /><span>{t('navigation.clients')}</span>
         </button>
     </nav>
   );

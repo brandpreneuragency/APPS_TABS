@@ -53,7 +53,10 @@
 .tdp-parent-link:focus-visible {
   background: var(--c-background-2);
   color: var(--c-text-1);
-  border-color: var(--c-accent-1);
+}
+
+.tdp-parent-link:focus-visible {
+  outline: 2px solid var(--c-border-2);
 }
 
 .tdp-subtasks {
@@ -76,14 +79,14 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--c-gap-1);
 }
 
 .tdp-subtasks li,
 .tdp-subtasks form {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--c-space-1);
   min-width: 0;
 }
 
@@ -107,7 +110,7 @@
 }
 
 .tdp-subtasks form input:focus {
-  border-color: var(--c-accent-1);
+  outline: 2px solid var(--c-border-2);
 }
 
 .tdp-subtasks form button {
@@ -125,17 +128,8 @@
 }
 
 .tdp-subtasks form button:disabled {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   cursor: default;
-}
-
-.composer-mode-toggle {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 .composer-mode-toggle[data-active='true'] {
@@ -153,7 +147,7 @@
 .subtask-row {
   position: relative;
   background-color: var(--c-background-3);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, background-color 0.18s ease, opacity 0.18s ease;
+  transition: transform 0.18s ease, background-color 0.18s ease, opacity 0.18s ease;
   cursor: default;
 }
 
@@ -163,7 +157,7 @@
 
 .subtask-row--dragging {
   opacity: 0.4;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+
 }
 
 /* Thin drop indicator line shown between rows where the dragged
@@ -175,7 +169,7 @@
   right: 8px;
   height: 2px;
   border-radius: var(--radius-sm);
-  background: var(--c-accent-2);
+  background: var(--c-border-2);
   pointer-events: none;
 }
 
@@ -192,7 +186,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 14px;
+  width: var(--c-icon-1);
   height: fit-content;
   min-height: 0;
   padding: 0;
@@ -245,7 +239,7 @@
   vertical-align: middle;
   font-size: var(--fs-xs);
   font-weight: 600;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   text-align: center;
@@ -261,7 +255,7 @@
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--c-space-3);
   width: fit-content;
   height: 20px;
   margin-bottom: 0px;
@@ -302,9 +296,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 6px;
+  gap: var(--c-gap-1);
   width: fit-content;
-  height: 100%;
+  height: 24px;
   min-height: 0;
   padding: 0 6px;
   background-color: transparent;
@@ -325,8 +319,6 @@
 }
 
 .tdp-meta-field-btn svg {
-  width: var(--fs-sm);
-  height: var(--fs-sm);
   color: var(--c-text-3);
 }
 
@@ -334,8 +326,15 @@
   color: var(--c-accent-1);
 }
 
+.tdp-meta-controls .tdp-meta-field-btn:not(:disabled):hover,
+.tdp-meta-controls .tdp-meta-field-btn:not(:disabled):hover svg,
+.tdp-meta-controls .tdp-meta-field-btn:not(:disabled):hover .tdp-meta-field-label {
+  color: var(--c-text-1);
+}
+
 .tdp-meta-field-label {
   font-size: var(--fs-sm);
+  line-height: 13px;
   color: var(--c-text-3);
   white-space: nowrap;
   overflow: hidden;
@@ -344,33 +343,16 @@
 }
 
 .subtask-status-btn {
-  width: 10px;
-  height: 10px;
-  min-width: 0;
-  min-height: 0;
-  flex-shrink: 0;
-  background: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
   margin-top: 2px;
   margin-bottom: 2px;
   vertical-align: middle;
-  color: var(--c-text-2);
   transition: color 0.15s;
 }
 .subtask-status-btn--completed {
-  color: var(--c-emerald-600, #059669);
-}
-.subtask-status-btn svg {
-  width: 10px;
-  height: 10px;
+  color: var(--c-success, #059669);
 }
 .subtask-status-btn--active {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 .subtask-title {
   height: 20px;
@@ -393,7 +375,7 @@
   color: var(--c-text-1);
 }
 .subtask-title:hover {
-  background: var(--c-hover, rgba(0, 0, 0, 0.04));
+  background: var(--c-background-4, rgba(0, 0, 0, 0.04));
 }
 
 .subtask-due-date-field {
@@ -418,23 +400,18 @@
   line-height: 1;
 }
 
-.subtask-due-date-btn svg {
-  width: 10px;
-  height: 10px;
-}
-
 .subtask-due-date-btn:hover {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 .subtask-due-date-btn--active,
 .subtask-due-date-btn--active .subtask-due-date-label {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 .subtask-due-date-btn--active:hover,
 .subtask-due-date-btn--active:hover .subtask-due-date-label {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 
 .subtask-due-date-btn--completed,
@@ -462,16 +439,7 @@
   border: none !important;
 }
 #tdc-subtasks-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--c-text-2);
   transition: color 0.15s;
-  flex-shrink: 0;
 }
 #tdc-subtasks-toggle:hover {
   color: var(--c-text-1);
@@ -487,8 +455,8 @@
   margin-left: 0;
   margin-right: 5px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
+  border: 0;
+  color: var(--c-accent-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -505,7 +473,7 @@
   min-height: 0;
   height: fit-content;
   width: 100%;
-  padding: 0 12px 12px;
+  padding: var(--c-space-1);
   background: transparent;
   border-bottom: none;
   z-index: 2;
@@ -560,8 +528,8 @@
   content: '';
   width: 8px;
   height: 2px;
-  border-top: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
+  border-top: 1px solid var(--c-border-2);
+  border-bottom: 1px solid var(--c-border-2);
   opacity: 0.6;
 }
 #task-comment-card .composer-resize-handle:hover::before {
@@ -573,7 +541,7 @@
   grid-template-rows: 1fr;
   height: fit-content;
   width: fit-content;
-  padding: 0 12px 6px 6px;
+  padding: 5px 12px 9px 6px;
   border: none;
   border-top: none;
   border-image: none;
@@ -596,7 +564,7 @@
 #task-comment-card .task-comment-bottom-col--left {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--c-gap-1);
   width: 100%;
   min-width: 0;
   padding-right: 0px;
@@ -608,16 +576,9 @@
   justify-content: flex-end;
   padding-right: 0;
 }
-#task-comment-card .btn-send {
-  width: 24px;
-  height: 24px;
-  min-width: 24px;
-  min-height: 24px;
-  border-radius: var(--radius-full);
-  padding-left: 0;
-  padding-right: 0;
+#task-comment-card .btn-send {  border-radius: var(--radius-full);
   background-color: var(--c-accent-2);
-  color: var(--c-text-2);
+  color: var(--c-text-1);
 }
 #task-comment-card .btn-send:not(:disabled):hover {
   background: var(--c-accent-1);
@@ -631,7 +592,7 @@
   min-width: 0;
   width: fit-content;
   height: fit-content;
-  gap: 4px;
+  gap: var(--c-gap-1);
   background-color: rgba(34, 34, 34, 0);
 }
 #task-comment-card .task-quick-create-dropup-btn:hover {
@@ -639,12 +600,10 @@
 }
 #task-comment-card .task-quick-create-dropup-btn .task-quick-create-dropup-icon {
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 #task-comment-card .task-quick-create-dropup-btn .task-quick-create-dropup-chevron {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 #task-comment-card .task-quick-create-dropup-btn[data-active='true'] .task-quick-create-dropup-icon,
 #task-comment-card .task-quick-create-dropup-btn[data-active='true'] .task-quick-create-dropup-chevron {
@@ -684,13 +643,13 @@
 .comment-bubble p.txt-xs {
   margin: 0;
   width: fit-content;
-  height: 32px;
+  height: var(--control-height-sm);
   line-height: var(--line-normal);
   padding-top: 0px;
   padding-right: 10px;
   padding-bottom: 0;
   padding-left: 10px;
-  background-color: var(--c-background-1);
+  background-color: var(--c-background-2a);
   border-width: 0px;
   border-style: solid;
   border-color: var(--c-border-1);
@@ -840,45 +799,19 @@
   display: none;
 }
 :root .subtask-status-btn {
-  width: 10px;
-  height: 10px;
-  min-width: 0;
-  min-height: 0;
-  flex-shrink: 0;
-  background: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  padding: 0;
   margin-top: 2px;
   margin-bottom: 2px;
   vertical-align: middle;
-  color: var(--c-text-2);
   transition: color 0.15s;
 }
 :root .subtask-status-btn--completed {
-  color: var(--c-emerald-600, #059669);
-}
-:root .subtask-status-btn svg {
-  width: 10px;
-  height: 10px;
+  color: var(--c-success, #059669);
 }
 :root .subtask-status-btn--active {
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #tdc-subtasks-toggle {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--c-text-2);
   transition: color 0.15s;
-  flex-shrink: 0;
 }
 :root #tdc-subtasks-toggle:hover {
   color: var(--c-text-1);
@@ -893,8 +826,8 @@
   margin-left: 0;
   margin-right: 5px;
   border-radius: var(--radius-full);
-  border: 1px solid var(--c-accent-center-panel);
-  color: var(--c-accent-center-panel);
+  border: 0;
+  color: var(--c-accent-1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -911,7 +844,7 @@
   min-height: 0;
   height: fit-content;
   width: 100%;
-  padding: 0 12px 12px;
+  padding: var(--c-space-1);
   background: transparent;
   border-bottom: none;
   z-index: 2;
@@ -925,10 +858,10 @@
 }
 :root #task-comment-thread {
   background: transparent;
-  padding-top: 6px;
-  padding-bottom: 6px;
-  padding-left: 18px;
-  padding-right: 12px;
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: var(--c-space-3);
+  padding-right: var(--c-space-1);
   width: 100%;
   justify-content: flex-start;
   align-items: flex-start;
@@ -937,7 +870,7 @@
 }
 :root #task-comment-thread .meta {
   font-size: var(--fs-sm);
-  color: var(--c-text-2);
+  color: var(--c-text-3);
 }
 :root #task-comment-thread .comment-meta {
   font-size: var(--fs-xs);
@@ -963,13 +896,13 @@
 :root .comment-bubble p.txt-xs {
   margin: 0;
   width: fit-content;
-  height: 32px;
+  height: var(--control-height-sm);
   line-height: var(--line-normal);
   padding-top: 0px;
   padding-right: 10px;
   padding-bottom: 0;
   padding-left: 10px;
-  background-color: var(--c-background-1);
+  background-color: var(--c-background-2a);
   border-width: 0px;
   border-style: solid;
   border-color: var(--c-border-1);

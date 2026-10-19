@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -146,6 +147,31 @@ describe('ChatModelControls', () => {
     expect(within(filteredPicker).queryByRole('button', { name: /GPT-6 Astra/i })).not.toBeInTheDocument();
   });
 
+  it('styles the body-portaled picker without relying on composer ancestry', async () => {
+    const stylesheet = document.createElement('style');
+    stylesheet.textContent = readFileSync('src/components/sidebar/ChatModelControls.css', 'utf8');
+    document.head.append(stylesheet);
+    try {
+      const user = userEvent.setup();
+      render(<div id="chat-input-card">
+        <ChatModelControls providerId="codex" threadId="thread-1" onSelectModel={async () => undefined} />
+      </div>);
+      await user.click(await screen.findByRole('button', { name: 'cliChat.model: Codex / GPT-6 Astra' }));
+      const picker = screen.getByRole('group', { name: 'cliChat.model' });
+      expect(picker.parentElement).toBe(document.body);
+      expect(picker.closest('#chat-input-card')).toBeNull();
+      expect(getComputedStyle(picker).position).toBe('fixed');
+      expect(getComputedStyle(picker).display).toBe('flex');
+      expect(getComputedStyle(within(picker).getByRole('searchbox')).width).toBe('100%');
+      expect(getComputedStyle(within(picker).getByRole('button', { name: /GPT-6 Astra/i })).display).toBe('flex');
+      const list = picker.querySelector('.chat-model-list');
+      expect(list).not.toBeNull();
+      expect(getComputedStyle(list!).overflowY).toBe('auto');
+    } finally {
+      stylesheet.remove();
+    }
+  });
+
   it('persists a direct Codex reasoning effort without opening the options menu', async () => {
     const user = userEvent.setup();
     render(<ChatModelControls providerId="codex" threadId="thread-1" workspaceId="workspace-1" onSelectModel={async () => undefined} />);
@@ -156,6 +182,18 @@ describe('ChatModelControls', () => {
 
     expect(mocks.put).toHaveBeenCalledWith({ key: 'codexEffort', value: 'low' });
     expect(screen.queryByRole('group', { name: 'codex.reasoning' })).not.toBeInTheDocument();
+  });
+
+  it('focuses search when the portal first mounts and preserves focus while repositioning', async () => {
+    const user = userEvent.setup();
+    render(<ChatModelControls providerId="codex" threadId="thread-1" onSelectModel={async () => undefined} />);
+    await user.click(await screen.findByRole('button', { name: 'cliChat.model: Codex / GPT-6 Astra' }));
+    const picker = screen.getByRole('group', { name: 'cliChat.model' });
+    expect(within(picker).getByRole('searchbox')).toHaveFocus();
+    const option = within(picker).getByRole('button', { name: /GPT-6 Astra/i });
+    option.focus();
+    fireEvent(window, new Event('resize'));
+    expect(option).toHaveFocus();
   });
 
   it('shows Grok reasoning beside its model and saves the choice for that model', async () => {

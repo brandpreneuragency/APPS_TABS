@@ -17,7 +17,7 @@ const STATUS_FILTERS: { key: StatusFilter; label: string }[] = [
 
 function timeLabel(iso: string): string {
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
   } catch {
     return iso;
   }
@@ -57,10 +57,10 @@ export function FormList() {
     <>
       <div className="forms-list-filters">
         {STATUS_FILTERS.map((f) => (
-          <button
+          <button data-active={activeFilter === f.key}
             key={f.key}
             type="button"
-            className={`forms-filter-chip${activeFilter === f.key ? ' forms-filter-chip--active' : ''}`}
+            className={"ui-button " + (`forms-filter-chip${activeFilter === f.key ? ' forms-filter-chip--active' : ''}`)}
             onClick={() => handleFilter(f.key)}
           >
             {f.label}
@@ -69,8 +69,8 @@ export function FormList() {
       </div>
 
       <div className="forms-list-search">
-        <Search size={13} className="forms-muted" />
-        <input
+        <Search className="forms-muted" />
+        <input className="ui-input"
           type="text"
           placeholder="Search forms"
           value={listFilters.search ?? ''}
@@ -87,18 +87,18 @@ export function FormList() {
           const subCount = submissions.filter((s) => s.formId === form.id).length;
           const isActive = form.id === activeFormId;
           return (
-            <button
+            <button data-active={isActive}
               key={form.id}
               type="button"
               onClick={() => setActiveFormId(form.id)}
-              className={`forms-list-item${isActive ? ' forms-list-item--active' : ''}`}
+              className={"ui-list-row " + (`forms-list-item${isActive ? ' forms-list-item--active' : ''}`)}
             >
               <span className="forms-list-item-title">
                 <span className="trunc forms-grow">{form.name}</span>
                 <StatusBadge status={form.status} />
               </span>
               <span className="forms-list-item-meta">
-                <Inbox size={11} />
+                <Inbox />
                 <span>{subCount} submission{subCount === 1 ? '' : 's'}</span>
                 <span>·</span>
                 <span>{form.fields.length} fields</span>

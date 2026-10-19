@@ -57,8 +57,8 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
     >
       <div className="row" style={{ justifyContent: 'space-between', padding: '12px 12px 8px 12px' }}>
         <span className="label semibold">Insert Image</span>
-        <button onClick={onClose} className="tt-primary">
-          <X size={14} />
+        <button onClick={onClose} className="ui-icon-button tt-primary">
+          <X className="ui-icon"  />
         </button>
       </div>
 
@@ -70,8 +70,8 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
             padding: '0 8px 6px 8px',
             fontSize: 'var(--fs-xs)',
             fontWeight: 500,
-            color: tab === 'url' ? 'var(--c-accent-center-panel)' : 'var(--c-text-2)',
-            borderBottom: tab === 'url' ? '2px solid var(--c-accent-center-panel)' : '2px solid transparent',
+            color: tab === 'url' ? 'var(--c-accent-1)' : 'var(--c-text-3)',
+            borderBottom: '2px solid transparent',
             transition: 'color 0.15s',
             background: 'none',
             borderTop: 'none',
@@ -80,7 +80,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
             cursor: 'pointer',
           }}
         >
-          <Link2 size={11} /> URL
+          <Link2 className="ui-icon"  /> URL
         </button>
         <button
           onClick={() => setTab('upload')}
@@ -89,8 +89,8 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
             padding: '0 8px 6px 8px',
             fontSize: 'var(--fs-xs)',
             fontWeight: 500,
-            color: tab === 'upload' ? 'var(--c-accent-center-panel)' : 'var(--c-text-2)',
-            borderBottom: tab === 'upload' ? '2px solid var(--c-accent-center-panel)' : '2px solid transparent',
+            color: tab === 'upload' ? 'var(--c-accent-1)' : 'var(--c-text-3)',
+            borderBottom: '2px solid transparent',
             transition: 'color 0.15s',
             background: 'none',
             borderTop: 'none',
@@ -99,7 +99,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
             cursor: 'pointer',
           }}
         >
-          <Upload size={11} /> Upload
+          <Upload className="ui-icon"  /> Upload
         </button>
       </div>
 
@@ -113,13 +113,13 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
               onChange={(e) => setUrl(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && insertUrl()}
               placeholder="https://example.com/image.png"
-              className="ctrl-sm"
+              className="ui-input"
             />
             <button
               id="image-insert-submit"
               onClick={insertUrl}
               disabled={!url.trim()}
-              className="btn-brand"
+              className="ui-button ui-button--primary btn-brand"
               style={!url.trim() ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
             >
               Insert
@@ -144,14 +144,14 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
                 <div className="row">
                   <button
                     onClick={() => { setPreview(null); if (fileRef.current) fileRef.current.value = ''; }}
-                    className="btn-xs flex-1"
+                    className="ui-button btn-xs flex-1"
                     style={{ border: '1px solid var(--c-border-1)' }}
                   >
                     Change
                   </button>
                   <button
                     onClick={insertUpload}
-                    className="btn-brand flex-1"
+                    className="ui-button ui-button--primary btn-brand flex-1"
                   >
                     Insert
                   </button>
@@ -172,7 +172,7 @@ export function ImageInsert({ editor, onClose }: ImageInsertProps) {
                   width: '100%',
                 }}
               >
-                <Upload size={18} className="tt-primary" />
+                <Upload  className="ui-icon tt-primary" />
                 <span className="label">Click to choose a file</span>
               </button>
             )}

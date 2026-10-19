@@ -139,35 +139,35 @@ export function AppTitlebar({ children }: AppTitlebarProps) {
       <div className="app-titlebar__window-controls">
         <button
           type="button"
-          className="app-titlebar__window-control"
+          className="ui-icon-button app-titlebar__window-control"
           onMouseDown={stopWindowDrag}
           onClick={handleMinimize}
           aria-label="Minimize window"
           title="Minimize"
         >
-          <Minus size={14} />
+          <Minus className="ui-icon"  />
         </button>
 
         <button
           type="button"
-          className="app-titlebar__window-control"
+          className="ui-icon-button app-titlebar__window-control"
           onMouseDown={stopWindowDrag}
           onClick={handleToggleMaximize}
           aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
           title={isMaximized ? 'Restore' : 'Maximize'}
         >
-          {isMaximized ? <Copy size={13} /> : <Square size={13} />}
+          {isMaximized ? <Copy className="ui-icon"  /> : <Square className="ui-icon"  />}
         </button>
 
         <button
           type="button"
-          className="app-titlebar__window-control app-titlebar__window-control--close"
+          className="ui-icon-button app-titlebar__window-control app-titlebar__window-control--close"
           onMouseDown={stopWindowDrag}
           onClick={handleClose}
           aria-label="Close window"
           title="Close"
         >
-          <X size={14} />
+          <X className="ui-icon"  />
         </button>
       </div>
     </header>

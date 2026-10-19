@@ -67,13 +67,13 @@ function ProfileAutosave({ draft, records, mutationPending, resolvingConflict, o
     <span role={status === 'error' ? 'alert' : 'status'}>{statusLabel(status, t)}</span>
     {status === 'error' && autosave.errorCode === 'CONFLICT' ? <>
       <span className="clients-error">{t('clients.profileConflict')}</span>
-      <button type="button" className="clients-link-button" disabled={resolvingConflict}
+      <button type="button" className="ui-button clients-link-button" disabled={resolvingConflict}
         onClick={() => void onKeepEdits(autosave.retry)}>{t('clients.keepProfileEdits')}</button>
-      <button type="button" className="clients-link-button" disabled={resolvingConflict}
+      <button type="button" className="ui-button clients-link-button" disabled={resolvingConflict}
         onClick={() => void onUseLatest()}>{t('clients.useLatestProfile')}</button>
     </> : status === 'error' && <>
       <span className="clients-error">{t('clients.saveFailed')}</span>
-      <button type="button" className="clients-link-button" onClick={() => void autosave.retry()}>{t('clients.retry')}</button>
+      <button type="button" className="ui-button clients-link-button" onClick={() => void autosave.retry()}>{t('clients.retry')}</button>
     </>}
   </div>;
 }
@@ -170,15 +170,15 @@ function ProfileLocalEditor({
   };
 
   return <form className="clients-editor-form" aria-label={t('clients.localProfile')} onSubmit={(event) => event.preventDefault()}>
-    <label className="clients-field">
+    <label className="ui-field clients-field">
       <span>{t('clients.website')}</span>
-      <input type="url" value={latest.value.website} placeholder="https://example.com"
+      <input className="ui-input" type="url" value={latest.value.website} placeholder="https://example.com"
         disabled={resolvingConflict}
         onChange={(event) => change({ ...latest.value, website: event.currentTarget.value })} />
     </label>
-    <label className="clients-field">
+    <label className="ui-field clients-field">
       <span>{t('clients.description')}</span>
-      <textarea rows={4} value={latest.value.description}
+      <textarea className="ui-input" rows={4} value={latest.value.description}
         disabled={resolvingConflict}
         onChange={(event) => change({ ...latest.value, description: event.currentTarget.value })} />
     </label>
@@ -186,7 +186,7 @@ function ProfileLocalEditor({
       resolvingConflict={resolvingConflict} onKeepEdits={resolveKeepEdits} onUseLatest={resolveUseLatest} />}
     <div className="clients-editor-actions">
       {status === 'idle' && latest.generation > 0 && <span role="status">{t('clients.saveIdle')}</span>}
-      <button type="button" className="clients-button" disabled={resolvingConflict}
+      <button type="button" className="ui-button clients-button" disabled={resolvingConflict}
         onClick={onClose}>{t('clients.cancelKeepDraft')}</button>
     </div>
   </form>;
@@ -452,7 +452,7 @@ export function ClientProfile({ client, records, database }: ClientProfileProps)
   </section>;
   if (visibleData.status === 'error') return <section className="clients-data-state">
     <p role="alert">{t('clients.loadFailed')}</p>
-    <button type="button" className="clients-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button>
+    <button type="button" className="ui-button clients-button" onClick={() => setRetryToken((value) => value + 1)}>{t('clients.retry')}</button>
   </section>;
 
   const localProfile = visibleData.profile;
@@ -460,21 +460,21 @@ export function ClientProfile({ client, records, database }: ClientProfileProps)
   const contactDrafts = visibleData.drafts.filter((draft) => draft.kind === 'contact');
 
   return <div className="clients-profile">
-    <section className="clients-profile-section" aria-labelledby="clients-canonical-profile-title">
+    <section className="ui-card clients-profile-section" aria-labelledby="clients-canonical-profile-title">
       <h2 id="clients-canonical-profile-title">{t('clients.canonicalProfile')}</h2>
       <form className="clients-editor-form" onSubmit={(event) => void saveCanonical(event)}>
-        <label className="clients-field">
+        <label className="ui-field clients-field">
           <span>{t('clients.name')}</span>
-          <input type="text" value={currentForm.name}
+          <input className="ui-input" type="text" value={currentForm.name}
             onChange={(event) => setCanonicalForm({ ...currentForm, name: event.currentTarget.value })} />
         </label>
-        <label className="clients-field">
+        <label className="ui-field clients-field">
           <span>{t('clients.color')}</span>
           <input type="color" value={currentForm.color}
             onChange={(event) => setCanonicalForm({ ...currentForm, color: event.currentTarget.value })} />
         </label>
         <div className="clients-editor-actions">
-          <button type="submit" className="clients-button clients-button--primary">{t('clients.saveProfile')}</button>
+          <button type="submit" className="ui-button clients-button ui-button--primary clients-button--primary">{t('clients.saveProfile')}</button>
           {visibleSave && <span role={visibleSave === 'error' ? 'alert' : 'status'} aria-live="polite">{
             visibleSave === 'saving' ? t('clients.canonicalSaving')
               : visibleSave === 'saved' ? t('clients.canonicalSaved') : t('clients.canonicalFailed')
@@ -483,10 +483,10 @@ export function ClientProfile({ client, records, database }: ClientProfileProps)
       </form>
     </section>
 
-    <section className="clients-profile-section" aria-labelledby="clients-local-profile-title">
+    <section className="ui-card clients-profile-section" aria-labelledby="clients-local-profile-title">
       <div className="clients-profile-section-heading">
         <h2 id="clients-local-profile-title">{t('clients.localProfile')}</h2>
-        {!editing && <button type="button" className="clients-button" disabled={profileRevisionMutationPending}
+        {!editing && <button type="button" className="ui-button clients-button" disabled={profileRevisionMutationPending}
           onClick={beginLocalEdit}>{t('clients.editProfile')}</button>}
       </div>
       {!editing && <div className="clients-local-profile-summary">

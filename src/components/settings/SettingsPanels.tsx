@@ -35,7 +35,7 @@ export function SettingsPanels({
       mode="settings"
       contextPanel={contextPanel}
       centerPanel={centerPanel}
-      contextPanelAvailable
+      contextPanelAvailable={leftMain != null}
       contextPanelOpen={contextPanelOpen}
       contextPanelWidthVw={contextPanelWidth}
       contextPanelId="settings-list-panel"

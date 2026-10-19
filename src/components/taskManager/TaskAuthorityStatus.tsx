@@ -51,35 +51,35 @@ export function TaskAuthorityPanel({ engine, onClose }: { engine: TaskAuthorityE
   };
   return createPortal(<dialog ref={ref} className="task-authority-dialog" aria-labelledby="task-authority-heading" onClose={onClose}>
     <div className="task-authority-heading"><h2 id="task-authority-heading">{t('taskAuthority.title')}</h2>
-      <button type="button" className="ai-toggle-btn" aria-label={t('taskAuthority.close')} onClick={onClose}><X size={18} /></button></div>
+      <button type="button" className="ui-icon-button ai-toggle-btn" aria-label={t('taskAuthority.close')} onClick={onClose}><X /></button></div>
     <p role="status">{t(`taskAuthority.${status.state}`)}</p>
     <p>{status.metadata ? t('taskAuthority.connectedHelp') : t('taskAuthority.connectHelp')}</p>
     {status.metadata && <p>{t('taskAuthority.pending', { count: status.pending })} · {t('taskAuthority.lastSync')}: {status.metadata.lastSync
-      ? new Date(status.metadata.lastSync).toLocaleString() : '—'}</p>}
+      ? new Date(status.metadata.lastSync).toLocaleString('tr-TR') : '—'}</p>}
     {Boolean(status.metadata?.projectionJobs?.length) && <p role="status">{t('taskAuthority.projectionsPending')}</p>}
     {(error || status.error && status.state !== 'editing') && <p role="alert">{t('taskAuthority.connectionError')} <code>{error || status.error}</code></p>}
-    <button type="button" className="task-authority-action" disabled={busy || status.state === 'syncing'}
+    <button type="button" className="ui-button task-authority-action" disabled={busy || status.state === 'syncing'}
       onClick={() => void action(() => status.metadata ? engine.sync() : engine.connect())}>
       {t(status.metadata ? 'taskAuthority.refresh' : 'taskAuthority.connect')}</button>
     {status.conflicts.length > 0 && <section aria-label={t('taskAuthority.conflict')}>
       <h3>{t('taskAuthority.conflict')}</h3><p>{t('taskAuthority.conflictHelp')}</p>
       {status.metadata?.dependencyConflict && <div><p>{t('taskAuthority.groupHelp')}</p>
-        <button disabled={busy} type="button" onClick={() => void action(() => engine.resolveGroup(status.conflicts, 'local'))}>{t('taskAuthority.chooseLocal')}</button>{' '}
-        <button disabled={busy} type="button" onClick={() => void action(() => engine.resolveGroup(status.conflicts, 'remote'))}>{t('taskAuthority.chooseRemote')}</button>
+        <button className="ui-button" disabled={busy} type="button" onClick={() => void action(() => engine.resolveGroup(status.conflicts, 'local'))}>{t('taskAuthority.chooseLocal')}</button>{' '}
+        <button className="ui-button" disabled={busy} type="button" onClick={() => void action(() => engine.resolveGroup(status.conflicts, 'remote'))}>{t('taskAuthority.chooseRemote')}</button>
       </div>}
       {status.conflicts.map(conflict => <article key={conflict.key} className="task-authority-conflict">
         <strong>{String(conflict.local?.title ?? conflict.local?.name ?? conflict.remote.value?.title ?? conflict.id)}</strong>
         <div className="task-authority-versions">
           <div><h4>{t('taskAuthority.localVersion')}</h4><RecordVersion value={conflict.local} />
-            {!status.metadata?.dependencyConflict && <button disabled={busy} type="button" onClick={() => void action(() => engine.resolve(conflict, 'local'))}>{t('taskAuthority.chooseLocal')}</button>}</div>
+            {!status.metadata?.dependencyConflict && <button className="ui-button" disabled={busy} type="button" onClick={() => void action(() => engine.resolve(conflict, 'local'))}>{t('taskAuthority.chooseLocal')}</button>}</div>
           <div><h4>{t('taskAuthority.remoteVersion')}</h4><RecordVersion value={conflict.remote.value} />
-            {!status.metadata?.dependencyConflict && <button disabled={busy} type="button" onClick={() => void action(() => engine.resolve(conflict, 'remote'))}>{t('taskAuthority.chooseRemote')}</button>}</div>
+            {!status.metadata?.dependencyConflict && <button className="ui-button" disabled={busy} type="button" onClick={() => void action(() => engine.resolve(conflict, 'remote'))}>{t('taskAuthority.chooseRemote')}</button>}</div>
         </div>
       </article>)}
     </section>}
     {Boolean(status.metadata?.activity?.length) && <section><h3>{t('taskAuthority.history')}</h3><ul>
       {status.metadata?.activity?.map(item => <li key={item.operationId}>
-        {new Date(item.at).toLocaleString()} · {item.actor.startsWith('tabs:') ? 'TABS' : item.actor} · {t(`taskAuthority.result_${item.outcome}`)} · {item.count}
+        {new Date(item.at).toLocaleString('tr-TR')} · {item.actor.startsWith('tabs:') ? 'TABS' : item.actor} · {t(`taskAuthority.result_${item.outcome}`)} · {item.count}
       </li>)}
     </ul></section>}
   </dialog>, document.body);
@@ -91,9 +91,9 @@ export function TaskAuthorityStatus() {
   const [open, setOpen] = useState(false);
   if (!isTauriRuntime()) return null;
   return <>
-    <button type="button" id="task-authority-status" className="ai-toggle-btn task-authority-status" data-state={status.state}
+    <button type="button" id="task-authority-status" className="ui-button task-authority-status" data-state={status.state}
       aria-label={t('taskAuthority.title')} title={t(`taskAuthority.${status.state}`)} onClick={() => setOpen(true)}>
-      {status.state === 'offline' ? <CloudOff size={16} /> : <Cloud size={16} />}
+      {status.state === 'offline' ? <CloudOff /> : <Cloud />}
       <span>{status.conflicts.length || status.pending || 'VPS'}</span>
     </button>
     {open && <TaskAuthorityPanel engine={taskAuthority} onClose={() => setOpen(false)} />}

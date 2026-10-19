@@ -76,7 +76,7 @@ export default function FormsListPage() {
 
   if (!form) {
     return (
-      <div className="forms-page forms-page--scroll">
+      <div className="ui-panel-body forms-page forms-page--scroll">
         <FormsEmptyState
           icon={FileText}
           title="Select a form"
@@ -120,29 +120,29 @@ export default function FormsListPage() {
   const activeSnippet = snippets.find((s) => s.mode === embedMode) ?? snippets[0];
 
   return (
-    <div className="forms-page forms-page--scroll">
+    <div className="ui-panel-body forms-page forms-page--scroll">
       <FormSummary form={form} kpis={kpis} />
 
       <div className="forms-actions">
-        <button type="button" className="forms-action-btn forms-action-btn--primary" onClick={handleEdit}>
-          <Pencil size={14} /> Edit
+        <button type="button" className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary" onClick={handleEdit}>
+          <Pencil /> Edit
         </button>
-        <button type="button" className="forms-action-btn" onClick={handleGetEmbed}>
-          <Code2 size={14} /> Get embed code
+        <button type="button" className="ui-button forms-action-btn" onClick={handleGetEmbed}>
+          <Code2 /> Get embed code
         </button>
-        <button type="button" className="forms-action-btn" onClick={handleDuplicate}>
-          <Copy size={14} /> Duplicate
+        <button type="button" className="ui-button forms-action-btn" onClick={handleDuplicate}>
+          <Copy /> Duplicate
         </button>
-        <button type="button" className="forms-action-btn" onClick={openSaveTemplate}>
-          <Save size={14} /> Save as template
+        <button type="button" className="ui-button forms-action-btn" onClick={openSaveTemplate}>
+          <Save /> Save as template
         </button>
       </div>
 
       {showEmbed ? (
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <div className="forms-spread">
             <p className="forms-section-title">
-              <Code2 size={14} /> Embed code
+              <Code2 /> Embed code
             </p>
             <span className="forms-section-hint">
               Public rendering requires a future VPS endpoint (see CRM_FORMS_PUBLIC_CAPTURE_TODO).
@@ -160,24 +160,24 @@ export default function FormsListPage() {
       ) : null}
 
       {showSaveTemplate ? (
-        <div className="forms-section">
+        <div className="ui-card forms-section">
           <p className="forms-section-title">
-            <FilePlus2 size={14} /> Save form as template
+            <FilePlus2 /> Save form as template
           </p>
           <div className="forms-settings-row">
-            <div className="forms-field-group">
+            <div className="ui-field forms-field-group">
               <label className="forms-field-group-label">Template name</label>
               <input
-                className="forms-input"
+                className="ui-input forms-input"
                 value={templateName}
                 onChange={(e) => setTemplateName(e.target.value)}
                 placeholder="e.g. Demo Request template"
               />
             </div>
-            <div className="forms-field-group">
+            <div className="ui-field forms-field-group">
               <label className="forms-field-group-label">Description (optional)</label>
               <input
-                className="forms-input"
+                className="ui-input forms-input"
                 value={templateDesc}
                 onChange={(e) => setTemplateDesc(e.target.value)}
                 placeholder="Short note about this template"
@@ -185,10 +185,10 @@ export default function FormsListPage() {
             </div>
           </div>
           <div className="forms-actions">
-            <button type="button" className="forms-action-btn forms-action-btn--primary" onClick={handleSaveTemplate}>
-              <Save size={14} /> Save template
+            <button type="button" className="ui-button forms-action-btn ui-button--primary forms-action-btn--primary" onClick={handleSaveTemplate}>
+              <Save /> Save template
             </button>
-            <button type="button" className="forms-action-btn forms-action-btn--ghost" onClick={() => setShowSaveTemplate(false)}>
+            <button type="button" className="ui-button forms-action-btn forms-action-btn--ghost" onClick={() => setShowSaveTemplate(false)}>
               Cancel
             </button>
           </div>

@@ -19,7 +19,7 @@ export function formatDate(iso?: string, opts: Intl.DateTimeFormatOptions = { mo
   if (!iso) return '—';
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString(undefined, opts);
+  return d.toLocaleDateString('tr-TR', opts);
 }
 
 export function formatRelative(iso?: string): string {
@@ -34,7 +34,7 @@ export function formatRelative(iso?: string): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   if (days < 7) return `${days}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  return new Date(iso).toLocaleDateString('tr-TR', { month: 'short', day: 'numeric' });
 }
 
 export function fullName(firstName?: string, lastName?: string): string {
