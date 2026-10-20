@@ -119,6 +119,14 @@ export function LeftNarrowSidebar({ githubNavigationRef }: { githubNavigationRef
     return <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.notes')}><NotesNavigation /></nav>;
   }
 
+  if (!taskMode && !crmMode && activeView === 'providerAccounts') {
+    return <nav id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.providerAccounts')}>
+      <div className="scope-tabs"><button type="button" className="scope-tab" aria-current="page">
+        <Layers /><span>{t('providerAccounts.dashboard')}</span>
+      </button></div>
+    </nav>;
+  }
+
   return (
     <nav ref={navigationRef} id="nav-bar" className="nav-bar scope-navigation" aria-label={t('navigation.scope')}>
       <div className="nav-bar-header">

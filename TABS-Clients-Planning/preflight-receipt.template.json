@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "status": "pending",
+  "checkedAt": null,
+  "repoCandidateFingerprint": null,
+  "isolatedAppIdentity": {
+    "identifier": "com.tabs.clients.acceptance",
+    "executablePath": null,
+    "executableSha256": null,
+    "configPath": "C:\\Users\\burak\\MOTHER\\PROJECTS\\TABS-local\\src-tauri\\tauri.clients-acceptance.conf.json",
+    "configSha256": null,
+    "privateRoot": null
+  },
+  "isolationChecks": {
+    "identifier": false,
+    "appData": false,
+    "appLocalData": false,
+    "appConfig": false,
+    "webviewProfile": false,
+    "dexieStorage": false,
+    "gmailCredentialNamespace": false,
+    "journals": false,
+    "singleInstance": false,
+    "shortcut": false,
+    "tray": false,
+    "associations": false,
+    "updater": false,
+    "productionProcesses": false
+  },
+  "mailboxAlias": null,
+  "oauthAudienceAndPublishingState": {
+    "mailboxType": null,
+    "audience": null,
+    "publishingState": null,
+    "policyResolution": null
+  },
+  "requiredScopesVerified": {
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "grantsVerified": false
+  },
+  "refreshAfterRestartVerified": false,
+  "credentialValidityAssessment": {
+    "assessedAt": null,
+    "plannedRunUntilUtc": null,
+    "knownExpiryUtc": null,
+    "noPlannedReauth": false,
+    "policyReviewed": false
+  },
+  "liveReadSendReplyReplyAllForwardResults": {
+    "read": "pending",
+    "send": "pending",
+    "reply": "pending",
+    "replyAll": "pending",
+    "forward": "pending"
+  },
+  "attachmentResult": "pending",
+  "gmailReadStateUnchanged": false,
+  "freshStartAndDeduplicationResult": "pending",
+  "permittedTestSuiteReference": {
+    "suiteAlias": null,
+    "privateConfigPath": null,
+    "sha256": null
+  },
+  "adapterContractVersion": "CL-C1",
+  "adapterFingerprint": null,
+  "contractSha256": null,
+  "evidence": [
+    {
+      "id": "PF-OAUTH",
+      "path": "reports/preflight/PF-OAUTH.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-IDENTITY",
+      "path": "reports/preflight/PF-IDENTITY.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-RESTART",
+      "path": "reports/preflight/PF-RESTART.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-REFRESH",
+      "path": "reports/preflight/PF-REFRESH.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-READ",
+      "path": "reports/preflight/PF-READ.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-NEW",
+      "path": "reports/preflight/PF-NEW.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-REPLY",
+      "path": "reports/preflight/PF-REPLY.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-REPLYALL",
+      "path": "reports/preflight/PF-REPLYALL.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-FORWARD",
+      "path": "reports/preflight/PF-FORWARD.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-READSTATE",
+      "path": "reports/preflight/PF-READSTATE.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-FRESH",
+      "path": "reports/preflight/PF-FRESH.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-ISOLATION",
+      "path": "reports/preflight/PF-ISOLATION.json",
+      "sha256": null
+    },
+    {
+      "id": "PF-PERMITS",
+      "path": "reports/preflight/PF-PERMITS.json",
+      "sha256": null
+    }
+  ],
+  "prerequisiteFailures": [
+    "Attended native bootstrap and live Gmail preflight have not run."
+  ]
+}

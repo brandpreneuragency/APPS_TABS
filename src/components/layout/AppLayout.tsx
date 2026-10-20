@@ -14,6 +14,7 @@ import { RightPanelSubheader } from '../sidebar/RightPanelSubheader';
 import { TerminalPanel } from '../terminal/TerminalPanel';
 import { SettingsDocument } from '../settings/SettingsDocument';
 import { NotesPage } from '../notes/NotesPage';
+import { ProviderAccountsPage } from '../providerAccounts/ProviderAccountsPage';
 import { GithubAssistantNotice, GithubAssistantSidebar, GithubWorkspace } from '../github/GithubWorkspace';
 import { useTaskStore } from '../../stores/taskStore';
 import { resolveTaskAssistantBinding } from '../../stores/taskAssistantBinding';
@@ -153,7 +154,7 @@ function UniversalWorkspaceShell({
   ) : (
     <>
       <div id="right-panel-subheader-wrapper" className="right-panel-subheader-wrapper">
-        {mode === 'notes' ? (
+        {mode === 'notes' || mode === 'providerAccounts' ? (
           <RightPanelSubheader mode="writer" workspaceId={null} taskId={null} />
         ) : mode === 'settings' ? (
           <RightPanelSubheader
@@ -206,6 +207,7 @@ function resolveModeLayout(args: {
     settings: boolean;
     github: boolean;
     notes: boolean;
+    providerAccounts: boolean;
   };
   contextPanelWidth: number;
   activeTaskPage: string;
@@ -235,6 +237,10 @@ function resolveModeLayout(args: {
 
   if (mode === 'notes') {
     return { primary: <NotesPage /> };
+  }
+
+  if (mode === 'providerAccounts') {
+    return { primary: <ProviderAccountsPage /> };
   }
 
   if (mode === 'documents') {

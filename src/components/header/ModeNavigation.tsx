@@ -1,4 +1,4 @@
-import { CalendarDays, FileText, Folder, GitBranch, List, PanelLeftClose, PanelLeftOpen, Settings, StickyNote, TerminalSquare, Users } from 'lucide-react';
+import { CalendarDays, FileText, Folder, Gauge, GitBranch, List, PanelLeftClose, PanelLeftOpen, Settings, StickyNote, TerminalSquare, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { enterClients } from '../../services/clients/navigation';
 import { useUIStore } from '../../stores/uiStore';
@@ -17,6 +17,7 @@ export function ModeNavigation() {
   const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
   const docsActive = !githubMode && !taskMode && !crmMode && activeView === 'document';
   const notesActive = !githubMode && !taskMode && !crmMode && activeView === 'notes';
+  const accountsActive = !githubMode && !taskMode && !crmMode && activeView === 'providerAccounts';
 
   return (
     <nav className="mode-navigation" aria-label={t('navigation.modes')}>
@@ -92,6 +93,10 @@ export function ModeNavigation() {
         <button id="nav-btn-clients" type="button" className="header-mode" aria-pressed={crmMode && clientPage === 'clients'}
           onClick={enterClients}>
           <Users className="ui-icon"  /><span>{t('navigation.clients')}</span>
+        </button>
+        <button id="nav-btn-provider-accounts" type="button" className="header-mode" aria-pressed={accountsActive}
+          onClick={() => useUIStore.getState().setActiveView('providerAccounts')}>
+          <Gauge className="ui-icon" /><span>{t('navigation.providerAccounts')}</span>
         </button>
     </nav>
   );

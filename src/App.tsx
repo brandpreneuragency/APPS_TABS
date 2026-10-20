@@ -179,10 +179,11 @@ export default function App() {
   // The Settings doc only lives in doc mode (not task/crm).
   const settingsActive = !githubMode && !taskMode && !crmMode && activeView === 'settings';
   const notesActive = !githubMode && !taskMode && !crmMode && activeView === 'notes';
+  const accountsActive = !githubMode && !taskMode && !crmMode && activeView === 'providerAccounts';
 
   // Panel 2 (editor) — CRM > task > doc. Settings primary content is
   // owned by AppLayout (SettingsDocument → section slots).
-  const activeWorkspace = githubMode || notesActive
+  const activeWorkspace = githubMode || notesActive || accountsActive
     ? null
     : crmMode
     ? <CRMWorkspace />
@@ -198,7 +199,7 @@ export default function App() {
   // Settings supplies its own list via SettingsPanels inside SettingsDocument.
   const formsPageActive = crmMode && activeCRMPage === 'forms';
   const clientsPageActive = crmMode && activeCRMPage === 'clients';
-  const leftPanel = githubMode || notesActive
+  const leftPanel = githubMode || notesActive || accountsActive
     ? null
     : crmMode
     ? formsPageActive
@@ -221,7 +222,7 @@ export default function App() {
     selectedProjectId,
   });
 
-  const sidebar = githubMode || notesActive ? (
+  const sidebar = githubMode || notesActive || accountsActive ? (
     <AISidebar workspaceId={null} taskId={null} mode="writer" editor={null} />
   ) : settingsActive ? (
     <AISidebar

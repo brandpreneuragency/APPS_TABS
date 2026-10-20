@@ -15,6 +15,7 @@ const CONTEXT_PANEL_NOUN: Record<WorkspaceMode, string> = {
   settings: 'Settings list',
   github: 'repository files',
   notes: 'notes',
+  providerAccounts: 'provider accounts',
 };
 
 interface ContextPanelToggleProps {

@@ -1,0 +1,497 @@
+{
+    "schemaVersion":  1,
+    "packageVersion":  "1.0",
+    "createdAt":  "2026-09-27",
+    "status":  "basic_google_readiness_verified_full_preflight_pending",
+    "repoRoot":  "C:\\Users\\burak\\MOTHER\\PROJECTS\\TABS-local",
+    "inspectedHead":  "c4efee2",
+    "contract":  {
+                     "version":  "CL-C1",
+                     "status":  "candidate",
+                     "sha256":  "7c8932f30f3a03b0c27f6e8d91e95c6370ad19af306e67e8dcf0b7693ad87808"
+                 },
+    "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116",
+    "preflightReceipt":  "preflight-receipt.json",
+    "finalCandidate":  null,
+    "assignments":  [
+
+                    ],
+    "writeLocks":  [
+
+                   ],
+    "packets":  [
+                    {
+                        "id":  "P0",
+                        "title":  "Keşif ve baseline",
+                        "needs":  [
+
+                                  ],
+                        "state":  "verified",
+                        "owner":  "/root",
+                        "role":  "Parent; gerekirse salt okunur en fazla 3 worker",
+                        "contractHash":  null,
+                        "candidateFingerprint":  "4f5b57e772bed7060d38a127777df0bc3ac7c095924a02ab12b9d0625e51d464",
+                        "exclusiveWriteSet":  [
+
+                                              ],
+                        "commands":  [
+                                         {
+                                             "exitCode":  0,
+                                             "testFiles":  64,
+                                             "testCount":  334,
+                                             "command":  "npm run check",
+                                             "warnings":  [
+                                                              "9 pre-existing lint warnings; Vite build warnings"
+                                                          ],
+                                             "level":  "source"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo fmt --check",
+                                             "level":  "source"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo check --locked",
+                                             "level":  "native compile"
+                                         }
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+                                         "reports/p1-auth-bootstrap.md"
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P1",
+                        "title":  "İzole native bootstrap ve attended Gmail",
+                        "needs":  [
+                                      "P0"
+                                  ],
+                        "state":  "in_progress",
+                        "owner":  "/root",
+                        "role":  "Parent auth/izin koordinatörü; tek native worker; bağımsız reviewer",
+                        "contractHash":  "7c8932f30f3a03b0c27f6e8d91e95c6370ad19af306e67e8dcf0b7693ad87808",
+                        "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116",
+                        "exclusiveWriteSet":  [
+                                                  "src-tauri/src/gmail/",
+                                                  "src/components/clients/acceptance/",
+                                                  "src/services/gmail/"
+                                              ],
+                        "commands":  [
+                                         {
+                                             "exitCode":  0,
+                                             "testFiles":  65,
+                                             "testCount":  337,
+                                             "command":  "npm run check",
+                                             "warnings":  [
+                                                              "9 pre-existing lint warnings; Vite build warnings"
+                                                          ],
+                                             "level":  "source"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo fmt --check",
+                                             "level":  "source"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo check --locked",
+                                             "level":  "production native compile"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo check --features clients-acceptance",
+                                             "level":  "acceptance native compile"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "cargo test --locked --features clients-acceptance --lib",
+                                             "testCount":  10,
+                                             "level":  "synthetic native tests"
+                                         },
+                                         {
+                                             "exitCode":  0,
+                                             "command":  "scripts/clients/Build-ClientsAcceptance.ps1",
+                                             "level":  "isolated native no-bundle build"
+                                         },
+                                         {
+                                             "command":  "npm run check",
+                                             "exitCode":  0,
+                                             "testFiles":  65,
+                                             "testCount":  337,
+                                             "level":  "source",
+                                             "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116",
+                                             "warnings":  [
+                                                              "9 existing lint warnings; Vite chunk/dynamic-import warnings"
+                                                          ]
+                                         },
+                                         {
+                                             "command":  "cargo fmt --check",
+                                             "exitCode":  0,
+                                             "level":  "source",
+                                             "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116"
+                                         },
+                                         {
+                                             "command":  "cargo test --locked --features clients-acceptance --lib",
+                                             "exitCode":  0,
+                                             "testCount":  11,
+                                             "level":  "synthetic native tests",
+                                             "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116"
+                                         },
+                                         {
+                                             "command":  "cargo check --locked --features clients-acceptance",
+                                             "exitCode":  0,
+                                             "level":  "acceptance native compile",
+                                             "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116"
+                                         },
+                                         {
+                                             "command":  "Build-ClientsAcceptance.ps1",
+                                             "exitCode":  0,
+                                             "level":  "isolated native build",
+                                             "candidateFingerprint":  "01ac46da8d80a16c9ef07e6cfa083793dfe02d4f64c165be9aba33b867923116",
+                                             "executableSha256":  "812ecfaf6f588f2adf70c3ff797b39389d080fd398977f9aa86fd50e4785e147"
+                                         }
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+                                         "reports/p1-auth-bootstrap.md"
+                                     ],
+                        "externalBlocker":  "OAuth login and refresh after restart passed. Detailed message/attachment/send tests deferred for speed; exact send permit and receiver evidence remain unavailable.",
+                        "resumeAt":  "Basic Google readiness passed including forced refresh and read-only list endpoint. Detailed body/attachment/send/recipient acceptance deferred; full G1 remains pending. No sign-in repetition needed and no send authorization exists."
+                    },
+                    {
+                        "id":  "P2",
+                        "title":  "Contract freeze ve parent entegrasyon temeli",
+                        "needs":  [
+                                      "P1"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Parent; P1 yazarı olmayan reviewer",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P3-A",
+                        "title":  "Yerel kayıt ve persistence foundation",
+                        "needs":  [
+                                      "P2"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker A — data/state",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src/services/clients/records/",
+                                                  "src/stores/clientRecordsStore.ts",
+                                                  "src/stores/clientRecordsStore.test.ts",
+                                                  "src/stores/clientDraftStore.ts",
+                                                  "src/stores/clientDraftStore.test.ts"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P3-B",
+                        "title":  "Native Gmail sync/send/files foundation",
+                        "needs":  [
+                                      "P2"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker B — native/Gmail",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src-tauri/src/gmail/",
+                                                  "src/services/gmail/",
+                                                  "src/stores/gmailStore.ts",
+                                                  "src/stores/gmailStore.test.ts"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P3-C",
+                        "title":  "Clients shell ve view state",
+                        "needs":  [
+                                      "P2"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker C — shell/UI",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src/components/clients/shell/",
+                                                  "src/stores/clientsViewStore.ts",
+                                                  "src/stores/clientsViewStore.test.ts",
+                                                  "src/services/clients/navigation.ts",
+                                                  "src/services/clients/navigation.test.ts"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P4-A",
+                        "title":  "Profile ve Notes deneyimi",
+                        "needs":  [
+                                      "P3-A",
+                                      "P3-C"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker A — profile/notes",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src/components/clients/profile/",
+                                                  "src/components/clients/notes/"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P4-B",
+                        "title":  "Conversations ve email composer",
+                        "needs":  [
+                                      "P3-A",
+                                      "P3-B",
+                                      "P3-C"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker B — conversations",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src/components/clients/conversations/",
+                                                  "src/components/clients/composer/"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P4-C",
+                        "title":  "Overview ve mevcut işe geçiş",
+                        "needs":  [
+                                      "P3-A",
+                                      "P3-C"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Worker C — overview/navigation",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+                                                  "src/components/clients/overview/",
+                                                  "src/services/clients/overview.ts",
+                                                  "src/services/clients/overview.test.ts"
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P5",
+                        "title":  "Entegrasyon ve bağımsız inceleme",
+                        "needs":  [
+                                      "P4-A",
+                                      "P4-B",
+                                      "P4-C",
+                                      "P3-B"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Parent integrator + yazarı farklı reviewer",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P6",
+                        "title":  "Final source/native/live gates",
+                        "needs":  [
+                                      "P5"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Parent tek build/test coordinator; serbest reviewer",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    },
+                    {
+                        "id":  "P7",
+                        "title":  "Teslim ve devam kaydı",
+                        "needs":  [
+                                      "P6"
+                                  ],
+                        "state":  "pending",
+                        "owner":  null,
+                        "role":  "Parent",
+                        "contractHash":  null,
+                        "candidateFingerprint":  null,
+                        "exclusiveWriteSet":  [
+
+                                              ],
+                        "commands":  [
+
+                                     ],
+                        "reviews":  [
+
+                                    ],
+                        "evidence":  [
+
+                                     ],
+                        "externalBlocker":  null,
+                        "resumeAt":  null
+                    }
+                ],
+    "gates":  {
+                  "G1":  "pending",
+                  "G2":  "pending",
+                  "finalSource":  "pending",
+                  "finalNativeBuild":  "pending",
+                  "finalNativeRuntime":  "pending",
+                  "finalLiveGmail":  "pending"
+              },
+    "commandRecordShape":  {
+                               "command":  "",
+                               "cwd":  "",
+                               "startedAt":  null,
+                               "finishedAt":  null,
+                               "exitCode":  null,
+                               "testFiles":  null,
+                               "testCount":  null,
+                               "warnings":  [
+
+                                            ],
+                               "level":  null,
+                               "evidence":  null,
+                               "candidateFingerprint":  null
+                           },
+    "findings":  [
+
+                 ],
+    "taskOwnedProcesses":  [
+                               {
+                                   "state":  "running",
+                                   "pid":  25004,
+                                   "executablePath":  "C:\\Users\\burak\\AppData\\Local\\TABS-Clients-Acceptance\\cargo-target\\release\\tabs.exe",
+                                   "purpose":  "isolated read-access smoke passed; sends disabled"
+                               }
+                           ],
+    "knownUserWip":  {
+                         "preserveDeletedDirectory":  "tabs_crm_forms_plan_package",
+                         "preserveUntracked":  [
+                                                   "%SystemDrive%/",
+                                                   "TABS-Clients-Planning/",
+                                                   "edit-code-progress-messages.json",
+                                                   "generate-code-progress-messages.json",
+                                                   "index.css",
+                                                   "output/playwright/"
+                                               ]
+                     },
+    "nextAction":  "Basic Google readiness passed including forced refresh and read-only list endpoint. Detailed body/attachment/send/recipient acceptance deferred; full G1 remains pending. No sign-in repetition needed and no send authorization exists."
+}

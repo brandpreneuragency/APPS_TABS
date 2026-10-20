@@ -1,4 +1,4 @@
-mod discovery;
+pub(crate) mod discovery;
 mod journal;
 mod process;
 mod protocol;

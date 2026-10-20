@@ -25,6 +25,10 @@ mod commands;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod github;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
+mod provider_accounts;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
+mod provider_connections;
+#[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod terminal;
 #[cfg(not(any(feature = "clients-acceptance", feature = "tasks-acceptance")))]
 mod tray;
@@ -198,6 +202,13 @@ fn run_production() {
             commands::terminal::terminal_list,
             commands::terminal::home_dir,
             commands::codex::codex_discover,
+            provider_accounts::provider_accounts_list,
+            provider_accounts::provider_accounts_refresh,
+            provider_accounts::provider_accounts_begin_login,
+            provider_accounts::provider_accounts_poll_login,
+            provider_accounts::provider_accounts_cancel_login,
+            provider_accounts::provider_accounts_open_login,
+            provider_connections::provider_connections_refresh,
             commands::codex::codex_connect,
             commands::codex::codex_begin_login,
             commands::codex::codex_cancel_login,

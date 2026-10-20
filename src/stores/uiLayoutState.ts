@@ -6,7 +6,7 @@
  * via temporary compatibility mirrors in uiStore.
  */
 
-export type WorkspaceMode = 'documents' | 'github' | 'tasks' | 'crm' | 'forms' | 'settings' | 'notes';
+export type WorkspaceMode = 'documents' | 'github' | 'tasks' | 'crm' | 'forms' | 'settings' | 'notes' | 'providerAccounts';
 
 export type ContextPanelOpenByMode = {
   documents: boolean;
@@ -16,6 +16,7 @@ export type ContextPanelOpenByMode = {
   settings: boolean;
   github: boolean;
   notes: boolean;
+  providerAccounts: boolean;
 };
 
 export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
@@ -26,6 +27,7 @@ export const DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE: ContextPanelOpenByMode = {
   settings: true,
   github: true,
   notes: false,
+  providerAccounts: false,
 };
 
 export const ASSISTANT_WRAPPER_WIDTH_MIN_VW = 15;
@@ -108,6 +110,7 @@ export function selectActiveWorkspaceMode(state: ModeRoutingState): WorkspaceMod
   if (state.crmMode) return 'crm';
   if (state.activeView === 'settings') return 'settings';
   if (state.activeView === 'notes') return 'notes';
+  if (state.activeView === 'providerAccounts') return 'providerAccounts';
   return 'documents';
 }
 
@@ -131,7 +134,7 @@ export function selectIsContextPanelAvailable(
   state: ModeRoutingState & { activeTaskPage: string },
 ): boolean {
   const mode = selectActiveWorkspaceMode(state);
-  if (mode === 'notes') return false;
+  if (mode === 'notes' || mode === 'providerAccounts') return false;
   if (mode === 'tasks') return state.activeTaskPage !== 'projects';
   if (mode === 'crm') return state.activeCRMPage !== 'pipeline' && state.activeCRMPage !== 'projects';
   return true;
@@ -167,6 +170,7 @@ export function mergeContextPanelOpenByMode(
       fallbacks.github ??
       DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.github,
     notes: partial?.notes ?? fallbacks.notes ?? DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.notes,
+    providerAccounts: partial?.providerAccounts ?? fallbacks.providerAccounts ?? DEFAULT_CONTEXT_PANEL_OPEN_BY_MODE.providerAccounts,
   };
 }
 

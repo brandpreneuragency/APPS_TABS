@@ -67,7 +67,7 @@ export type SettingsSubTab = 'tools' | 'actions' | 'appearance' | 'agents';
 /** Legacy Settings sub-tab id kept for deep-link compatibility (maps to `tools`). */
 export type LegacySettingsSubTab = SettingsSubTab | 'models';
 /** Which doc-mode tab is active: a normal document or the special Settings doc. */
-export type DocActiveView = 'document' | 'settings' | 'notes';
+export type DocActiveView = 'document' | 'settings' | 'notes' | 'providerAccounts';
 
 interface UIStore {
   theme: AppTheme;
@@ -572,11 +572,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
   setActiveView: (v) => {
     // Entering documents or settings in doc mode ensures primary open.
     set({ activeView: v, githubMode: false, primaryWrapperOpen: true,
-      ...(v === 'notes' ? { taskMode: false, crmMode: false } : {}),
+      ...(v === 'notes' || v === 'providerAccounts' ? { taskMode: false, crmMode: false } : {}),
     });
     persistLayoutKeys({ primaryWrapperOpen: true });
     void db.settings.put({ key: 'githubMode', value: false });
-    if (v === 'notes') {
+    if (v === 'notes' || v === 'providerAccounts') {
       void db.settings.put({ key: 'taskMode', value: false });
       void db.settings.put({ key: 'crmMode', value: false });
     }
